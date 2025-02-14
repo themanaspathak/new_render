@@ -1,7 +1,6 @@
 import { createContext, useContext, useReducer, ReactNode } from "react";
 import { MenuItem } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle2 } from "lucide-react";
 
 interface CartItem {
   menuItem: MenuItem;
@@ -85,12 +84,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (action.type === "ADD_ITEM") {
       toast({
         description: (
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5 text-green-500 animate-in zoom-in-50 duration-300" />
-            <p className="text-base font-medium">
-              {action.item.menuItem.name} has been added to your cart
-            </p>
-          </div>
+          <p className="text-base font-medium animate-in fade-in-50 duration-300">
+            {action.item.menuItem.name} has been added to your cart
+          </p>
         ),
         className: "bg-white border-green-100 shadow-lg rounded-xl p-4",
         duration: 3000,
