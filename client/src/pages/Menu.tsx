@@ -97,7 +97,7 @@ export default function Menu() {
     <div className="container mx-auto px-4 pb-16 max-w-3xl">
       {/* Mobile Header with Cart */}
       <div className="sticky top-0 z-10 flex items-center bg-background/95 backdrop-blur py-4 -mx-4 px-4 md:hidden">
-        <h1 className="text-xl font-bold absolute left-1/2 -translate-x-1/2">Our Menu</h1>
+        <h1 className="text-xl font-bold absolute left-1/2 -translate-x-1/2">Menu</h1>
         <div className="ml-auto">
           <Link href="/cart">
             <Button variant="outline" size="icon" className="relative">
@@ -114,7 +114,7 @@ export default function Menu() {
 
       {/* Desktop Header */}
       <div className="hidden md:flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold">Our Menu</h1>
+        <h1 className="text-3xl font-bold">Menu</h1>
         <Link href="/cart">
           <Button variant="outline" className="flex items-center gap-2">
             <ShoppingCart className="h-5 w-5" />
