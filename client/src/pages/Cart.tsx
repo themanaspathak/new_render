@@ -20,11 +20,13 @@ export default function Cart() {
     queryKey: ["/api/menu"],
   });
 
-  // Filter dessert items (assuming items with 'Dessert' category)
+  // Update the dessert filtering logic
   const desserts = menuItems?.filter(item => 
+    item.category === "Desserts" || 
     item.name.toLowerCase().includes('jamun') || 
     item.name.toLowerCase().includes('halwa') ||
-    item.name.toLowerCase().includes('kheer')
+    item.name.toLowerCase().includes('kheer') ||
+    item.name.toLowerCase().includes('rasmalai')
   ) || [];
 
   const handleAddDessert = (dessert: MenuItem) => {

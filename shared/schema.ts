@@ -350,5 +350,109 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
         }
       ]
     }
+  },
+  {
+    id: 13,
+    name: "Gulab Jamun",
+    description: "Sweet dumplings made from milk solids, soaked in sugar syrup",
+    price: 12.49,
+    category: "Desserts",
+    imageUrl: "https://images.unsplash.com/photo-1589301760014-d929f3979dbc",
+    isVegetarian: true,
+    rating: 4.8,
+    ratingCount: 245,
+    isBestSeller: true,
+    customizations: {
+      options: [
+        {
+          name: "Portion",
+          choices: ["2 pieces", "4 pieces", "6 pieces"],
+          maxChoices: 1
+        },
+        {
+          name: "Temperature",
+          choices: ["Warm", "Room Temperature"],
+          maxChoices: 1
+        }
+      ]
+    }
+  },
+  {
+    id: 14,
+    name: "Gajar Ka Halwa",
+    description: "Traditional carrot pudding made with milk, cardamom, and nuts",
+    price: 13.99,
+    category: "Desserts",
+    imageUrl: "https://images.unsplash.com/photo-1589301841844-1cf2d77f9b36",
+    isVegetarian: true,
+    rating: 4.7,
+    ratingCount: 189,
+    isBestSeller: true,
+    customizations: {
+      options: [
+        {
+          name: "Add-ons",
+          choices: ["Extra Nuts", "Extra Raisins", "Plain"],
+          maxChoices: 1
+        },
+        {
+          name: "Temperature",
+          choices: ["Warm", "Room Temperature"],
+          maxChoices: 1
+        }
+      ]
+    }
+  },
+  {
+    id: 15,
+    name: "Rasmalai",
+    description: "Soft cottage cheese dumplings in creamy saffron milk",
+    price: 14.99,
+    category: "Desserts",
+    imageUrl: "https://images.unsplash.com/photo-1589301760014-d929f3979dbc",
+    isVegetarian: true,
+    rating: 4.9,
+    ratingCount: 278,
+    isBestSeller: true,
+    customizations: {
+      options: [
+        {
+          name: "Portion",
+          choices: ["2 pieces", "3 pieces", "4 pieces"],
+          maxChoices: 1
+        },
+        {
+          name: "Garnish",
+          choices: ["Extra Pistachios", "Extra Saffron", "Plain"],
+          maxChoices: 1
+        }
+      ]
+    }
+  },
+  {
+    id: 16,
+    name: "Kheer",
+    description: "Traditional rice pudding with cardamom, nuts, and saffron",
+    price: 11.99,
+    category: "Desserts",
+    imageUrl: "https://images.unsplash.com/photo-1589301841844-1cf2d77f9b36",
+    isVegetarian: true,
+    rating: 4.6,
+    ratingCount: 167,
+    isBestSeller: false,
+    customizations: {
+      options: [
+        {
+          name: "Add-ons",
+          choices: ["Extra Nuts", "Extra Raisins", "Plain"],
+          maxChoices: 1
+        },
+        {
+          name: "Temperature",
+          choices: ["Chilled", "Room Temperature"],
+          maxChoices: 1
+        }
+      ]
+    }
   }
 ];
