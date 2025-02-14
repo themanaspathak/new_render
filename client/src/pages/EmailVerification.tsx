@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useCart } from "@/contexts/CartContext";
 import { Mail } from "lucide-react";
-import { showToast } from "@/lib/toast-utils";
 
 export default function EmailVerification() {
   const [, navigate] = useLocation();
-  const { toast } = useToast(); // This line remains, even though showToast is used.  It might be used elsewhere in the component.
+  const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [showOtpInput, setShowOtpInput] = useState(false);
@@ -25,7 +25,11 @@ export default function EmailVerification() {
 
   const handleSendOtp = async () => {
     if (!validateEmail(email)) {
-      showToast("Please enter a valid email address", "error");
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -43,10 +47,17 @@ export default function EmailVerification() {
         throw new Error("Failed to send OTP");
       }
 
-      showToast(`Please check your email (${email}) for OTP`, "success");
+      toast({
+        title: "OTP Sent",
+        description: `Please check your email (${email}) for OTP`,
+      });
       setShowOtpInput(true);
     } catch (error) {
-      showToast("Failed to send OTP. Please try again.", "error");
+      toast({
+        title: "Error",
+        description: "Failed to send OTP. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsResending(false);
     }
@@ -54,7 +65,11 @@ export default function EmailVerification() {
 
   const handleVerifyOtp = async () => {
     if (!otp || otp.length !== 6) {
-      showToast("Please enter a valid 6-digit OTP", "error");
+      toast({
+        title: "Invalid OTP",
+        description: "Please enter a valid 6-digit OTP",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -74,10 +89,17 @@ export default function EmailVerification() {
       // Store verified email in localStorage
       localStorage.setItem("verifiedEmail", email);
 
-      showToast("Email verified successfully", "success");
+      toast({
+        title: "Email Verified",
+        description: "Proceeding to order confirmation",
+      });
       navigate("/order-confirmed");
     } catch (error) {
-      showToast("Invalid OTP. Please try again.", "error");
+      toast({
+        title: "Error",
+        description: "Invalid OTP. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -129,7 +151,7 @@ export default function EmailVerification() {
                   className="text-center text-xl py-6 bg-muted/50 border-2 border-muted-foreground/20 rounded-xl shadow-sm transition-all duration-200 focus:border-primary/50 focus:bg-background hover:bg-muted/70"
                   value={otp}
                   onChange={(e) => {
-                    const value = e.target.value.replace(/[^0-9]/g, "");
+                    const value = e.target.value.replace(/[^0-9]/g, '');
                     if (value.length <= 6) {
                       setOtp(value);
                     }
