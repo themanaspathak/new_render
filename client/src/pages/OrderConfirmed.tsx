@@ -56,7 +56,9 @@ export default function OrderConfirmed() {
           Your order has been received and is being prepared.
         </p>
         <Link href="/">
-          <Button className="w-full">Place New Order</Button>
+          <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+            OK
+          </Button>
         </Link>
       </Card>
     </div>
