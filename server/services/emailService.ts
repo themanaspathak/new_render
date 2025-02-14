@@ -6,16 +6,24 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD,
   },
+  debug: true, // Enable debug logging
 });
 
 // Store OTPs temporarily (in production, use Redis or similar)
 const otpStore = new Map<string, { otp: string; expires: Date }>();
 
-export async function sendOTP(email: string): Promise<boolean> {
+export async function sendOTP(email: string): Promise<{
+  success: boolean;
+  message: string;
+}> {
   try {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+      throw new Error("Email credentials are not configured");
+    }
+
     // Generate a 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    
+
     // Store OTP with 5-minute expiration
     otpStore.set(email, {
       otp,
@@ -40,18 +48,41 @@ export async function sendOTP(email: string): Promise<boolean> {
       `,
     });
 
-    return true;
+    return {
+      success: true,
+      message: "OTP sent successfully",
+    };
   } catch (error) {
     console.error("Failed to send OTP:", error);
-    return false;
+
+    let errorMessage = "Failed to send OTP";
+    if (error instanceof Error) {
+      // Check for specific Gmail errors
+      if (error.message.includes("Invalid login") || error.message.includes("535-5.7.8")) {
+        errorMessage = "Email authentication failed. Please ensure valid app-specific password is configured.";
+      } else if (error.message.includes("Email credentials are not configured")) {
+        errorMessage = error.message;
+      }
+    }
+
+    return {
+      success: false,
+      message: errorMessage,
+    };
   }
 }
 
-export function verifyOTP(email: string, otp: string): boolean {
+export function verifyOTP(email: string, otp: string): {
+  success: boolean;
+  message: string;
+} {
   const storedData = otpStore.get(email);
-  
+
   if (!storedData) {
-    return false;
+    return {
+      success: false,
+      message: "No OTP found. Please request a new OTP.",
+    };
   }
 
   const { otp: storedOtp, expires } = storedData;
@@ -59,14 +90,20 @@ export function verifyOTP(email: string, otp: string): boolean {
   // Check if OTP is expired
   if (expires < new Date()) {
     otpStore.delete(email);
-    return false;
+    return {
+      success: false,
+      message: "OTP has expired. Please request a new OTP.",
+    };
   }
 
   // Verify OTP
   const isValid = storedOtp === otp;
-  
+
   // Clear OTP after verification (whether successful or not)
   otpStore.delete(email);
 
-  return isValid;
+  return {
+    success: isValid,
+    message: isValid ? "OTP verified successfully" : "Invalid OTP. Please try again.",
+  };
 }

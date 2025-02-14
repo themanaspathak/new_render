@@ -16,18 +16,19 @@ const verifySchema = z.object({
 router.post("/send-email-otp", async (req, res) => {
   try {
     const { email } = emailSchema.parse(req.body);
-    
-    const success = await sendOTP(email);
-    
+
+    const { success, message } = await sendOTP(email);
+
     if (success) {
-      res.json({ message: "OTP sent successfully" });
+      res.json({ message });
     } else {
-      res.status(500).json({ error: "Failed to send OTP" });
+      res.status(500).json({ error: message });
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
       res.status(400).json({ error: error.errors[0].message });
     } else {
+      console.error("Send OTP error:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   }
@@ -36,18 +37,19 @@ router.post("/send-email-otp", async (req, res) => {
 router.post("/verify-email-otp", (req, res) => {
   try {
     const { email, otp } = verifySchema.parse(req.body);
-    
-    const isValid = verifyOTP(email, otp);
-    
-    if (isValid) {
-      res.json({ message: "OTP verified successfully" });
+
+    const { success, message } = verifyOTP(email, otp);
+
+    if (success) {
+      res.json({ message });
     } else {
-      res.status(400).json({ error: "Invalid or expired OTP" });
+      res.status(400).json({ error: message });
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
       res.status(400).json({ error: error.errors[0].message });
     } else {
+      console.error("Verify OTP error:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   }
