@@ -210,5 +210,93 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
         }
       ]
     }
+  },
+  {
+    id: 9,
+    name: "Butter Chicken",
+    description: "Tender chicken pieces in rich tomato and butter gravy",
+    price: 18.99,
+    category: "Main Course",
+    imageUrl: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398",
+    customizations: {
+      options: [
+        {
+          name: "Spice Level",
+          choices: ["Mild", "Medium", "Hot"],
+          maxChoices: 1
+        },
+        {
+          name: "Bread",
+          choices: ["Naan", "Roti", "Paratha"],
+          maxChoices: 1
+        }
+      ]
+    }
+  },
+  {
+    id: 10,
+    name: "Chicken Biryani",
+    description: "Fragrant basmati rice cooked with tender chicken and aromatic spices",
+    price: 16.99,
+    category: "Rice and Biryani",
+    imageUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8",
+    customizations: {
+      options: [
+        {
+          name: "Spice Level",
+          choices: ["Mild", "Medium", "Hot"],
+          maxChoices: 1
+        },
+        {
+          name: "Add-ons",
+          choices: ["Raita", "Salan", "Extra Gravy"],
+          maxChoices: 2
+        }
+      ]
+    }
+  },
+  {
+    id: 11,
+    name: "Mutton Rogan Josh",
+    description: "Tender mutton pieces cooked in Kashmiri style spicy gravy",
+    price: 19.99,
+    category: "Main Course",
+    imageUrl: "https://images.unsplash.com/photo-1545247181-516773cae754",
+    customizations: {
+      options: [
+        {
+          name: "Spice Level",
+          choices: ["Mild", "Medium", "Hot"],
+          maxChoices: 1
+        },
+        {
+          name: "Bread",
+          choices: ["Naan", "Roti", "Paratha"],
+          maxChoices: 1
+        }
+      ]
+    }
+  },
+  {
+    id: 12,
+    name: "Fish Curry",
+    description: "Fresh fish simmered in coconut-based curry sauce",
+    price: 17.99,
+    category: "Main Course",
+    imageUrl: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46",
+    customizations: {
+      options: [
+        {
+          name: "Spice Level",
+          choices: ["Mild", "Medium", "Hot"],
+          maxChoices: 1
+        },
+        {
+          name: "Rice Type",
+          choices: ["Steamed Rice", "Jeera Rice", "No Rice"],
+          maxChoices: 1
+        }
+      ]
+    }
   }
 ];
