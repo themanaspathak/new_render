@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -13,8 +13,8 @@ import {
 } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input"; // Added import
-import { ShoppingCart, Star, Minus, Plus, Search } from "lucide-react"; // Added import
+import { Input } from "@/components/ui/input";
+import { ShoppingCart, Star, Minus, Plus, Search } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Menu() {
@@ -43,9 +43,29 @@ export default function Menu() {
     taste: 'regular'
   });
 
-  if (isLoading) {
-    return <div className="p-4">Loading menu...</div>;
-  }
+  // Organize menu items by category
+  const categorizedItems = useMemo(() => {
+    if (!menuItems) return {};
+
+    const filtered = menuItems.filter(item => {
+      if (filters.vegOnly && !item.isVegetarian) return false;
+      if (filters.nonVegOnly && item.isVegetarian) return false;
+      if (filters.highRated && (item.rating || 0) < 4.0) return false;
+      if (filters.bestSeller && !item.isBestSeller) return false;
+      if (searchQuery) {
+        return item.name.toLowerCase().includes(searchQuery.toLowerCase());
+      }
+      return true;
+    });
+
+    return filtered.reduce((acc, item) => {
+      if (!acc[item.category]) {
+        acc[item.category] = [];
+      }
+      acc[item.category].push(item);
+      return acc;
+    }, {} as Record<string, MenuItem[]>);
+  }, [menuItems, filters, searchQuery]);
 
   const handleAddToCart = () => {
     if (!selectedItem) return;
@@ -81,17 +101,13 @@ export default function Menu() {
   const currentPrice = customizations.portionSize === 'full' ? Math.round(basePrice * 1.5) : basePrice;
   const totalPrice = currentPrice * quantity;
 
-  // Filter menu items based on selected filters
-  const filteredItems = menuItems?.filter(item => {
-    if (filters.vegOnly && !item.isVegetarian) return false;
-    if (filters.nonVegOnly && item.isVegetarian) return false;
-    if (filters.highRated && item.rating < 4.0) return false;
-    if (filters.bestSeller && !item.isBestSeller) return false;
-    if (searchQuery) {
-      return item.name.toLowerCase().includes(searchQuery.toLowerCase());
-    }
-    return true;
-  });
+
+  if (isLoading) {
+    return <div className="p-4">Loading menu...</div>;
+  }
+
+  // Categories in desired order
+  const categoryOrder = ["Starters", "Main Course", "Rice and Biryani", "South Indian", "Fast Food", "Desserts"];
 
   return (
     <div className="container mx-auto px-4 pb-16 max-w-3xl">
@@ -179,64 +195,76 @@ export default function Menu() {
         </div>
       </div>
 
-      <div className="space-y-4">
-        {menuItems?.map((item) => (
-          <Card key={item.id} className="relative overflow-hidden">
-            <CardContent className="p-4">
-              <div className="flex gap-4">
-                {/* Image Section */}
-                <div className="w-24 h-24 flex-shrink-0">
-                  <img
-                    src={item.imageUrl}
-                    alt={item.name}
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                </div>
+      <div className="space-y-8">
+        {categoryOrder.map(category => {
+          const items = categorizedItems[category];
+          if (!items?.length) return null;
 
-                {/* Content Section */}
-                <div className="flex flex-1 justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      {/* Veg/Non-veg indicator */}
-                      <div className={`w-4 h-4 border-2 ${item.isVegetarian ? 'border-green-600' : 'border-red-600'} p-0.5`}>
-                        <div className={`w-full h-full rounded-full ${item.isVegetarian ? 'bg-green-600' : 'bg-red-600'}`} />
+          return (
+            <section key={category}>
+              <h2 className="text-2xl font-bold mb-4">{category}</h2>
+              <div className="space-y-4">
+                {items.map((item) => (
+                  <Card key={item.id} className="relative overflow-hidden">
+                    <CardContent className="p-4">
+                      <div className="flex gap-4">
+                        {/* Image Section */}
+                        <div className="w-24 h-24 flex-shrink-0">
+                          <img
+                            src={item.imageUrl}
+                            alt={item.name}
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                        </div>
+
+                        {/* Content Section */}
+                        <div className="flex flex-1 justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              {/* Veg/Non-veg indicator */}
+                              <div className={`w-4 h-4 border-2 ${item.isVegetarian ? 'border-green-600' : 'border-red-600'} p-0.5`}>
+                                <div className={`w-full h-full rounded-full ${item.isVegetarian ? 'bg-green-600' : 'bg-red-600'}`} />
+                              </div>
+                              {/* Bestseller tag */}
+                              {item.isBestSeller && (
+                                <span className="text-[#ff645a] text-sm font-medium bg-[#fff3f3] px-2 py-0.5 rounded">
+                                  ★ Bestseller
+                                </span>
+                              )}
+                            </div>
+
+                            <h3 className="font-medium text-lg mb-1">{item.name}</h3>
+                            <div className="flex items-center gap-1 text-sm mb-2">
+                              <div className="flex items-center gap-0.5 text-green-600">
+                                <Star className="h-4 w-4 fill-current" />
+                                <span className="font-medium">{item.rating || 4.5}</span>
+                              </div>
+                              <span className="text-gray-500">
+                                ({item.ratingCount || Math.floor(Math.random() * (300 - 100) + 100)})
+                              </span>
+                            </div>
+                            <div className="text-xl font-bold">₹{Math.round(item.price * 80)}</div>
+                          </div>
+
+                          <Button 
+                            onClick={() => setSelectedItem(item)}
+                            className="bg-green-600 hover:bg-green-700 text-white min-w-[80px]"
+                          >
+                            ADD
+                          </Button>
+                        </div>
                       </div>
-                      {/* Bestseller tag */}
-                      {item.isBestSeller && (
-                        <span className="text-[#ff645a] text-sm font-medium bg-[#fff3f3] px-2 py-0.5 rounded">
-                          ★ Bestseller
-                        </span>
-                      )}
-                    </div>
 
-                    <h3 className="font-medium text-lg mb-1">{item.name}</h3>
-                    <div className="flex items-center gap-1 text-sm mb-2">
-                      <div className="flex items-center gap-0.5 text-green-600">
-                        <Star className="h-4 w-4 fill-current" />
-                        <span className="font-medium">{item.rating || 4.5}</span>
+                      <div className="mt-2 text-sm text-gray-500">
+                        <span>Customisable</span>
                       </div>
-                      <span className="text-gray-500">
-                        ({item.ratingCount || Math.floor(Math.random() * (300 - 100) + 100)})
-                      </span>
-                    </div>
-                    <div className="text-xl font-bold">₹{Math.round(item.price * 80)}</div>
-                  </div>
-
-                  <Button 
-                    onClick={() => setSelectedItem(item)}
-                    className="bg-green-600 hover:bg-green-700 text-white min-w-[80px]"
-                  >
-                    ADD
-                  </Button>
-                </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-
-              <div className="mt-2 text-sm text-gray-500">
-                <span>Customisable</span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+            </section>
+          );
+        })}
       </div>
 
       {/* Customization Dialog */}

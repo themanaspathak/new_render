@@ -454,5 +454,109 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
         }
       ]
     }
+  },
+  {
+    id: 17,
+    name: "Samosa Chaat",
+    description: "Crispy samosas topped with chickpea curry, yogurt, and chutneys",
+    price: 7.99,
+    category: "Starters",
+    imageUrl: "https://images.unsplash.com/photo-1601050690597-df0568f70950",
+    isVegetarian: true,
+    rating: 4.7,
+    ratingCount: 156,
+    isBestSeller: true,
+    customizations: {
+      options: [
+        {
+          name: "Spice Level",
+          choices: ["Mild", "Medium", "Hot"],
+          maxChoices: 1
+        },
+        {
+          name: "Toppings",
+          choices: ["Extra Chutney", "Extra Yogurt", "Extra Onions"],
+          maxChoices: 2
+        }
+      ]
+    }
+  },
+  {
+    id: 18,
+    name: "Onion Bhaji",
+    description: "Crispy onion fritters with Indian spices and herbs",
+    price: 6.99,
+    category: "Starters",
+    imageUrl: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398",
+    isVegetarian: true,
+    rating: 4.5,
+    ratingCount: 142,
+    isBestSeller: false,
+    customizations: {
+      options: [
+        {
+          name: "Portion",
+          choices: ["4 pieces", "6 pieces", "8 pieces"],
+          maxChoices: 1
+        },
+        {
+          name: "Accompaniments",
+          choices: ["Mint Chutney", "Tamarind Chutney", "Both"],
+          maxChoices: 1
+        }
+      ]
+    }
+  },
+  {
+    id: 19,
+    name: "Paneer Tikka",
+    description: "Grilled cottage cheese marinated in yogurt and Indian spices",
+    price: 11.99,
+    category: "Starters",
+    imageUrl: "https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8",
+    isVegetarian: true,
+    rating: 4.8,
+    ratingCount: 189,
+    isBestSeller: true,
+    customizations: {
+      options: [
+        {
+          name: "Spice Level",
+          choices: ["Mild", "Medium", "Hot"],
+          maxChoices: 1
+        },
+        {
+          name: "Style",
+          choices: ["Classic", "Malai", "Hariyali"],
+          maxChoices: 1
+        }
+      ]
+    }
+  },
+  {
+    id: 20,
+    name: "Dahi Puri",
+    description: "Crispy puris filled with potatoes, yogurt, and tangy chutneys",
+    price: 8.99,
+    category: "Starters",
+    imageUrl: "https://images.unsplash.com/photo-1606491956689-2ea866880c84",
+    isVegetarian: true,
+    rating: 4.6,
+    ratingCount: 167,
+    isBestSeller: false,
+    customizations: {
+      options: [
+        {
+          name: "Portion",
+          choices: ["6 pieces", "8 pieces", "10 pieces"],
+          maxChoices: 1
+        },
+        {
+          name: "Spice Level",
+          choices: ["Mild", "Medium", "Hot"],
+          maxChoices: 1
+        }
+      ]
+    }
   }
 ];
