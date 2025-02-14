@@ -158,14 +158,6 @@ export default function EmailVerification() {
                   }}
                 />
 
-                <div className="text-center text-3xl font-light tracking-[0.5em] text-muted-foreground/50 font-mono">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <span key={i} className={`transition-all duration-200 ${otp[i] ? 'text-foreground' : ''}`}>
-                      {otp[i] || '•'}
-                    </span>
-                  ))}
-                </div>
-
                 <div className="pt-4 space-y-4">
                   <Button
                     className="w-full bg-green-600 hover:bg-green-700 text-white"
