@@ -13,11 +13,10 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogClose,
 } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { ShoppingCart, Star, X, Minus, Plus } from "lucide-react";
+import { ShoppingCart, Star, Minus, Plus } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Menu() {
@@ -77,7 +76,7 @@ export default function Menu() {
   const totalPrice = currentPrice * quantity;
 
   return (
-    <div className="container mx-auto px-4 pb-16">
+    <div className="container mx-auto px-4 pb-16 max-w-3xl">
       {/* Mobile Header with Cart */}
       <div className="sticky top-0 z-10 flex items-center justify-between bg-background/95 backdrop-blur py-4 -mx-4 px-4 md:hidden">
         <h1 className="text-xl font-bold">Our Menu</h1>
@@ -178,11 +177,8 @@ export default function Menu() {
         }
       }}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader className="relative">
+          <DialogHeader>
             <DialogTitle className="text-xl">{selectedItem?.name}</DialogTitle>
-            <DialogClose className="absolute right-4 top-4">
-              <X className="h-4 w-4" />
-            </DialogClose>
           </DialogHeader>
 
           <div className="space-y-6 py-4">
