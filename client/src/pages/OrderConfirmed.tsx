@@ -12,13 +12,21 @@ export default function OrderConfirmed() {
     // Submit order to kitchen
     const submitOrder = async () => {
       try {
+        // Get email from earlier verification step
+        const userEmail = localStorage.getItem("verifiedEmail");
+        if (!userEmail) {
+          console.error("No verified email found");
+          return;
+        }
+
         await fetch("/api/orders", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            tableNumber: 1, // This should be dynamic in a real implementation
+            tableNumber: state.tableNumber || 1,
+            userEmail, // Include the verified email
             items: state.items.map(item => ({
               menuItemId: item.menuItem.id,
               quantity: item.quantity,
@@ -55,11 +63,18 @@ export default function OrderConfirmed() {
         <p className="text-gray-600 mb-6">
           Your order has been received and is being prepared.
         </p>
-        <Link href="/">
-          <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
-            OK
-          </Button>
-        </Link>
+        <div className="space-y-4">
+          <Link href="/">
+            <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+              Place Another Order
+            </Button>
+          </Link>
+          <Link href={`/orders/${encodeURIComponent(localStorage.getItem("verifiedEmail") || "")}`}>
+            <Button variant="outline" className="w-full">
+              View Order History
+            </Button>
+          </Link>
+        </div>
       </Card>
     </div>
   );

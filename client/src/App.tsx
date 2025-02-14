@@ -9,6 +9,7 @@ import Checkout from "@/pages/Checkout";
 import Kitchen from "@/pages/Kitchen";
 import OrderConfirmed from "@/pages/OrderConfirmed";
 import EmailVerification from "@/pages/EmailVerification";
+import OrderHistory from "@/pages/OrderHistory";
 import { CartProvider } from "@/contexts/CartContext";
 
 function Router() {
@@ -20,6 +21,7 @@ function Router() {
       <Route path="/kitchen" component={Kitchen} />
       <Route path="/email-verification" component={EmailVerification} />
       <Route path="/order-confirmed" component={OrderConfirmed} />
+      <Route path="/orders/:email" component={OrderHistory} />
       <Route component={NotFound} />
     </Switch>
   );

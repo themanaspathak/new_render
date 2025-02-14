@@ -37,6 +37,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(order);
   });
 
+  // New endpoint to get user order history
+  app.get("/api/users/:email/orders", async (req, res) => {
+    try {
+      const { email } = req.params;
+      const orders = await storage.getUserOrders(email);
+      res.json(orders);
+    } catch (error) {
+      console.error("Failed to fetch user orders:", error);
+      res.status(500).json({ message: "Failed to fetch order history" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

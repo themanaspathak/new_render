@@ -82,6 +82,9 @@ export default function EmailVerification() {
         throw new Error("Invalid OTP");
       }
 
+      // Store verified email in localStorage
+      localStorage.setItem("verifiedEmail", email);
+
       toast({
         title: "Email Verified",
         description: "Proceeding to order confirmation",
@@ -120,7 +123,7 @@ export default function EmailVerification() {
                   We'll send you a one-time password (OTP)
                 </p>
               </div>
-              <Button 
+              <Button
                 className="w-full bg-green-600 hover:bg-green-700 text-white"
                 onClick={handleSendOtp}
                 disabled={!validateEmail(email)}

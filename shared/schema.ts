@@ -1,6 +1,14 @@
 import { pgTable, text, serial, integer, boolean, jsonb, real, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { relations } from "drizzle-orm";
+
+// Users table to store user information
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
 
 export const menuItems = pgTable("menu_items", {
   id: serial("id").primaryKey(),
@@ -16,8 +24,11 @@ export const menuItems = pgTable("menu_items", {
   }>(),
 });
 
+// Modified orders table with user reference
 export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  userEmail: text("user_email").notNull(), // Store email directly for easier querying
   tableNumber: integer("table_number").notNull(),
   items: jsonb("items").$type<{
     menuItemId: number;
@@ -30,15 +41,32 @@ export const orders = pgTable("orders", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Define relationships
+export const ordersRelations = relations(orders, ({ one }) => ({
+  user: one(users, {
+    fields: [orders.userId],
+    references: [users.id],
+  }),
+}));
+
+export const usersRelations = relations(users, ({ many }) => ({
+  orders: many(orders),
+}));
+
+// Create schemas
+export const insertUserSchema = createInsertSchema(users);
 export const insertMenuItemSchema = createInsertSchema(menuItems);
 export const insertOrderSchema = createInsertSchema(orders);
 
+// Export types
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
 export type MenuItem = typeof menuItems.$inferSelect;
 export type InsertMenuItem = z.infer<typeof insertMenuItemSchema>;
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 
-// Mock data has been updated to remove rating fields
+// Keep the mock data
 export const MOCK_MENU_ITEMS: MenuItem[] = [
   {
     id: 1,
@@ -541,5 +569,7 @@ export const MOCK_ORDERS: Order[] = [
     cookingInstructions: "Extra spicy please, no onion",
     total: 698.00,
     createdAt: new Date(),
+    userId: 1,
+    userEmail: "test@example.com"
   }
 ];
