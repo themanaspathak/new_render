@@ -24,7 +24,6 @@ export default function Kitchen() {
       ...prev,
       [itemId]: !prev[itemId]
     }));
-    // TODO: Update availability in backend
   };
 
   if (menuLoading || ordersLoading) {
@@ -43,61 +42,75 @@ export default function Kitchen() {
         <div className="space-y-4">
           <h2 className="text-2xl font-semibold mb-4">Active Orders</h2>
           <ScrollArea className="h-[70vh]">
-            {orders?.map((order) => (
-              <Card key={order.id} className="mb-4">
-                <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                      <Badge className="text-sm px-2 py-1 bg-primary">Order #{order.id}</Badge>
-                      <CardTitle>Table #{order.tableNumber}</CardTitle>
+            <div className="space-y-4">
+              {orders?.map((order) => (
+                <Card key={order.id} className="mb-4 border-2">
+                  <CardHeader className="bg-muted/50">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-4">
+                        <Badge variant="default" className="text-lg px-3 py-1 bg-primary/90 hover:bg-primary">
+                          Order #{order.id}
+                        </Badge>
+                        <CardTitle>Table #{order.tableNumber}</CardTitle>
+                      </div>
+                      <Badge 
+                        variant={order.status === "pending" ? "destructive" : "secondary"}
+                        className="text-base px-3 py-1"
+                      >
+                        {order.status}
+                      </Badge>
                     </div>
-                    <Badge variant={order.status === "pending" ? "destructive" : "secondary"}>
-                      {order.status}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {order.items.map((item, index) => {
-                      const menuItem = menuItems?.find(m => m.id === item.menuItemId);
-                      return (
-                        <div key={index} className="flex justify-between items-start">
-                          <div>
-                            <p className="font-medium">{menuItem?.name} × {item.quantity}</p>
-                            {/* Customizations */}
-                            <div className="text-sm text-gray-600">
-                              {Object.entries(item.customizations).map(([category, choices]) => (
-                                <div key={category}>
-                                  {category}: {choices.join(", ")}
-                                </div>
-                              ))}
+                  </CardHeader>
+                  <CardContent className="mt-4">
+                    <div className="space-y-4">
+                      {order.items.map((item, index) => {
+                        const menuItem = menuItems?.find(m => m.id === item.menuItemId);
+                        return (
+                          <div key={index} className="flex justify-between items-start py-2 border-b last:border-0">
+                            <div>
+                              <p className="font-medium">{menuItem?.name} × {item.quantity}</p>
+                              {/* Customizations */}
+                              <div className="text-sm text-gray-600 mt-1">
+                                {Object.entries(item.customizations).map(([category, choices]) => (
+                                  <div key={category} className="ml-4">
+                                    • {category}: {choices.join(", ")}
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           </div>
+                        );
+                      })}
+                      {/* Cooking Instructions */}
+                      {order.cookingInstructions && (
+                        <div className="mt-4 p-3 bg-muted/50 rounded-md">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Pencil className="h-4 w-4 text-gray-600" />
+                            <span className="font-medium">Special Instructions:</span>
+                          </div>
+                          <p className="text-gray-600">{order.cookingInstructions}</p>
                         </div>
-                      );
-                    })}
-                    {/* Cooking Instructions */}
-                    {order.cookingInstructions && (
-                      <div className="mt-4 p-3 bg-gray-50 rounded-md">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Pencil className="h-4 w-4 text-gray-600" />
-                          <span className="font-medium">Special Instructions:</span>
-                        </div>
-                        <p className="text-gray-600">{order.cookingInstructions}</p>
-                      </div>
-                    )}
-                  </div>
-                  <div className="mt-4 flex gap-2">
-                    <Button 
-                      onClick={() => {/* TODO: Update order status */}} 
-                      variant={order.status === "pending" ? "default" : "outline"}
-                    >
-                      {order.status === "pending" ? "Start Preparing" : "Mark as Ready"}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                      )}
+                    </div>
+                    <div className="mt-4 flex gap-2">
+                      <Button 
+                        onClick={() => {/* TODO: Update order status */}} 
+                        variant={order.status === "pending" ? "default" : "outline"}
+                        size="lg"
+                        className="w-full"
+                      >
+                        {order.status === "pending" ? "Start Preparing" : "Mark as Ready"}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              {(!orders || orders.length === 0) && (
+                <div className="text-center py-8 text-gray-500">
+                  No active orders at the moment
+                </div>
+              )}
+            </div>
           </ScrollArea>
         </div>
 
