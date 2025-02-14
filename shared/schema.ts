@@ -9,6 +9,10 @@ export const menuItems = pgTable("menu_items", {
   price: real("price").notNull(),
   category: text("category").notNull(),
   imageUrl: text("image_url").notNull(),
+  isVegetarian: boolean("is_vegetarian").notNull().default(true),
+  rating: real("rating"),
+  ratingCount: integer("rating_count"),
+  isBestSeller: boolean("is_bestseller").notNull().default(false),
   customizations: jsonb("customizations").$type<{
     options: { name: string; choices: string[]; maxChoices: number }[];
   }>(),
@@ -42,6 +46,10 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     price: 8.99,
     category: "Starters",
     imageUrl: "https://images.unsplash.com/photo-1585032226651-759b368d7246",
+    isVegetarian: true,
+    rating: 4.5,
+    ratingCount: 232,
+    isBestSeller: true,
     customizations: {
       options: [
         {
@@ -64,6 +72,10 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     price: 9.99,
     category: "Starters",
     imageUrl: "https://images.unsplash.com/photo-1631452180519-c014fe946bc7",
+    isVegetarian: true,
+    rating: 4.2,
+    ratingCount: 187,
+    isBestSeller: false,
     customizations: {
       options: [
         {
@@ -86,6 +98,10 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     price: 14.99,
     category: "Main Course",
     imageUrl: "https://images.unsplash.com/photo-1631452180775-7c5d27efa8d4",
+    isVegetarian: true,
+    rating: 4.8,
+    ratingCount: 312,
+    isBestSeller: true,
     customizations: {
       options: [
         {
@@ -108,6 +124,10 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     price: 15.99,
     category: "Main Course",
     imageUrl: "https://images.unsplash.com/photo-1585032226639-91c2e508a542",
+    isVegetarian: true,
+    rating: 4.6,
+    ratingCount: 278,
+    isBestSeller: true,
     customizations: {
       options: [
         {
@@ -130,6 +150,10 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     price: 16.99,
     category: "Rice and Biryani",
     imageUrl: "https://images.unsplash.com/photo-1589302168068-964664d93dc0",
+    isVegetarian: false,
+    rating: 4.5,
+    ratingCount: 245,
+    isBestSeller: true,
     customizations: {
       options: [
         {
@@ -152,6 +176,10 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     price: 11.99,
     category: "South Indian",
     imageUrl: "https://images.unsplash.com/photo-1589301760014-d929f3979dbc",
+    isVegetarian: true,
+    rating: 4.3,
+    ratingCount: 198,
+    isBestSeller: false,
     customizations: {
       options: [
         {
@@ -174,6 +202,10 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     price: 12.99,
     category: "Fast Food",
     imageUrl: "https://images.unsplash.com/photo-1585032226634-b2ef638c7350",
+    isVegetarian: true,
+    rating: 4.7,
+    ratingCount: 299,
+    isBestSeller: true,
     customizations: {
       options: [
         {
@@ -196,6 +228,10 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     price: 10.99,
     category: "South Indian",
     imageUrl: "https://images.unsplash.com/photo-1589301841844-1cf2d77f9b36",
+    isVegetarian: true,
+    rating: 4.4,
+    ratingCount: 215,
+    isBestSeller: false,
     customizations: {
       options: [
         {
@@ -218,6 +254,10 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     price: 18.99,
     category: "Main Course",
     imageUrl: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398",
+    isVegetarian: false,
+    rating: 4.7,
+    ratingCount: 345,
+    isBestSeller: true,
     customizations: {
       options: [
         {
@@ -240,6 +280,10 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     price: 16.99,
     category: "Rice and Biryani",
     imageUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8",
+    isVegetarian: false,
+    rating: 4.6,
+    ratingCount: 289,
+    isBestSeller: true,
     customizations: {
       options: [
         {
@@ -262,6 +306,10 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     price: 19.99,
     category: "Main Course",
     imageUrl: "https://images.unsplash.com/photo-1545247181-516773cae754",
+    isVegetarian: false,
+    rating: 4.4,
+    ratingCount: 178,
+    isBestSeller: false,
     customizations: {
       options: [
         {
@@ -284,6 +332,10 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     price: 17.99,
     category: "Main Course",
     imageUrl: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46",
+    isVegetarian: false,
+    rating: 4.3,
+    ratingCount: 156,
+    isBestSeller: false,
     customizations: {
       options: [
         {
