@@ -3,10 +3,6 @@ import { MenuItem } from "@shared/schema";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
@@ -21,7 +17,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, Star } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Menu() {
@@ -61,7 +57,7 @@ export default function Menu() {
   return (
     <div className="container mx-auto px-4 pb-16">
       {/* Mobile Header with Cart */}
-      <div className="sticky top-0 z-10 flex items-center justify-between bg-background/95 backdrop-blur py-4 mb-6 -mx-4 px-4 md:hidden">
+      <div className="sticky top-0 z-10 flex items-center justify-between bg-background/95 backdrop-blur py-4 -mx-4 px-4 md:hidden">
         <h1 className="text-xl font-bold">Our Menu</h1>
         <Link href="/cart">
           <Button variant="outline" size="icon" className="relative">
@@ -86,31 +82,52 @@ export default function Menu() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="space-y-4">
         {menuItems?.map((item) => (
-          <Card key={item.id} className="flex flex-col h-full">
-            <div className="aspect-video w-full overflow-hidden rounded-t-lg">
-              <img
-                src={item.imageUrl}
-                alt={item.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <CardHeader>
-              <CardTitle className="text-lg">{item.name}</CardTitle>
-              <CardDescription>{item.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-grow">
-              <p className="text-lg font-bold">${item.price.toFixed(2)}</p>
+          <Card key={item.id} className="relative overflow-hidden">
+            <CardContent className="p-4">
+              <div className="flex justify-between items-start gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    {/* Veg indicator */}
+                    <div className="w-4 h-4 border-2 border-green-600 p-0.5">
+                      <div className="w-full h-full rounded-full bg-green-600" />
+                    </div>
+                    {/* Bestseller tag */}
+                    {["Vegetable Manchurian", "Malai Kofta", "Paneer Popcorn"].includes(item.name) && (
+                      <span className="text-[#ff645a] text-sm font-medium bg-[#fff3f3] px-2 py-0.5 rounded">
+                        ★ Bestseller
+                      </span>
+                    )}
+                  </div>
+
+                  <h3 className="font-medium text-lg mb-1">{item.name}</h3>
+                  <div className="flex items-center gap-1 text-sm mb-2">
+                    <div className="flex items-center gap-0.5 text-green-600">
+                      <Star className="h-4 w-4 fill-current" />
+                      <span className="font-medium">
+                        {(Math.random() * (5 - 4) + 4).toFixed(1)}
+                      </span>
+                    </div>
+                    <span className="text-gray-500">
+                      ({Math.floor(Math.random() * (300 - 100) + 100)})
+                    </span>
+                  </div>
+                  <div className="text-xl font-bold">₹{(item.price * 80).toFixed(0)}</div>
+                </div>
+
+                <Button 
+                  onClick={() => setSelectedItem(item)}
+                  className="bg-green-600 hover:bg-green-700 text-white min-w-[80px]"
+                >
+                  ADD
+                </Button>
+              </div>
+
+              <div className="mt-2 text-sm text-gray-500">
+                <span>Customisable</span>
+              </div>
             </CardContent>
-            <CardFooter>
-              <Button
-                onClick={() => setSelectedItem(item)}
-                className="w-full"
-              >
-                Add to Cart
-              </Button>
-            </CardFooter>
           </Card>
         ))}
       </div>
