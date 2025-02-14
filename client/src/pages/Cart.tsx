@@ -27,7 +27,12 @@ export default function Cart() {
 
       {/* Desktop Header */}
       <div className="hidden md:block mb-8">
-        <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
+        <h1 className="text-3xl font-bold mb-4">Your Cart</h1>
+        <Link href="/">
+          <Button variant="outline" className="mb-4">
+            ← Add more dishes
+          </Button>
+        </Link>
       </div>
 
       {state.items.length === 0 ? (
@@ -103,6 +108,15 @@ export default function Cart() {
                 </CardContent>
               </Card>
             ))}
+
+            {/* Mobile Add More Dishes */}
+            <div className="md:hidden">
+              <Link href="/">
+                <Button variant="outline" className="w-full">
+                  Add more dishes
+                </Button>
+              </Link>
+            </div>
           </div>
 
           <div className="lg:col-span-1">
