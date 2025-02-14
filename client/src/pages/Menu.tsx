@@ -86,42 +86,54 @@ export default function Menu() {
         {menuItems?.map((item) => (
           <Card key={item.id} className="relative overflow-hidden">
             <CardContent className="p-4">
-              <div className="flex justify-between items-start gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    {/* Veg indicator */}
-                    <div className="w-4 h-4 border-2 border-green-600 p-0.5">
-                      <div className="w-full h-full rounded-full bg-green-600" />
-                    </div>
-                    {/* Bestseller tag */}
-                    {["Vegetable Manchurian", "Malai Kofta", "Paneer Popcorn"].includes(item.name) && (
-                      <span className="text-[#ff645a] text-sm font-medium bg-[#fff3f3] px-2 py-0.5 rounded">
-                        ★ Bestseller
-                      </span>
-                    )}
-                  </div>
-
-                  <h3 className="font-medium text-lg mb-1">{item.name}</h3>
-                  <div className="flex items-center gap-1 text-sm mb-2">
-                    <div className="flex items-center gap-0.5 text-green-600">
-                      <Star className="h-4 w-4 fill-current" />
-                      <span className="font-medium">
-                        {(Math.random() * (5 - 4) + 4).toFixed(1)}
-                      </span>
-                    </div>
-                    <span className="text-gray-500">
-                      ({Math.floor(Math.random() * (300 - 100) + 100)})
-                    </span>
-                  </div>
-                  <div className="text-xl font-bold">₹{(item.price * 80).toFixed(0)}</div>
+              <div className="flex gap-4">
+                {/* Image Section */}
+                <div className="w-24 h-24 flex-shrink-0">
+                  <img
+                    src={item.imageUrl}
+                    alt={item.name}
+                    className="w-full h-full object-cover rounded-lg"
+                  />
                 </div>
 
-                <Button 
-                  onClick={() => setSelectedItem(item)}
-                  className="bg-green-600 hover:bg-green-700 text-white min-w-[80px]"
-                >
-                  ADD
-                </Button>
+                {/* Content Section */}
+                <div className="flex flex-1 justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      {/* Veg indicator */}
+                      <div className="w-4 h-4 border-2 border-green-600 p-0.5">
+                        <div className="w-full h-full rounded-full bg-green-600" />
+                      </div>
+                      {/* Bestseller tag */}
+                      {["Vegetable Manchurian", "Malai Kofta", "Paneer Popcorn"].includes(item.name) && (
+                        <span className="text-[#ff645a] text-sm font-medium bg-[#fff3f3] px-2 py-0.5 rounded">
+                          ★ Bestseller
+                        </span>
+                      )}
+                    </div>
+
+                    <h3 className="font-medium text-lg mb-1">{item.name}</h3>
+                    <div className="flex items-center gap-1 text-sm mb-2">
+                      <div className="flex items-center gap-0.5 text-green-600">
+                        <Star className="h-4 w-4 fill-current" />
+                        <span className="font-medium">
+                          {(Math.random() * (5 - 4) + 4).toFixed(1)}
+                        </span>
+                      </div>
+                      <span className="text-gray-500">
+                        ({Math.floor(Math.random() * (300 - 100) + 100)})
+                      </span>
+                    </div>
+                    <div className="text-xl font-bold">₹{(item.price * 80).toFixed(0)}</div>
+                  </div>
+
+                  <Button 
+                    onClick={() => setSelectedItem(item)}
+                    className="bg-green-600 hover:bg-green-700 text-white min-w-[80px]"
+                  >
+                    ADD
+                  </Button>
+                </div>
               </div>
 
               <div className="mt-2 text-sm text-gray-500">
