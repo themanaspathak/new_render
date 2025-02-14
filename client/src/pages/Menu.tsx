@@ -21,6 +21,8 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { ShoppingCart } from "lucide-react";
+import { Link } from "wouter";
 
 export default function Menu() {
   const { data: menuItems, isLoading } = useQuery<MenuItem[]>({
@@ -32,12 +34,12 @@ export default function Menu() {
   const [customizations, setCustomizations] = useState<Record<string, string[]>>({});
 
   if (isLoading) {
-    return <div className="p-8">Loading menu...</div>;
+    return <div className="p-4">Loading menu...</div>;
   }
 
   const handleAddToCart = () => {
     if (!selectedItem) return;
-    
+
     dispatch({
       type: "ADD_ITEM",
       item: {
@@ -57,22 +59,48 @@ export default function Menu() {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-8">Our Menu</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="container mx-auto px-4 pb-16">
+      {/* Mobile Header with Cart */}
+      <div className="sticky top-0 z-10 flex items-center justify-between bg-background/95 backdrop-blur py-4 mb-6 -mx-4 px-4 md:hidden">
+        <h1 className="text-xl font-bold">Our Menu</h1>
+        <Link href="/cart">
+          <Button variant="outline" size="icon" className="relative">
+            <ShoppingCart className="h-5 w-5" />
+            {state.items.length > 0 && (
+              <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
+                {state.items.length}
+              </span>
+            )}
+          </Button>
+        </Link>
+      </div>
+
+      {/* Desktop Header */}
+      <div className="hidden md:flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-bold">Our Menu</h1>
+        <Link href="/cart">
+          <Button variant="outline" className="flex items-center gap-2">
+            <ShoppingCart className="h-5 w-5" />
+            Cart ({state.items.length})
+          </Button>
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {menuItems?.map((item) => (
-          <Card key={item.id} className="overflow-hidden">
-            <img
-              src={item.imageUrl}
-              alt={item.name}
-              className="w-full h-48 object-cover"
-            />
+          <Card key={item.id} className="flex flex-col h-full">
+            <div className="aspect-video w-full overflow-hidden rounded-t-lg">
+              <img
+                src={item.imageUrl}
+                alt={item.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
             <CardHeader>
-              <CardTitle>{item.name}</CardTitle>
+              <CardTitle className="text-lg">{item.name}</CardTitle>
               <CardDescription>{item.description}</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-grow">
               <p className="text-lg font-bold">${item.price.toFixed(2)}</p>
             </CardContent>
             <CardFooter>
@@ -88,13 +116,13 @@ export default function Menu() {
       </div>
 
       <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Customize Your Order</DialogTitle>
           </DialogHeader>
-          
+
           {selectedItem?.customizations?.options.map((option) => (
-            <div key={option.name} className="space-y-4">
+            <div key={option.name} className="space-y-3">
               <h3 className="font-medium">{option.name}</h3>
               {option.maxChoices === 1 ? (
                 <RadioGroup
@@ -137,8 +165,10 @@ export default function Menu() {
               )}
             </div>
           ))}
-          
-          <Button onClick={handleAddToCart}>Add to Cart</Button>
+
+          <Button onClick={handleAddToCart} className="w-full mt-4">
+            Add to Cart
+          </Button>
         </DialogContent>
       </Dialog>
     </div>
