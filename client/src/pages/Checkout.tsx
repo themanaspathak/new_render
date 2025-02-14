@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link, useLocation } from "wouter";
 import { Minus, Plus, ArrowLeft, CreditCard, Wallet } from "lucide-react";
 
@@ -107,21 +107,27 @@ export default function Checkout() {
 
       {/* Table Selection */}
       <Card className="p-4 mb-6">
-        <h2 className="text-lg font-semibold mb-4">Select Your Table</h2>
-        <div className="grid grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((number) => (
-            <button
-              key={number}
-              onClick={() => handleTableSelect(number)}
-              className={`aspect-square rounded-lg border-2 flex items-center justify-center transition-all
-                ${state.tableNumber === number 
-                  ? 'border-green-600 bg-green-50 text-green-600 font-bold' 
-                  : 'border-gray-200 hover:border-green-200 hover:bg-green-50/50'}`}
-            >
-              Table {number}
-            </button>
-          ))}
-        </div>
+        <CardHeader className="px-0 pt-0">
+          <CardTitle className="text-lg font-semibold">Select Your Table</CardTitle>
+        </CardHeader>
+        <CardContent className="px-0 pb-0">
+          <div className="grid grid-cols-3 gap-4">
+            {[1, 2, 3, 4, 5, 6].map((number) => (
+              <button
+                key={number}
+                onClick={() => handleTableSelect(number)}
+                className={`
+                  aspect-square rounded-lg border-2 flex items-center justify-center transition-all
+                  ${state.tableNumber === number 
+                    ? 'border-green-600 bg-green-50 text-green-600 font-bold shadow-sm' 
+                    : 'border-gray-200 hover:border-green-200 hover:bg-green-50/50'}
+                `}
+              >
+                Table {number}
+              </button>
+            ))}
+          </div>
+        </CardContent>
       </Card>
 
       {/* Payment Methods */}
