@@ -12,20 +12,26 @@ export default function NavBar() {
   }
 
   return (
-    <nav className="fixed top-0 right-0 p-4 flex gap-2 z-50">
-      <Link href="/cart">
-        <Button variant="outline" size="icon" className="rounded-full bg-white shadow-sm">
-          <ShoppingCart className="h-5 w-5" />
-        </Button>
-      </Link>
+    <div className="fixed top-0 w-full px-4 py-4 flex justify-between z-50">
+      {/* Left side - Order History */}
+      <div>
+        {verifiedEmail && (
+          <Link href={`/orders/${encodeURIComponent(verifiedEmail)}`}>
+            <Button variant="outline" size="icon" className="rounded-full bg-white shadow-sm">
+              <ClipboardList className="h-5 w-5" />
+            </Button>
+          </Link>
+        )}
+      </div>
 
-      {verifiedEmail && (
-        <Link href={`/orders/${encodeURIComponent(verifiedEmail)}`}>
+      {/* Right side - Cart */}
+      <div>
+        <Link href="/cart">
           <Button variant="outline" size="icon" className="rounded-full bg-white shadow-sm">
-            <ClipboardList className="h-5 w-5" />
+            <ShoppingCart className="h-5 w-5" />
           </Button>
         </Link>
-      )}
-    </nav>
+      </div>
+    </div>
   );
 }
