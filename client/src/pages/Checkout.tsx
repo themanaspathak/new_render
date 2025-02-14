@@ -53,27 +53,8 @@ export default function Checkout() {
         <h1 className="text-xl font-bold text-center">Review Order</h1>
       </div>
 
-      {/* Table Selection */}
-      <Card className="p-4 mb-6">
-        <h2 className="text-lg font-semibold mb-4">Select Your Table</h2>
-        <div className="grid grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((number) => (
-            <button
-              key={number}
-              onClick={() => handleTableSelect(number)}
-              className={`aspect-square rounded-lg border-2 flex items-center justify-center transition-all
-                ${state.tableNumber === number 
-                  ? 'border-green-600 bg-green-50 text-green-600 font-bold' 
-                  : 'border-gray-200 hover:border-green-200 hover:bg-green-50/50'}`}
-            >
-              Table {number}
-            </button>
-          ))}
-        </div>
-      </Card>
-
       {/* Order Items */}
-      <div className="space-y-6">
+      <div className="space-y-6 mb-6">
         {state.items.map((item) => (
           <Card key={item.menuItem.id} className="p-4">
             <div className="flex items-start justify-between mb-2">
@@ -120,48 +101,67 @@ export default function Checkout() {
             </div>
           </Card>
         ))}
+      </div>
 
-        {/* Payment Method Selection */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Select Payment Method</h2>
-
-          {/* Cash Payment Option */}
-          <Link href="/email-verification" className="block">
-            <Button 
-              className="w-full bg-green-600 hover:bg-green-700 text-white h-auto py-4 flex items-center justify-center gap-3"
-              disabled={!state.tableNumber}
+      {/* Table Selection */}
+      <Card className="p-4 mb-6">
+        <h2 className="text-lg font-semibold mb-4">Select Your Table</h2>
+        <div className="grid grid-cols-3 gap-4">
+          {[1, 2, 3, 4, 5, 6].map((number) => (
+            <button
+              key={number}
+              onClick={() => handleTableSelect(number)}
+              className={`aspect-square rounded-lg border-2 flex items-center justify-center transition-all
+                ${state.tableNumber === number 
+                  ? 'border-green-600 bg-green-50 text-green-600 font-bold' 
+                  : 'border-gray-200 hover:border-green-200 hover:bg-green-50/50'}`}
             >
-              <Wallet className="h-5 w-5" />
-              <div className="text-left">
-                <div className="font-semibold">Pay with Cash</div>
-                <div className="text-sm opacity-90">Pay at the restaurant</div>
-              </div>
-              <div className="ml-auto font-bold">₹{Math.round(total)}</div>
-            </Button>
-          </Link>
-
-          {/* Card Payment Option */}
-          <Link href="/payment" className="block">
-            <Button 
-              variant="outline" 
-              className="w-full h-auto py-4 flex items-center justify-center gap-3"
-              disabled={!state.tableNumber}
-            >
-              <CreditCard className="h-5 w-5" />
-              <div className="text-left">
-                <div className="font-semibold">Pay with Card</div>
-                <div className="text-sm opacity-90">Credit/Debit cards accepted</div>
-              </div>
-              <div className="ml-auto font-bold">₹{Math.round(total)}</div>
-            </Button>
-          </Link>
-
-          {!state.tableNumber && (
-            <p className="text-sm text-red-500 text-center">
-              Please select a table to proceed with payment
-            </p>
-          )}
+              Table {number}
+            </button>
+          ))}
         </div>
+      </Card>
+
+      {/* Payment Methods */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold">Select Payment Method</h2>
+
+        {/* Cash Payment Option */}
+        <Link href="/email-verification" className="block">
+          <Button 
+            className="w-full bg-green-600 hover:bg-green-700 text-white h-auto py-4 flex items-center justify-center gap-3"
+            disabled={!state.tableNumber}
+          >
+            <Wallet className="h-5 w-5" />
+            <div className="text-left">
+              <div className="font-semibold">Pay with Cash</div>
+              <div className="text-sm opacity-90">Pay at the restaurant</div>
+            </div>
+            <div className="ml-auto font-bold">₹{Math.round(total)}</div>
+          </Button>
+        </Link>
+
+        {/* Card Payment Option */}
+        <Link href="/payment" className="block">
+          <Button 
+            variant="outline" 
+            className="w-full h-auto py-4 flex items-center justify-center gap-3"
+            disabled={!state.tableNumber}
+          >
+            <CreditCard className="h-5 w-5" />
+            <div className="text-left">
+              <div className="font-semibold">Pay with Card</div>
+              <div className="text-sm opacity-90">Credit/Debit cards accepted</div>
+            </div>
+            <div className="ml-auto font-bold">₹{Math.round(total)}</div>
+          </Button>
+        </Link>
+
+        {!state.tableNumber && (
+          <p className="text-sm text-red-500 text-center">
+            Please select a table to proceed with payment
+          </p>
+        )}
       </div>
     </div>
   );
