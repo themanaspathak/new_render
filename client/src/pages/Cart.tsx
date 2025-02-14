@@ -2,7 +2,7 @@ import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "wouter";
-import { Minus, Plus, Trash2, ArrowLeft } from "lucide-react";
+import { Minus, Plus, Trash2, ArrowLeft, Pencil } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { MenuItem } from "@shared/schema";
 import { useState } from "react";
@@ -59,8 +59,9 @@ export default function Cart() {
       <div className="hidden md:block mb-8">
         <h1 className="text-3xl font-bold mb-4">Your Cart</h1>
         <Link href="/">
-          <Button variant="outline" className="mb-4">
-            ← Continue Shopping
+          <Button variant="outline" className="mb-4 flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Add more items
           </Button>
         </Link>
       </div>
@@ -151,7 +152,10 @@ export default function Cart() {
             {/* Cooking Request Section */}
             <Card className="mt-6">
               <CardContent className="p-4">
-                <h3 className="font-medium mb-2">Special Cooking Instructions</h3>
+                <div className="flex items-center gap-2 mb-2">
+                  <Pencil className="h-5 w-5 text-gray-600" />
+                  <h3 className="font-medium">Special Cooking Instructions</h3>
+                </div>
                 <textarea
                   className="w-full min-h-[100px] p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent"
                   placeholder="Add any special cooking instructions or dietary requirements..."
@@ -194,11 +198,12 @@ export default function Cart() {
               </div>
             )}
 
-            {/* Continue Shopping - Mobile */}
+            {/* Add more items - Mobile */}
             <div className="md:hidden">
               <Link href="/">
-                <Button variant="outline" className="w-full">
-                  Continue Shopping
+                <Button variant="outline" className="w-full flex items-center justify-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add more items
                 </Button>
               </Link>
             </div>
