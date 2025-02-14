@@ -18,14 +18,14 @@ export default function NavBar() {
 
   return (
     <nav className="fixed top-0 right-0 p-4 flex gap-3 z-50">
-      <div className="relative z-20">
-        <Link href="/cart">
+      <div className="relative">
+        <Link href="/cart" className="block">
           <Button variant="outline" size="icon" className="rounded-full bg-white shadow-sm relative">
             <ShoppingCart className="h-5 w-5" />
             {cartItemCount > 0 && (
               <Badge 
                 variant="destructive" 
-                className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs z-10"
+                className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
               >
                 {cartItemCount}
               </Badge>
@@ -35,8 +35,8 @@ export default function NavBar() {
       </div>
 
       {verifiedEmail && (
-        <div className="relative z-10">
-          <Link href={`/orders/${encodeURIComponent(verifiedEmail)}`}>
+        <div className="relative">
+          <Link href={`/orders/${encodeURIComponent(verifiedEmail)}`} className="block">
             <Button variant="outline" size="icon" className="rounded-full bg-white shadow-sm">
               <ClipboardList className="h-5 w-5" />
             </Button>
