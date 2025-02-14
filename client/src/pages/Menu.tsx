@@ -111,10 +111,10 @@ export default function Menu() {
   const categoryOrder = ["Starters", "Main Course", "Rice and Biryani", "South Indian", "Fast Food", "Desserts"];
 
   return (
-    <div className="container mx-auto px-4 pb-16 max-w-3xl">
+    <div className="container mx-auto px-4 pb-16 max-w-5xl">
       {/* Mobile Header with Cart */}
       <div className="sticky top-0 z-10 flex items-center bg-background/95 backdrop-blur py-4 -mx-4 px-4 md:hidden">
-        <h1 className="text-xl font-bold absolute left-1/2 -translate-x-1/2">Menu</h1>
+        <h1 className="text-xl font-bold">Menu</h1>
         <div className="ml-auto">
           <Link href="/cart">
             <Button variant="outline" size="icon" className="relative">
