@@ -257,8 +257,100 @@ export default function Menu() {
           </DialogHeader>
 
           <div className="space-y-6 py-4">
-            {/* Rest of the dialog content remains the same */}
-            {/* ... */}
+            {/* Portion Size */}
+            <div className="space-y-3">
+              <h3 className="font-medium">Portion Size</h3>
+              <p className="text-sm text-gray-500">Select any 1</p>
+              <RadioGroup
+                value={customizations.portionSize}
+                onValueChange={(value) => setCustomizations(prev => ({
+                  ...prev,
+                  portionSize: value as 'medium' | 'full'
+                }))}
+              >
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="medium" id="medium" />
+                    <Label htmlFor="medium">Medium-300ML Aprox.</Label>
+                  </div>
+                  <span>₹{basePrice}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="full" id="full" />
+                    <Label htmlFor="full">Full-500ML Aprox.</Label>
+                  </div>
+                  <span>₹{Math.round(basePrice * 1.5)}</span>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Jain Preparation */}
+            <div className="space-y-3">
+              <h3 className="font-medium">Select For Jain Prepration</h3>
+              <RadioGroup
+                value={customizations.isJain ? "jain" : "regular"}
+                onValueChange={(value) => setCustomizations(prev => ({
+                  ...prev,
+                  isJain: value === "jain"
+                }))}
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="jain" id="jain" />
+                  <Label htmlFor="jain">Jain</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Taste Preference */}
+            <div className="space-y-3">
+              <h3 className="font-medium">Choice Of Taste</h3>
+              <p className="text-sm text-gray-500">Select upto 1</p>
+              <RadioGroup
+                value={customizations.taste}
+                onValueChange={(value) => setCustomizations(prev => ({
+                  ...prev,
+                  taste: value
+                }))}
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="regular" id="regular" />
+                  <Label htmlFor="regular">Regular (little Sweet)</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="spicy" id="spicy" />
+                  <Label htmlFor="spicy">Spicy (punjabi Gravy)</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Quantity and Add to Cart */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <span className="w-8 text-center">{quantity}</span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setQuantity(quantity + 1)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                <Button onClick={handleAddToCart} className="bg-green-600 hover:bg-green-700 text-white">
+                  Add Item | ₹{totalPrice}
+                </Button>
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
