@@ -10,8 +10,6 @@ export const menuItems = pgTable("menu_items", {
   category: text("category").notNull(),
   imageUrl: text("image_url").notNull(),
   isVegetarian: boolean("is_vegetarian").notNull().default(true),
-  rating: real("rating"),
-  ratingCount: integer("rating_count"),
   isBestSeller: boolean("is_bestseller").notNull().default(false),
   customizations: jsonb("customizations").$type<{
     options: { name: string; choices: string[]; maxChoices: number }[];
@@ -38,17 +36,16 @@ export type InsertMenuItem = z.infer<typeof insertMenuItemSchema>;
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 
+// Mock data has been updated to remove rating fields
 export const MOCK_MENU_ITEMS: MenuItem[] = [
   {
     id: 1,
     name: "Vegetable Manchurian",
     description: "Crispy vegetable dumplings in a spicy Indo-Chinese sauce",
-    price: 349.00, // Updated price
+    price: 349.00,
     category: "Starters",
     imageUrl: "https://images.unsplash.com/photo-1585032226651-759b368d7246",
     isVegetarian: true,
-    rating: 4.5,
-    ratingCount: 232,
     isBestSeller: true,
     customizations: {
       options: [
@@ -69,12 +66,10 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     id: 2,
     name: "Paneer Popcorn",
     description: "Bite-sized crispy cottage cheese fritters with Indian spices",
-    price: 399.00, // Updated price
+    price: 399.00,
     category: "Starters",
     imageUrl: "https://images.unsplash.com/photo-1631452180519-c014fe946bc7",
     isVegetarian: true,
-    rating: 4.2,
-    ratingCount: 187,
     isBestSeller: false,
     customizations: {
       options: [
@@ -95,12 +90,10 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     id: 3,
     name: "Mutter Paneer",
     description: "Fresh cottage cheese and green peas in rich tomato gravy",
-    price: 449.00, // Updated price
+    price: 449.00,
     category: "Main Course",
     imageUrl: "https://images.unsplash.com/photo-1631452180775-7c5d27efa8d4",
     isVegetarian: true,
-    rating: 4.8,
-    ratingCount: 312,
     isBestSeller: true,
     customizations: {
       options: [
@@ -121,12 +114,10 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     id: 4,
     name: "Malai Kofta",
     description: "Potato and cheese dumplings in creamy cashew sauce",
-    price: 499.00, // Updated price
+    price: 499.00,
     category: "Main Course",
     imageUrl: "https://images.unsplash.com/photo-1585032226639-91c2e508a542",
     isVegetarian: true,
-    rating: 4.6,
-    ratingCount: 278,
     isBestSeller: true,
     customizations: {
       options: [
@@ -147,12 +138,10 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     id: 5,
     name: "Hyderabadi Chicken Biryani",
     description: "Aromatic basmati rice cooked with spiced chicken and herbs",
-    price: 549.00, // Updated price
+    price: 549.00,
     category: "Rice and Biryani",
     imageUrl: "https://images.unsplash.com/photo-1589302168068-964664d93dc0",
     isVegetarian: false,
-    rating: 4.5,
-    ratingCount: 245,
     isBestSeller: true,
     customizations: {
       options: [
@@ -173,12 +162,10 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     id: 6,
     name: "Masala Dosa",
     description: "Crispy rice crepe filled with spiced potato masala",
-    price: 349.00, // Updated price
+    price: 349.00,
     category: "South Indian",
     imageUrl: "https://images.unsplash.com/photo-1589301760014-d929f3979dbc",
     isVegetarian: true,
-    rating: 4.3,
-    ratingCount: 198,
     isBestSeller: false,
     customizations: {
       options: [
@@ -199,12 +186,10 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     id: 7,
     name: "Chana Masala with Rice",
     description: "Spiced chickpeas curry served with steamed basmati rice",
-    price: 399.00, // Updated price
+    price: 399.00,
     category: "Fast Food",
     imageUrl: "https://images.unsplash.com/photo-1585032226634-b2ef638c7350",
     isVegetarian: true,
-    rating: 4.7,
-    ratingCount: 299,
     isBestSeller: true,
     customizations: {
       options: [
@@ -225,12 +210,10 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     id: 8,
     name: "Idli Sambhar",
     description: "Steamed rice cakes served with lentil soup and chutneys",
-    price: 299.00, // Updated price
+    price: 299.00,
     category: "South Indian",
     imageUrl: "https://images.unsplash.com/photo-1589301841844-1cf2d77f9b36",
     isVegetarian: true,
-    rating: 4.4,
-    ratingCount: 215,
     isBestSeller: false,
     customizations: {
       options: [
@@ -251,12 +234,10 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     id: 9,
     name: "Butter Chicken",
     description: "Tender chicken pieces in rich tomato and butter gravy",
-    price: 599.00, // Updated price
+    price: 599.00,
     category: "Main Course",
     imageUrl: "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398",
     isVegetarian: false,
-    rating: 4.7,
-    ratingCount: 345,
     isBestSeller: true,
     customizations: {
       options: [
@@ -277,12 +258,10 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     id: 10,
     name: "Chicken Biryani",
     description: "Fragrant basmati rice cooked with tender chicken and aromatic spices",
-    price: 549.00, // Updated price
+    price: 549.00,
     category: "Rice and Biryani",
     imageUrl: "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8",
     isVegetarian: false,
-    rating: 4.6,
-    ratingCount: 289,
     isBestSeller: true,
     customizations: {
       options: [
@@ -303,12 +282,10 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     id: 11,
     name: "Mutton Rogan Josh",
     description: "Tender mutton pieces cooked in Kashmiri style spicy gravy",
-    price: 649.00, // Updated price
+    price: 649.00,
     category: "Main Course",
     imageUrl: "https://images.unsplash.com/photo-1545247181-516773cae754",
     isVegetarian: false,
-    rating: 4.4,
-    ratingCount: 178,
     isBestSeller: false,
     customizations: {
       options: [
@@ -329,12 +306,10 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     id: 12,
     name: "Fish Curry",
     description: "Fresh fish simmered in coconut-based curry sauce",
-    price: 599.00, // Updated price
+    price: 599.00,
     category: "Main Course",
     imageUrl: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46",
     isVegetarian: false,
-    rating: 4.3,
-    ratingCount: 156,
     isBestSeller: false,
     customizations: {
       options: [
@@ -359,8 +334,6 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     category: "Desserts",
     imageUrl: "https://images.unsplash.com/photo-1589301841844-1cf2d77f9b36",
     isVegetarian: true,
-    rating: 4.8,
-    ratingCount: 245,
     isBestSeller: true,
     customizations: {
       options: [
@@ -385,8 +358,6 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     category: "Desserts",
     imageUrl: "https://images.unsplash.com/photo-1546269795-e3f9f5a00e9e",
     isVegetarian: true,
-    rating: 4.7,
-    ratingCount: 189,
     isBestSeller: true,
     customizations: {
       options: [
@@ -411,8 +382,6 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     category: "Desserts",
     imageUrl: "https://images.unsplash.com/photo-1547127796-06bb04e4b315",
     isVegetarian: true,
-    rating: 4.9,
-    ratingCount: 278,
     isBestSeller: true,
     customizations: {
       options: [
@@ -437,8 +406,6 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     category: "Desserts",
     imageUrl: "https://images.unsplash.com/photo-1615832494873-b0c52d519696",
     isVegetarian: true,
-    rating: 4.6,
-    ratingCount: 167,
     isBestSeller: false,
     customizations: {
       options: [
@@ -463,8 +430,6 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     category: "Starters",
     imageUrl: "https://images.unsplash.com/photo-1630409351217-bc4fa6422075",
     isVegetarian: true,
-    rating: 4.7,
-    ratingCount: 156,
     isBestSeller: true,
     customizations: {
       options: [
@@ -489,8 +454,6 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     category: "Starters",
     imageUrl: "https://images.unsplash.com/photo-1601050690597-df0568f70950",
     isVegetarian: true,
-    rating: 4.5,
-    ratingCount: 142,
     isBestSeller: false,
     customizations: {
       options: [
@@ -515,8 +478,6 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     category: "Starters",
     imageUrl: "https://images.unsplash.com/photo-1599487488170-d11ec9c172f0",
     isVegetarian: true,
-    rating: 4.8,
-    ratingCount: 189,
     isBestSeller: true,
     customizations: {
       options: [
@@ -541,8 +502,6 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
     category: "Starters",
     imageUrl: "https://images.unsplash.com/photo-1626544827763-d516dce335e2",
     isVegetarian: true,
-    rating: 4.6,
-    ratingCount: 167,
     isBestSeller: false,
     customizations: {
       options: [

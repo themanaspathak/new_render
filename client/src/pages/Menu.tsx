@@ -1,10 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState, useMemo } from "react";
 import { MenuItem } from "@shared/schema";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -14,8 +13,9 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { ShoppingCart, Star, Minus, Plus, Search } from "lucide-react";
+import { ShoppingCart, Minus, Plus, Search } from "lucide-react";
 import { Link } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Menu() {
   const { data: menuItems, isLoading } = useQuery<MenuItem[]>({
@@ -29,7 +29,6 @@ export default function Menu() {
   const [filters, setFilters] = useState({
     vegOnly: false,
     nonVegOnly: false,
-    highRated: false,
     bestSeller: false
   });
 
@@ -43,14 +42,12 @@ export default function Menu() {
     taste: 'regular'
   });
 
-  // Updated organization of menu items by category and veg/non-veg status
   const categorizedItems = useMemo(() => {
     if (!menuItems) return {};
 
     const filtered = menuItems.filter(item => {
       if (filters.vegOnly && !item.isVegetarian) return false;
       if (filters.nonVegOnly && item.isVegetarian) return false;
-      if (filters.highRated && (item.rating || 0) < 4.0) return false;
       if (filters.bestSeller && !item.isBestSeller) return false;
       if (searchQuery) {
         return item.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -102,12 +99,10 @@ export default function Menu() {
   const currentPrice = customizations.portionSize === 'full' ? Math.round(basePrice * 1.5) : basePrice;
   const totalPrice = currentPrice * quantity;
 
-
   if (isLoading) {
     return <div className="p-4">Loading menu...</div>;
   }
 
-  // Categories in desired order
   const categoryOrder = ["Starters", "Main Course", "Rice and Biryani", "South Indian", "Fast Food", "Desserts"];
 
   return (
@@ -179,14 +174,6 @@ export default function Menu() {
           </Button>
 
           <Button
-            variant={filters.highRated ? "default" : "outline"}
-            onClick={() => setFilters(prev => ({ ...prev, highRated: !prev.highRated }))}
-            className="rounded-full whitespace-nowrap"
-          >
-            Ratings 4.0+
-          </Button>
-
-          <Button
             variant={filters.bestSeller ? "default" : "outline"}
             onClick={() => setFilters(prev => ({ ...prev, bestSeller: !prev.bestSeller }))}
             className="rounded-full whitespace-nowrap"
@@ -240,15 +227,6 @@ export default function Menu() {
                                 </div>
 
                                 <h3 className="font-medium text-lg mb-1">{item.name}</h3>
-                                <div className="flex items-center gap-1 text-sm mb-2">
-                                  <div className="flex items-center gap-0.5 text-green-600">
-                                    <Star className="h-4 w-4 fill-current" />
-                                    <span className="font-medium">{item.rating || 4.5}</span>
-                                  </div>
-                                  <span className="text-gray-500">
-                                    ({item.ratingCount || Math.floor(Math.random() * (300 - 100) + 100)})
-                                  </span>
-                                </div>
                                 <div className="text-xl font-bold">₹{Math.round(item.price)}</div>
                               </div>
 
@@ -304,15 +282,6 @@ export default function Menu() {
                                 </div>
 
                                 <h3 className="font-medium text-lg mb-1">{item.name}</h3>
-                                <div className="flex items-center gap-1 text-sm mb-2">
-                                  <div className="flex items-center gap-0.5 text-green-600">
-                                    <Star className="h-4 w-4 fill-current" />
-                                    <span className="font-medium">{item.rating || 4.5}</span>
-                                  </div>
-                                  <span className="text-gray-500">
-                                    ({item.ratingCount || Math.floor(Math.random() * (300 - 100) + 100)})
-                                  </span>
-                                </div>
                                 <div className="text-xl font-bold">₹{Math.round(item.price)}</div>
                               </div>
 
