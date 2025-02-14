@@ -10,6 +10,7 @@ interface CartItem {
 interface CartState {
   items: CartItem[];
   tableNumber: number | null;
+  cookingInstructions: string;
 }
 
 type CartAction =
@@ -17,7 +18,8 @@ type CartAction =
   | { type: "REMOVE_ITEM"; menuItemId: number }
   | { type: "UPDATE_QUANTITY"; menuItemId: number; quantity: number }
   | { type: "SET_TABLE"; tableNumber: number }
-  | { type: "CLEAR" };
+  | { type: "SET_COOKING_INSTRUCTIONS"; instructions: string }
+  | { type: "CLEAR_CART" };
 
 const CartContext = createContext<{
   state: CartState;
@@ -50,10 +52,16 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         ...state,
         tableNumber: action.tableNumber,
       };
-    case "CLEAR":
+    case "SET_COOKING_INSTRUCTIONS":
+      return {
+        ...state,
+        cookingInstructions: action.instructions,
+      };
+    case "CLEAR_CART":
       return {
         ...state,
         items: [],
+        cookingInstructions: "",
       };
     default:
       return state;
@@ -64,6 +72,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, {
     items: [],
     tableNumber: null,
+    cookingInstructions: "",
   });
 
   return (
