@@ -152,7 +152,7 @@ export default function EmailVerification() {
                       className="w-12 h-12 text-center text-2xl"
                       value={otp[index] || ""}
                       onChange={(e) => {
-                        const value = e.target.value;
+                        const value = e.target.value.slice(-1);
                         // Only allow numbers
                         if (!/^\d*$/.test(value)) {
                           return;
@@ -165,19 +165,24 @@ export default function EmailVerification() {
                         // Auto-focus next input if a number was entered
                         if (value && index < 5) {
                           const nextInput = e.target.parentElement?.nextElementSibling?.querySelector("input");
-                          if (nextInput) nextInput.focus();
+                          if (nextInput) {
+                            nextInput.focus();
+                          }
                         }
                       }}
                       onKeyDown={(e) => {
                         // Handle backspace
-                        if (e.key === "Backspace" && !otp[index] && index > 0) {
-                          const prevInput = e.currentTarget.parentElement?.previousElementSibling?.querySelector("input");
-                          if (prevInput) {
-                            prevInput.focus();
-                            // Clear the previous input value
-                            const newOtp = otp.split("");
-                            newOtp[index - 1] = "";
-                            setOtp(newOtp.join(""));
+                        if (e.key === "Backspace") {
+                          e.preventDefault();
+                          const newOtp = otp.split("");
+                          newOtp[index] = "";
+                          setOtp(newOtp.join(""));
+
+                          if (index > 0) {
+                            const prevInput = e.currentTarget.parentElement?.previousElementSibling?.querySelector("input");
+                            if (prevInput) {
+                              prevInput.focus();
+                            }
                           }
                         }
                       }}
@@ -186,13 +191,14 @@ export default function EmailVerification() {
                         const pastedData = e.clipboardData.getData("text");
                         const numbers = pastedData.match(/\d/g);
                         if (numbers) {
-                          const newOtp = otp.split("");
+                          const newOtp = [...otp];
                           numbers.forEach((num, idx) => {
                             if (idx + index < 6) {
                               newOtp[idx + index] = num;
                             }
                           });
                           setOtp(newOtp.join(""));
+
                           // Focus the next empty input or the last input
                           const nextIndex = Math.min(index + numbers.length, 5);
                           const inputs = e.currentTarget.parentElement?.parentElement?.querySelectorAll("input");
