@@ -6,8 +6,8 @@ export default function NavBar() {
   const verifiedEmail = localStorage.getItem("verifiedEmail");
   const [location] = useLocation();
 
-  // Hide navigation on kitchen page and email verification page
-  if (location === "/kitchen" || location === "/email-verification") {
+  // Hide navigation on kitchen page
+  if (location === "/kitchen") {
     return null;
   }
 
