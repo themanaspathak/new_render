@@ -2,11 +2,13 @@ import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Minus, Plus, ArrowLeft, CreditCard, Wallet } from "lucide-react";
 
 export default function Checkout() {
   const { state, dispatch } = useCart();
+  const [, navigate] = useLocation();
+
   const subtotal = state.items.reduce(
     (sum, item) => sum + item.menuItem.price * item.quantity,
     0
@@ -32,7 +34,7 @@ export default function Checkout() {
 
   if (state.items.length === 0) {
     return (
-      <div className="p-4 text-center">
+      <div className="container mx-auto px-4 py-8 max-w-lg text-center">
         <p className="mb-4">Your cart is empty</p>
         <Link href="/">
           <Button>Browse Menu</Button>
@@ -127,35 +129,33 @@ export default function Checkout() {
         <h2 className="text-lg font-semibold">Select Payment Method</h2>
 
         {/* Cash Payment Option */}
-        <Link href="/email-verification" className="block">
-          <Button 
-            className="w-full bg-green-600 hover:bg-green-700 text-white h-auto py-4 flex items-center justify-center gap-3"
-            disabled={!state.tableNumber}
-          >
-            <Wallet className="h-5 w-5" />
-            <div className="text-left">
-              <div className="font-semibold">Pay with Cash</div>
-              <div className="text-sm opacity-90">Pay at the restaurant</div>
-            </div>
-            <div className="ml-auto font-bold">₹{Math.round(total)}</div>
-          </Button>
-        </Link>
+        <Button 
+          className="w-full bg-green-600 hover:bg-green-700 text-white h-auto py-4 flex items-center justify-center gap-3"
+          disabled={!state.tableNumber}
+          onClick={() => navigate("/email-verification")}
+        >
+          <Wallet className="h-5 w-5" />
+          <div className="text-left">
+            <div className="font-semibold">Pay with Cash</div>
+            <div className="text-sm opacity-90">Pay at the restaurant</div>
+          </div>
+          <div className="ml-auto font-bold">₹{Math.round(total)}</div>
+        </Button>
 
         {/* Card Payment Option */}
-        <Link href="/payment" className="block">
-          <Button 
-            variant="outline" 
-            className="w-full h-auto py-4 flex items-center justify-center gap-3"
-            disabled={!state.tableNumber}
-          >
-            <CreditCard className="h-5 w-5" />
-            <div className="text-left">
-              <div className="font-semibold">Pay with Card</div>
-              <div className="text-sm opacity-90">Credit/Debit cards accepted</div>
-            </div>
-            <div className="ml-auto font-bold">₹{Math.round(total)}</div>
-          </Button>
-        </Link>
+        <Button 
+          variant="outline" 
+          className="w-full h-auto py-4 flex items-center justify-center gap-3"
+          disabled={!state.tableNumber}
+          onClick={() => navigate("/payment")}
+        >
+          <CreditCard className="h-5 w-5" />
+          <div className="text-left">
+            <div className="font-semibold">Pay with Card</div>
+            <div className="text-sm opacity-90">Credit/Debit cards accepted</div>
+          </div>
+          <div className="ml-auto font-bold">₹{Math.round(total)}</div>
+        </Button>
 
         {!state.tableNumber && (
           <p className="text-sm text-red-500 text-center">

@@ -60,8 +60,8 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       };
     case "CLEAR_CART":
       return {
-        ...state,
         items: [],
+        tableNumber: null,
         cookingInstructions: "",
       };
     default:

@@ -19,14 +19,23 @@ export default function OrderConfirmed() {
           return;
         }
 
+        // Calculate total with GST
+        const subtotal = state.items.reduce(
+          (sum, item) => sum + item.menuItem.price * item.quantity,
+          0
+        );
+        const gst = subtotal * 0.05; // 5% GST
+        const total = subtotal + gst;
+
+        // Submit order with table number
         await fetch("/api/orders", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            tableNumber: state.tableNumber || 1,
-            userEmail, // Include the verified email
+            tableNumber: state.tableNumber,
+            userEmail,
             items: state.items.map(item => ({
               menuItemId: item.menuItem.id,
               quantity: item.quantity,
@@ -34,10 +43,7 @@ export default function OrderConfirmed() {
             })),
             status: "pending",
             cookingInstructions: state.cookingInstructions,
-            total: state.items.reduce(
-              (sum, item) => sum + item.menuItem.price * item.quantity,
-              0
-            ),
+            total: Math.round(total),
           }),
         });
 
@@ -48,7 +54,7 @@ export default function OrderConfirmed() {
       }
     };
 
-    if (state.items.length > 0) {
+    if (state.items.length > 0 && state.tableNumber) {
       submitOrder();
     }
   }, []);
@@ -60,8 +66,11 @@ export default function OrderConfirmed() {
           <CheckCircle2 className="mx-auto h-16 w-16 text-green-600" />
         </div>
         <h1 className="text-2xl font-bold mb-4">Order Confirmed!</h1>
-        <p className="text-gray-600 mb-6">
+        <p className="text-gray-600 mb-2">
           Your order has been received and is being prepared.
+        </p>
+        <p className="text-gray-600 mb-6">
+          Please proceed to Table #{state.tableNumber}
         </p>
         <div className="space-y-4">
           <Link href="/">
