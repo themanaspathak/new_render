@@ -3,10 +3,16 @@ import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Link } from "wouter";
-import { Minus, Plus, ArrowLeft, Pencil } from "lucide-react";
+import { Minus, Plus, ArrowLeft, Pencil, CreditCard, Wallet } from "lucide-react";
 
 export default function Checkout() {
   const { state, dispatch } = useCart();
+  const subtotal = state.items.reduce(
+    (sum, item) => sum + item.menuItem.price * item.quantity * 80,
+    0
+  );
+  const gst = subtotal * 0.05; // 5% GST
+  const total = subtotal + gst;
 
   const updateQuantity = (menuItemId: number, newQuantity: number) => {
     dispatch({
@@ -88,6 +94,35 @@ export default function Checkout() {
           </Card>
         ))}
 
+        {/* Payment Method Selection */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold">Select Payment Method</h2>
+
+          {/* Cash Payment Option */}
+          <Link href="/order-confirmed" className="block">
+            <Button className="w-full bg-green-600 hover:bg-green-700 text-white h-auto py-4 flex items-center justify-center gap-3">
+              <Wallet className="h-5 w-5" />
+              <div className="text-left">
+                <div className="font-semibold">Pay with Cash</div>
+                <div className="text-sm opacity-90">Pay at the restaurant</div>
+              </div>
+              <div className="ml-auto font-bold">₹{Math.round(total)}</div>
+            </Button>
+          </Link>
+
+          {/* Card Payment Option */}
+          <Link href="/payment" className="block">
+            <Button variant="outline" className="w-full h-auto py-4 flex items-center justify-center gap-3">
+              <CreditCard className="h-5 w-5" />
+              <div className="text-left">
+                <div className="font-semibold">Pay with Card</div>
+                <div className="text-sm opacity-90">Credit/Debit cards accepted</div>
+              </div>
+              <div className="ml-auto font-bold">₹{Math.round(total)}</div>
+            </Button>
+          </Link>
+        </div>
+
         {/* Action Buttons */}
         <div className="grid grid-cols-2 gap-4">
           <Button variant="outline" className="w-full flex items-center justify-center gap-2">
@@ -100,19 +135,6 @@ export default function Checkout() {
             </Button>
           </Link>
         </div>
-
-        {/* Place Order Button */}
-        <Link href="/payment">
-          <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
-            Place Order | ₹
-            {Math.round(
-              state.items.reduce(
-                (sum, item) => sum + item.menuItem.price * item.quantity * 80,
-                0
-              )
-            )}
-          </Button>
-        </Link>
       </div>
     </div>
   );
