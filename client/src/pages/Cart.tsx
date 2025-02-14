@@ -8,7 +8,7 @@ import { Minus, Plus, Trash2, ArrowLeft } from "lucide-react";
 export default function Cart() {
   const { state, dispatch } = useCart();
   const total = state.items.reduce(
-    (sum, item) => sum + item.menuItem.price * item.quantity,
+    (sum, item) => sum + item.menuItem.price * item.quantity * 80,
     0
   );
 
@@ -90,7 +90,7 @@ export default function Cart() {
                       </Button>
                     </div>
                     <p className="font-medium">
-                      ${(item.menuItem.price * item.quantity).toFixed(2)}
+                      ₹{Math.round(item.menuItem.price * item.quantity * 80)}
                     </p>
                   </div>
                   {Object.entries(item.customizations).map(([category, choices]) => (
@@ -113,11 +113,11 @@ export default function Cart() {
                 <CardContent className="space-y-4">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>₹{Math.round(total)}</span>
                   </div>
                   <div className="flex justify-between font-bold">
                     <span>Total</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>₹{Math.round(total)}</span>
                   </div>
                   <Link href="/checkout">
                     <Button className="w-full">Proceed to Checkout</Button>

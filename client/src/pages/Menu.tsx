@@ -124,7 +124,7 @@ export default function Menu() {
                         ({Math.floor(Math.random() * (300 - 100) + 100)})
                       </span>
                     </div>
-                    <div className="text-xl font-bold">₹{(item.price * 80).toFixed(0)}</div>
+                    <div className="text-xl font-bold">₹{Math.round(item.price * 80)}</div>
                   </div>
 
                   <Button 
@@ -196,7 +196,7 @@ export default function Menu() {
           ))}
 
           <Button onClick={handleAddToCart} className="w-full mt-4">
-            Add to Cart
+            Add to Cart - ₹{Math.round((selectedItem?.price || 0) * 80)}
           </Button>
         </DialogContent>
       </Dialog>
