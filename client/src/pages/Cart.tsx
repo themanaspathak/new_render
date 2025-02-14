@@ -5,9 +5,12 @@ import { Link } from "wouter";
 import { Minus, Plus, Trash2, ArrowLeft } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { MenuItem } from "@shared/schema";
+import { useState } from "react";
 
 export default function Cart() {
   const { state, dispatch } = useCart();
+  const [cookingRequest, setCookingRequest] = useState("");
+
   const subtotal = state.items.reduce(
     (sum, item) => sum + item.menuItem.price * item.quantity,
     0
@@ -57,7 +60,7 @@ export default function Cart() {
         <h1 className="text-3xl font-bold mb-4">Your Cart</h1>
         <Link href="/">
           <Button variant="outline" className="mb-4">
-            ← Add more dishes
+            ← Continue Shopping
           </Button>
         </Link>
       </div>
@@ -145,6 +148,19 @@ export default function Cart() {
               </Card>
             ))}
 
+            {/* Cooking Request Section */}
+            <Card className="mt-6">
+              <CardContent className="p-4">
+                <h3 className="font-medium mb-2">Special Cooking Instructions</h3>
+                <textarea
+                  className="w-full min-h-[100px] p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent"
+                  placeholder="Add any special cooking instructions or dietary requirements..."
+                  value={cookingRequest}
+                  onChange={(e) => setCookingRequest(e.target.value)}
+                />
+              </CardContent>
+            </Card>
+
             {/* Recommended Desserts Section */}
             {desserts.length > 0 && (
               <div className="mt-8">
@@ -178,11 +194,11 @@ export default function Cart() {
               </div>
             )}
 
-            {/* Mobile Add More Dishes */}
+            {/* Continue Shopping - Mobile */}
             <div className="md:hidden">
               <Link href="/">
                 <Button variant="outline" className="w-full">
-                  Add more dishes
+                  Continue Shopping
                 </Button>
               </Link>
             </div>

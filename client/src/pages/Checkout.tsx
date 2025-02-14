@@ -3,12 +3,12 @@ import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Link } from "wouter";
-import { Minus, Plus, ArrowLeft, Pencil, CreditCard, Wallet } from "lucide-react";
+import { Minus, Plus, ArrowLeft, CreditCard, Wallet } from "lucide-react";
 
 export default function Checkout() {
   const { state, dispatch } = useCart();
   const subtotal = state.items.reduce(
-    (sum, item) => sum + item.menuItem.price * item.quantity * 80,
+    (sum, item) => sum + item.menuItem.price * item.quantity,
     0
   );
   const gst = subtotal * 0.05; // 5% GST
@@ -57,7 +57,7 @@ export default function Checkout() {
                 </div>
                 <h2 className="text-lg font-semibold">{item.menuItem.name}</h2>
               </div>
-              <div className="text-xl">₹{Math.round(item.menuItem.price * item.quantity * 80)}</div>
+              <div className="text-xl">₹{Math.round(item.menuItem.price * item.quantity)}</div>
             </div>
 
             {/* Customizations */}
@@ -119,19 +119,6 @@ export default function Checkout() {
                 <div className="text-sm opacity-90">Credit/Debit cards accepted</div>
               </div>
               <div className="ml-auto font-bold">₹{Math.round(total)}</div>
-            </Button>
-          </Link>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-4">
-          <Button variant="outline" className="w-full flex items-center justify-center gap-2">
-            <Pencil className="h-4 w-4" />
-            Cooking requests
-          </Button>
-          <Link href="/menu">
-            <Button variant="outline" className="w-full">
-              Add more items
             </Button>
           </Link>
         </div>
