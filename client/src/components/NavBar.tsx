@@ -17,15 +17,24 @@ export default function NavBar() {
   const cartItemCount = state.items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <nav className="fixed top-0 right-0 p-4 flex gap-3 z-50">
-      <div className="relative">
+    <nav 
+      className="fixed top-0 right-0 p-4 grid grid-flow-col auto-cols-max gap-3" 
+      style={{ isolation: "isolate" }}
+    >
+      {/* Cart Button */}
+      <div className="relative isolate">
         <Link href="/cart" className="block">
-          <Button variant="outline" size="icon" className="rounded-full bg-white shadow-sm relative">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            className="rounded-full bg-white shadow-sm relative isolate"
+          >
             <ShoppingCart className="h-5 w-5" />
             {cartItemCount > 0 && (
               <Badge 
                 variant="destructive" 
                 className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                style={{ zIndex: 1 }}
               >
                 {cartItemCount}
               </Badge>
@@ -34,10 +43,15 @@ export default function NavBar() {
         </Link>
       </div>
 
+      {/* Order History Button */}
       {verifiedEmail && (
-        <div className="relative">
+        <div className="relative isolate">
           <Link href={`/orders/${encodeURIComponent(verifiedEmail)}`} className="block">
-            <Button variant="outline" size="icon" className="rounded-full bg-white shadow-sm">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="rounded-full bg-white shadow-sm"
+            >
               <ClipboardList className="h-5 w-5" />
             </Button>
           </Link>
