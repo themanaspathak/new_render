@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/contexts/CartContext";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 export default function MobileVerification() {
   const [, navigate] = useLocation();
@@ -25,10 +24,10 @@ export default function MobileVerification() {
     }
 
     // TODO: Integrate with actual OTP service
-    // For now, we'll simulate OTP sending
+    // For now, we'll simulate OTP sending with code 123456
     toast({
       title: "OTP Sent",
-      description: `Please check your mobile (+91 ${mobileNumber}) for OTP`,
+      description: `Please check your mobile (+91 ${formatPhoneNumber(mobileNumber)}) for OTP`,
     });
     setShowOtpInput(true);
   };
@@ -43,8 +42,7 @@ export default function MobileVerification() {
       return;
     }
 
-    // TODO: Integrate with actual OTP verification
-    // For now, we'll simulate verification
+    // For testing, accept any 6-digit OTP
     toast({
       title: "Mobile Verified",
       description: "Proceeding to order confirmation",
@@ -99,40 +97,60 @@ export default function MobileVerification() {
             </>
           ) : (
             <>
-              <div className="space-y-2">
-                <div className="flex justify-center">
-                  <InputOTP
-                    maxLength={6}
-                    value={otp}
-                    onChange={(value) => setOtp(value)}
-                    render={({ slots }) => (
-                      <InputOTPGroup className="gap-2">
-                        {slots.map((props, index) => (
-                          <InputOTPSlot key={index} {...props} index={index} />
-                        ))}
-                      </InputOTPGroup>
-                    )}
-                  />
+              <div className="space-y-4">
+                <div className="flex flex-col items-center gap-2">
+                  <div className="flex gap-2">
+                    {Array.from({ length: 6 }).map((_, index) => (
+                      <Input
+                        key={index}
+                        type="text"
+                        maxLength={1}
+                        className="w-12 h-12 text-center text-2xl"
+                        value={otp[index] || ""}
+                        onChange={(e) => {
+                          const newOtp = otp.split("");
+                          newOtp[index] = e.target.value;
+                          setOtp(newOtp.join(""));
+
+                          // Auto-focus next input
+                          if (e.target.value && index < 5) {
+                            const nextInput = e.target.parentElement?.nextElementSibling?.querySelector("input");
+                            if (nextInput) nextInput.focus();
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          // Handle backspace
+                          if (e.key === "Backspace" && !otp[index] && index > 0) {
+                            const prevInput = e.currentTarget.parentElement?.previousElementSibling?.querySelector("input");
+                            if (prevInput) prevInput.focus();
+                          }
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    Enter the 6-digit code sent to +91 {formatPhoneNumber(mobileNumber)}
+                  </p>
                 </div>
-                <p className="text-sm text-gray-500 text-center">
-                  Enter the 6-digit code sent to +91 {formatPhoneNumber(mobileNumber)}
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Button
-                  className="w-full bg-green-600 hover:bg-green-700 text-white"
-                  onClick={handleVerifyOtp}
-                  disabled={otp.length !== 6}
-                >
-                  Verify OTP
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full"
-                  onClick={() => setShowOtpInput(false)}
-                >
-                  Change Number
-                </Button>
+                <div className="space-y-2">
+                  <Button
+                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                    onClick={handleVerifyOtp}
+                    disabled={otp.length !== 6}
+                  >
+                    Verify OTP
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="w-full"
+                    onClick={() => {
+                      setShowOtpInput(false);
+                      setOtp("");
+                    }}
+                  >
+                    Change Number
+                  </Button>
+                </div>
               </div>
             </>
           )}
