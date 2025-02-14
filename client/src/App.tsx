@@ -11,19 +11,23 @@ import OrderConfirmed from "@/pages/OrderConfirmed";
 import EmailVerification from "@/pages/EmailVerification";
 import OrderHistory from "@/pages/OrderHistory";
 import { CartProvider } from "@/contexts/CartContext";
+import NavBar from "@/components/NavBar";
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={Menu} />
-      <Route path="/cart" component={Cart} />
-      <Route path="/checkout" component={Checkout} />
-      <Route path="/kitchen" component={Kitchen} />
-      <Route path="/email-verification" component={EmailVerification} />
-      <Route path="/order-confirmed" component={OrderConfirmed} />
-      <Route path="/orders/:email" component={OrderHistory} />
-      <Route component={NotFound} />
-    </Switch>
+    <>
+      <NavBar />
+      <Switch>
+        <Route path="/" component={Menu} />
+        <Route path="/cart" component={Cart} />
+        <Route path="/checkout" component={Checkout} />
+        <Route path="/kitchen" component={Kitchen} />
+        <Route path="/email-verification" component={EmailVerification} />
+        <Route path="/order-confirmed" component={OrderConfirmed} />
+        <Route path="/orders/:email" component={OrderHistory} />
+        <Route component={NotFound} />
+      </Switch>
+    </>
   );
 }
 
