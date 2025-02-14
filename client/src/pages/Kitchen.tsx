@@ -46,23 +46,19 @@ export default function Kitchen() {
               {orders?.map((order) => (
                 <Card key={order.id} className="mb-4 border-2">
                   <CardHeader className="bg-muted/50">
-                    <div className="grid grid-cols-3 items-center">
-                      <div>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-4">
                         <Badge variant="default" className="text-lg px-3 py-1 bg-primary/90 hover:bg-primary">
                           Order #{order.id}
                         </Badge>
-                      </div>
-                      <div className="text-center">
                         <CardTitle>Table #{order.tableNumber}</CardTitle>
                       </div>
-                      <div className="flex justify-end">
-                        <Badge 
-                          variant={order.status === "pending" ? "destructive" : "secondary"}
-                          className="text-base px-3 py-1"
-                        >
-                          {order.status}
-                        </Badge>
-                      </div>
+                      <Badge 
+                        variant={order.status === "pending" ? "destructive" : "secondary"}
+                        className="text-base px-3 py-1"
+                      >
+                        {order.status}
+                      </Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="mt-4">

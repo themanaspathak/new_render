@@ -30,19 +30,6 @@ const CartContext = createContext<{
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case "ADD_ITEM":
-      const existingItem = state.items.find(
-        item => item.menuItem.id === action.item.menuItem.id
-      );
-      if (existingItem) {
-        return {
-          ...state,
-          items: state.items.map(item =>
-            item.menuItem.id === action.item.menuItem.id
-              ? { ...item, quantity: item.quantity + action.item.quantity }
-              : item
-          ),
-        };
-      }
       return {
         ...state,
         items: [...state.items, action.item],
@@ -73,8 +60,8 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       };
     case "CLEAR_CART":
       return {
+        ...state,
         items: [],
-        tableNumber: null,
         cookingInstructions: "",
       };
     default:
