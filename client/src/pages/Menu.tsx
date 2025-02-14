@@ -98,7 +98,7 @@ export default function Menu() {
     });
   };
 
-  const basePrice = selectedItem ? Math.round(selectedItem.price * 80) : 0;
+  const basePrice = selectedItem ? Math.round(selectedItem.price) : 0;
   const currentPrice = customizations.portionSize === 'full' ? Math.round(basePrice * 1.5) : basePrice;
   const totalPrice = currentPrice * quantity;
 
@@ -249,7 +249,7 @@ export default function Menu() {
                                     ({item.ratingCount || Math.floor(Math.random() * (300 - 100) + 100)})
                                   </span>
                                 </div>
-                                <div className="text-xl font-bold">₹{Math.round(item.price * 80)}</div>
+                                <div className="text-xl font-bold">₹{Math.round(item.price)}</div>
                               </div>
 
                               <Button 
@@ -313,7 +313,7 @@ export default function Menu() {
                                     ({item.ratingCount || Math.floor(Math.random() * (300 - 100) + 100)})
                                   </span>
                                 </div>
-                                <div className="text-xl font-bold">₹{Math.round(item.price * 80)}</div>
+                                <div className="text-xl font-bold">₹{Math.round(item.price)}</div>
                               </div>
 
                               <Button 

@@ -9,7 +9,7 @@ import { MenuItem } from "@shared/schema";
 export default function Cart() {
   const { state, dispatch } = useCart();
   const subtotal = state.items.reduce(
-    (sum, item) => sum + item.menuItem.price * item.quantity * 80,
+    (sum, item) => sum + item.menuItem.price * item.quantity,
     0
   );
   const gst = subtotal * 0.05; // 5% GST
@@ -21,9 +21,9 @@ export default function Cart() {
   });
 
   // Update the dessert filtering logic
-  const desserts = menuItems?.filter(item => 
-    item.category === "Desserts" || 
-    item.name.toLowerCase().includes('jamun') || 
+  const desserts = menuItems?.filter(item =>
+    item.category === "Desserts" ||
+    item.name.toLowerCase().includes('jamun') ||
     item.name.toLowerCase().includes('halwa') ||
     item.name.toLowerCase().includes('kheer') ||
     item.name.toLowerCase().includes('rasmalai')
@@ -138,7 +138,7 @@ export default function Cart() {
                       </Button>
                     </div>
                     <p className="font-medium">
-                      ₹{Math.round(item.menuItem.price * item.quantity * 80)}
+                      ₹{Math.round(item.menuItem.price * item.quantity)}
                     </p>
                   </div>
                 </CardContent>
@@ -161,7 +161,7 @@ export default function Cart() {
                         <div className="flex justify-between items-start mb-2">
                           <div>
                             <h3 className="font-medium text-sm">{dessert.name}</h3>
-                            <p className="text-sm font-bold">₹{Math.round(dessert.price * 80)}</p>
+                            <p className="text-sm font-bold">₹{Math.round(dessert.price)}</p>
                           </div>
                           <Button
                             onClick={() => handleAddDessert(dessert)}
