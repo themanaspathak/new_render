@@ -1,16 +1,17 @@
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Link } from "wouter";
 import { Minus, Plus, Trash2, ArrowLeft } from "lucide-react";
 
 export default function Cart() {
   const { state, dispatch } = useCart();
-  const total = state.items.reduce(
+  const subtotal = state.items.reduce(
     (sum, item) => sum + item.menuItem.price * item.quantity * 80,
     0
   );
+  const gst = subtotal * 0.05; // 5% GST
+  const total = subtotal + gst;
 
   return (
     <div className="container mx-auto px-4 pb-16">
@@ -111,16 +112,22 @@ export default function Cart() {
                   <CardTitle>Order Summary</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between text-sm">
                     <span>Subtotal</span>
-                    <span>₹{Math.round(total)}</span>
+                    <span>₹{Math.round(subtotal)}</span>
                   </div>
-                  <div className="flex justify-between font-bold">
+                  <div className="flex justify-between text-sm">
+                    <span>GST (5%)</span>
+                    <span>₹{Math.round(gst)}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-lg border-t pt-4">
                     <span>Total</span>
                     <span>₹{Math.round(total)}</span>
                   </div>
-                  <Link href="/checkout">
-                    <Button className="w-full">Proceed to Checkout</Button>
+                  <Link href="/checkout" className="block">
+                    <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                      Proceed to Checkout
+                    </Button>
                   </Link>
                 </CardContent>
               </Card>
