@@ -17,27 +17,31 @@ export default function NavBar() {
   const cartItemCount = state.items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <nav className="fixed top-0 right-0 p-4 flex gap-2 z-50">
-      <Link href="/cart">
-        <Button variant="outline" size="icon" className="rounded-full bg-white shadow-sm relative">
-          <ShoppingCart className="h-5 w-5" />
-          {cartItemCount > 0 && (
-            <Badge 
-              variant="destructive" 
-              className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs z-10"
-            >
-              {cartItemCount}
-            </Badge>
-          )}
-        </Button>
-      </Link>
-
-      {verifiedEmail && (
-        <Link href={`/orders/${encodeURIComponent(verifiedEmail)}`}>
-          <Button variant="outline" size="icon" className="rounded-full bg-white shadow-sm z-0">
-            <ClipboardList className="h-5 w-5" />
+    <nav className="fixed top-0 right-0 p-4 flex gap-3 z-50">
+      <div className="relative z-20">
+        <Link href="/cart">
+          <Button variant="outline" size="icon" className="rounded-full bg-white shadow-sm relative">
+            <ShoppingCart className="h-5 w-5" />
+            {cartItemCount > 0 && (
+              <Badge 
+                variant="destructive" 
+                className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs z-10"
+              >
+                {cartItemCount}
+              </Badge>
+            )}
           </Button>
         </Link>
+      </div>
+
+      {verifiedEmail && (
+        <div className="relative z-10">
+          <Link href={`/orders/${encodeURIComponent(verifiedEmail)}`}>
+            <Button variant="outline" size="icon" className="rounded-full bg-white shadow-sm">
+              <ClipboardList className="h-5 w-5" />
+            </Button>
+          </Link>
+        </div>
       )}
     </nav>
   );
