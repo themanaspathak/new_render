@@ -1,186 +1,118 @@
 import { useState } from "react";
 import { useCart } from "@/contexts/CartContext";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { useLocation } from "wouter";
-import { ArrowLeft } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { Link } from "wouter";
+import { Minus, Plus, ArrowLeft, Pencil } from "lucide-react";
 
 export default function Checkout() {
   const { state, dispatch } = useCart();
-  const [, setLocation] = useLocation();
-  const { toast } = useToast();
-  const [paymentDetails, setPaymentDetails] = useState({
-    cardNumber: "",
-    expiry: "",
-    cvv: "",
-  });
 
-  const createOrder = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/orders", {
-        tableNumber: state.tableNumber || 1,
-        items: state.items.map((item) => ({
-          menuItemId: item.menuItem.id,
-          quantity: item.quantity,
-          customizations: item.customizations,
-        })),
-        status: "pending",
-        total: state.items.reduce(
-          (sum, item) => sum + item.menuItem.price * item.quantity,
-          0
-        ),
-      });
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Order Placed Successfully",
-        description: "Your order has been confirmed and is being prepared.",
-      });
-      dispatch({ type: "CLEAR" });
-      setLocation("/");
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "There was a problem placing your order. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    createOrder.mutate();
+  const updateQuantity = (menuItemId: number, newQuantity: number) => {
+    dispatch({
+      type: "UPDATE_QUANTITY",
+      menuItemId,
+      quantity: newQuantity,
+    });
   };
 
   if (state.items.length === 0) {
-    setLocation("/cart");
-    return null;
+    return (
+      <div className="p-4 text-center">
+        <p className="mb-4">Your cart is empty</p>
+        <Link href="/">
+          <Button>Browse Menu</Button>
+        </Link>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto px-4 pb-16">
-      {/* Mobile Header */}
-      <div className="sticky top-0 z-10 flex items-center gap-4 bg-background/95 backdrop-blur py-4 -mx-4 px-4 mb-6 md:hidden">
+    <div className="container mx-auto px-4 pb-16 max-w-lg">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur py-4 mb-6">
         <Link href="/cart">
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" className="absolute left-4">
             <ArrowLeft className="h-5 w-5" />
           </Button>
         </Link>
-        <h1 className="text-xl font-bold">Checkout</h1>
+        <h1 className="text-xl font-bold text-center">Review Order</h1>
       </div>
 
-      {/* Desktop Header */}
-      <div className="hidden md:block mb-8">
-        <h1 className="text-3xl font-bold">Checkout</h1>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Payment Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="cardNumber">Card Number</Label>
-                <Input
-                  id="cardNumber"
-                  placeholder="1234 5678 9012 3456"
-                  value={paymentDetails.cardNumber}
-                  onChange={(e) =>
-                    setPaymentDetails((prev) => ({
-                      ...prev,
-                      cardNumber: e.target.value,
-                    }))
-                  }
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="expiry">Expiry Date</Label>
-                  <Input
-                    id="expiry"
-                    placeholder="MM/YY"
-                    value={paymentDetails.expiry}
-                    onChange={(e) =>
-                      setPaymentDetails((prev) => ({
-                        ...prev,
-                        expiry: e.target.value,
-                      }))
-                    }
-                    required
-                  />
+      {/* Order Items */}
+      <div className="space-y-6">
+        {state.items.map((item) => (
+          <Card key={item.menuItem.id} className="p-4">
+            <div className="flex items-start justify-between mb-2">
+              <div className="flex items-center gap-2">
+                {/* Veg/Non-veg indicator */}
+                <div className={`w-4 h-4 border-2 ${item.menuItem.isVegetarian ? 'border-green-600' : 'border-red-600'} p-0.5`}>
+                  <div className={`w-full h-full rounded-full ${item.menuItem.isVegetarian ? 'bg-green-600' : 'bg-red-600'}`} />
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="cvv">CVV</Label>
-                  <Input
-                    id="cvv"
-                    placeholder="123"
-                    value={paymentDetails.cvv}
-                    onChange={(e) =>
-                      setPaymentDetails((prev) => ({
-                        ...prev,
-                        cvv: e.target.value,
-                      }))
-                    }
-                    required
-                  />
-                </div>
+                <h2 className="text-lg font-semibold">{item.menuItem.name}</h2>
               </div>
+              <div className="text-xl">₹{Math.round(item.menuItem.price * item.quantity * 80)}</div>
+            </div>
 
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={createOrder.isPending}
-              >
-                {createOrder.isPending ? "Processing..." : "Place Order"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        <div className="lg:sticky lg:top-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {state.items.map((item) => (
-                <div key={item.menuItem.id} className="flex justify-between text-sm">
-                  <span>
-                    {item.quantity}x {item.menuItem.name}
-                  </span>
-                  <span>${(item.menuItem.price * item.quantity).toFixed(2)}</span>
+            {/* Customizations */}
+            <div className="text-sm text-gray-600 mb-4">
+              {Object.entries(item.customizations).map(([category, choices]) => (
+                <div key={category}>
+                  {choices.join(", ")}
                 </div>
               ))}
-              <div className="border-t pt-4">
-                <div className="flex justify-between font-bold">
-                  <span>Total</span>
-                  <span>
-                    $
-                    {state.items
-                      .reduce(
-                        (sum, item) => sum + item.menuItem.price * item.quantity,
-                        0
-                      )
-                      .toFixed(2)}
-                  </span>
-                </div>
+            </div>
+
+            {/* Quantity Controls */}
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => updateQuantity(item.menuItem.id, Math.max(1, item.quantity - 1))}
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <span className="w-8 text-center">{item.quantity}</span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => updateQuantity(item.menuItem.id, item.quantity + 1)}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
               </div>
-            </CardContent>
+            </div>
           </Card>
+        ))}
+
+        {/* Action Buttons */}
+        <div className="grid grid-cols-2 gap-4">
+          <Button variant="outline" className="w-full flex items-center justify-center gap-2">
+            <Pencil className="h-4 w-4" />
+            Cooking requests
+          </Button>
+          <Link href="/menu">
+            <Button variant="outline" className="w-full">
+              Add more items
+            </Button>
+          </Link>
         </div>
+
+        {/* Place Order Button */}
+        <Link href="/payment">
+          <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+            Place Order | ₹
+            {Math.round(
+              state.items.reduce(
+                (sum, item) => sum + item.menuItem.price * item.quantity * 80,
+                0
+              )
+            )}
+          </Button>
+        </Link>
       </div>
     </div>
   );
