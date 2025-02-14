@@ -43,7 +43,7 @@ export default function Menu() {
     taste: 'regular'
   });
 
-  // Organize menu items by category
+  // Updated organization of menu items by category and veg/non-veg status
   const categorizedItems = useMemo(() => {
     if (!menuItems) return {};
 
@@ -59,10 +59,11 @@ export default function Menu() {
     });
 
     return filtered.reduce((acc, item) => {
-      if (!acc[item.category]) {
-        acc[item.category] = [];
+      const key = `${item.category}-${item.isVegetarian ? 'veg' : 'nonveg'}`;
+      if (!acc[key]) {
+        acc[key] = [];
       }
-      acc[item.category].push(item);
+      acc[key].push(item);
       return acc;
     }, {} as Record<string, MenuItem[]>);
   }, [menuItems, filters, searchQuery]);
@@ -197,71 +198,142 @@ export default function Menu() {
 
       <div className="space-y-8">
         {categoryOrder.map(category => {
-          const items = categorizedItems[category];
-          if (!items?.length) return null;
+          const vegItems = categorizedItems[`${category}-veg`] || [];
+          const nonVegItems = categorizedItems[`${category}-nonveg`] || [];
+
+          if (!vegItems.length && !nonVegItems.length) return null;
 
           return (
             <section key={category}>
-              <h2 className="text-2xl font-bold mb-4">{category}</h2>
-              <div className="space-y-4">
-                {items.map((item) => (
-                  <Card key={item.id} className="relative overflow-hidden">
-                    <CardContent className="p-4">
-                      <div className="flex gap-4">
-                        {/* Image Section */}
-                        <div className="w-24 h-24 flex-shrink-0">
-                          <img
-                            src={item.imageUrl}
-                            alt={item.name}
-                            className="w-full h-full object-cover rounded-lg"
-                          />
-                        </div>
+              <h2 className="text-2xl font-bold mb-6">{category}</h2>
 
-                        {/* Content Section */}
-                        <div className="flex flex-1 justify-between items-start">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              {/* Veg/Non-veg indicator */}
-                              <div className={`w-4 h-4 border-2 ${item.isVegetarian ? 'border-green-600' : 'border-red-600'} p-0.5`}>
-                                <div className={`w-full h-full rounded-full ${item.isVegetarian ? 'bg-green-600' : 'bg-red-600'}`} />
-                              </div>
-                              {/* Bestseller tag */}
-                              {item.isBestSeller && (
-                                <span className="text-[#ff645a] text-sm font-medium bg-[#fff3f3] px-2 py-0.5 rounded">
-                                  ★ Bestseller
-                                </span>
-                              )}
+              {/* Vegetarian Section */}
+              {vegItems.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-4 text-green-600">
+                    {category} (Veg)
+                  </h3>
+                  <div className="space-y-4">
+                    {vegItems.map((item) => (
+                      <Card key={item.id} className="relative overflow-hidden">
+                        <CardContent className="p-4">
+                          <div className="flex gap-4">
+                            {/* Image Section */}
+                            <div className="w-24 h-24 flex-shrink-0">
+                              <img
+                                src={item.imageUrl}
+                                alt={item.name}
+                                className="w-full h-full object-cover rounded-lg"
+                              />
                             </div>
 
-                            <h3 className="font-medium text-lg mb-1">{item.name}</h3>
-                            <div className="flex items-center gap-1 text-sm mb-2">
-                              <div className="flex items-center gap-0.5 text-green-600">
-                                <Star className="h-4 w-4 fill-current" />
-                                <span className="font-medium">{item.rating || 4.5}</span>
+                            {/* Content Section */}
+                            <div className="flex flex-1 justify-between items-start">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  {/* Bestseller tag */}
+                                  {item.isBestSeller && (
+                                    <span className="text-[#ff645a] text-sm font-medium bg-[#fff3f3] px-2 py-0.5 rounded">
+                                      ★ Bestseller
+                                    </span>
+                                  )}
+                                </div>
+
+                                <h3 className="font-medium text-lg mb-1">{item.name}</h3>
+                                <div className="flex items-center gap-1 text-sm mb-2">
+                                  <div className="flex items-center gap-0.5 text-green-600">
+                                    <Star className="h-4 w-4 fill-current" />
+                                    <span className="font-medium">{item.rating || 4.5}</span>
+                                  </div>
+                                  <span className="text-gray-500">
+                                    ({item.ratingCount || Math.floor(Math.random() * (300 - 100) + 100)})
+                                  </span>
+                                </div>
+                                <div className="text-xl font-bold">₹{Math.round(item.price * 80)}</div>
                               </div>
-                              <span className="text-gray-500">
-                                ({item.ratingCount || Math.floor(Math.random() * (300 - 100) + 100)})
-                              </span>
+
+                              <Button 
+                                onClick={() => setSelectedItem(item)}
+                                className="bg-green-600 hover:bg-green-700 text-white min-w-[80px]"
+                              >
+                                ADD
+                              </Button>
                             </div>
-                            <div className="text-xl font-bold">₹{Math.round(item.price * 80)}</div>
                           </div>
 
-                          <Button 
-                            onClick={() => setSelectedItem(item)}
-                            className="bg-green-600 hover:bg-green-700 text-white min-w-[80px]"
-                          >
-                            ADD
-                          </Button>
-                        </div>
-                      </div>
+                          <div className="mt-2 text-sm text-gray-500">
+                            <span>Customisable</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-                      <div className="mt-2 text-sm text-gray-500">
-                        <span>Customisable</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              {/* Non-Vegetarian Section */}
+              {nonVegItems.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-4 text-red-600">
+                    {category} (Non-Veg)
+                  </h3>
+                  <div className="space-y-4">
+                    {nonVegItems.map((item) => (
+                      <Card key={item.id} className="relative overflow-hidden">
+                        <CardContent className="p-4">
+                          <div className="flex gap-4">
+                            {/* Image Section */}
+                            <div className="w-24 h-24 flex-shrink-0">
+                              <img
+                                src={item.imageUrl}
+                                alt={item.name}
+                                className="w-full h-full object-cover rounded-lg"
+                              />
+                            </div>
+
+                            {/* Content Section */}
+                            <div className="flex flex-1 justify-between items-start">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  {/* Bestseller tag */}
+                                  {item.isBestSeller && (
+                                    <span className="text-[#ff645a] text-sm font-medium bg-[#fff3f3] px-2 py-0.5 rounded">
+                                      ★ Bestseller
+                                    </span>
+                                  )}
+                                </div>
+
+                                <h3 className="font-medium text-lg mb-1">{item.name}</h3>
+                                <div className="flex items-center gap-1 text-sm mb-2">
+                                  <div className="flex items-center gap-0.5 text-green-600">
+                                    <Star className="h-4 w-4 fill-current" />
+                                    <span className="font-medium">{item.rating || 4.5}</span>
+                                  </div>
+                                  <span className="text-gray-500">
+                                    ({item.ratingCount || Math.floor(Math.random() * (300 - 100) + 100)})
+                                  </span>
+                                </div>
+                                <div className="text-xl font-bold">₹{Math.round(item.price * 80)}</div>
+                              </div>
+
+                              <Button 
+                                onClick={() => setSelectedItem(item)}
+                                className="bg-green-600 hover:bg-green-700 text-white min-w-[80px]"
+                              >
+                                ADD
+                              </Button>
+                            </div>
+                          </div>
+
+                          <div className="mt-2 text-sm text-gray-500">
+                            <span>Customisable</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
             </section>
           );
         })}
