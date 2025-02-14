@@ -1,9 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { MenuItem } from "@shared/schema";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
@@ -16,7 +13,8 @@ import {
 } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { ShoppingCart, Star, Minus, Plus } from "lucide-react";
+import { Input } from "@/components/ui/input"; // Added import
+import { ShoppingCart, Star, Minus, Plus, Search } from "lucide-react"; // Added import
 import { Link } from "wouter";
 
 export default function Menu() {
@@ -27,6 +25,13 @@ export default function Menu() {
   const { toast } = useToast();
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filters, setFilters] = useState({
+    vegOnly: false,
+    highRated: false,
+    bestSeller: false
+  });
+
   const [customizations, setCustomizations] = useState<{
     portionSize: 'medium' | 'full';
     isJain: boolean;
@@ -103,6 +108,51 @@ export default function Menu() {
             Cart ({state.items.length})
           </Button>
         </Link>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="space-y-4 mb-6">
+        {/* Search Bar */}
+        <div className="relative">
+          <Input
+            type="text"
+            placeholder="Search for dishes"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 rounded-full bg-gray-100"
+          />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+        </div>
+
+        {/* Filter Options */}
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          <Button
+            variant={filters.vegOnly ? "default" : "outline"}
+            onClick={() => setFilters(prev => ({ ...prev, vegOnly: !prev.vegOnly }))}
+            className="rounded-full flex items-center gap-2 whitespace-nowrap"
+          >
+            <div className="w-4 h-4 border-2 border-green-600 p-0.5">
+              <div className="w-full h-full rounded-full bg-green-600" />
+            </div>
+            <span className="text-sm">Veg</span>
+          </Button>
+
+          <Button
+            variant={filters.highRated ? "default" : "outline"}
+            onClick={() => setFilters(prev => ({ ...prev, highRated: !prev.highRated }))}
+            className="rounded-full whitespace-nowrap"
+          >
+            Ratings 4.0+
+          </Button>
+
+          <Button
+            variant={filters.bestSeller ? "default" : "outline"}
+            onClick={() => setFilters(prev => ({ ...prev, bestSeller: !prev.bestSeller }))}
+            className="rounded-full whitespace-nowrap"
+          >
+            Best Seller
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-4">
