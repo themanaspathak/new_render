@@ -1,8 +1,6 @@
 import { createContext, useContext, useReducer, ReactNode } from "react";
 import { MenuItem } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
 
 interface CartItem {
   menuItem: MenuItem;
@@ -85,17 +83,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     // Show toast notification when adding items
     if (action.type === "ADD_ITEM") {
       toast({
-        className: "bg-green-600 text-white border-none",
-        title: (
-          <div className="flex justify-between items-center">
-            <span>{action.item.quantity} Item added</span>
-            <Link href="/cart">
-              <Button variant="link" className="text-white p-0 h-auto hover:no-underline">
-                View Cart {">"}
-              </Button>
-            </Link>
-          </div>
-        ),
+        description: `${action.item.menuItem.name} has been added to your cart.`,
+        className: "bg-white text-black border border-gray-200",
         duration: 3000,
       });
     }
