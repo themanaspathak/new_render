@@ -1,4 +1,4 @@
-import { MenuItem, Order, InsertOrder, MOCK_MENU_ITEMS } from "@shared/schema";
+import { MenuItem, Order, InsertOrder } from "@shared/schema";
 
 export interface IStorage {
   getMenuItems(): Promise<MenuItem[]>;
@@ -13,7 +13,7 @@ export class MemStorage implements IStorage {
   private currentOrderId: number;
 
   constructor() {
-    this.menuItems = MOCK_MENU_ITEMS;
+    this.menuItems = []; // Initialize with empty array until we have database integration
     this.orders = new Map();
     this.currentOrderId = 1;
   }
@@ -28,7 +28,12 @@ export class MemStorage implements IStorage {
 
   async createOrder(order: InsertOrder): Promise<Order> {
     const id = this.currentOrderId++;
-    const newOrder: Order = { ...order, id };
+    const newOrder: Order = {
+      ...order,
+      id,
+      createdAt: new Date(),
+      status: order.status || 'pending'
+    };
     this.orders.set(id, newOrder);
     return newOrder;
   }

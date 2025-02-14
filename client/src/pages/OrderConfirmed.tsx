@@ -1,14 +1,22 @@
 import { useEffect } from "react";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { CheckCircle2 } from "lucide-react";
 
 export default function OrderConfirmed() {
   const { state, dispatch } = useCart();
+  const { state: authState } = useAuth();
+  const [, setLocation] = useLocation();
 
   useEffect(() => {
+    if (!authState.user) {
+      setLocation("/auth");
+      return;
+    }
+
     // Submit order to kitchen
     const submitOrder = async () => {
       try {
@@ -18,6 +26,7 @@ export default function OrderConfirmed() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
+            userId: authState.user.id,
             tableNumber: 1, // This should be dynamic in a real implementation
             items: state.items.map(item => ({
               menuItemId: item.menuItem.id,
@@ -43,7 +52,7 @@ export default function OrderConfirmed() {
     if (state.items.length > 0) {
       submitOrder();
     }
-  }, []);
+  }, [authState.user]);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-lg">

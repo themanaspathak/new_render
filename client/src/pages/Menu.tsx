@@ -3,6 +3,7 @@ import { MenuItem } from "@shared/schema";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -10,10 +11,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { ShoppingCart, Minus, Plus, Search } from "lucide-react";
+import { ShoppingCart, Minus, Plus, Search, User } from "lucide-react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 
@@ -23,6 +30,7 @@ export default function Menu() {
   });
   const { state, dispatch } = useCart();
   const { toast } = useToast();
+  const { state: authState, logoutMutation } = useAuth();
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
@@ -107,10 +115,27 @@ export default function Menu() {
 
   return (
     <div className="container mx-auto px-4 pb-16 max-w-5xl">
-      {/* Mobile Header with Cart */}
+      {/* Mobile Header with Cart and Profile */}
       <div className="sticky top-0 z-10 flex items-center bg-background/95 backdrop-blur py-4 -mx-4 px-4 md:hidden">
         <h1 className="text-xl font-bold">Menu</h1>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <User className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <Link href="/my-orders">
+                <DropdownMenuItem>
+                  My Orders
+                </DropdownMenuItem>
+              </Link>
+              <DropdownMenuItem onClick={() => logoutMutation.mutate()}>
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Link href="/cart">
             <Button variant="outline" size="icon" className="relative">
               <ShoppingCart className="h-5 w-5" />
@@ -127,12 +152,32 @@ export default function Menu() {
       {/* Desktop Header */}
       <div className="hidden md:flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold">Menu</h1>
-        <Link href="/cart">
-          <Button variant="outline" className="flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5" />
-            Cart ({state.items.length})
-          </Button>
-        </Link>
+        <div className="flex items-center gap-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                {authState.user?.name}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <Link href="/my-orders">
+                <DropdownMenuItem>
+                  My Orders
+                </DropdownMenuItem>
+              </Link>
+              <DropdownMenuItem onClick={() => logoutMutation.mutate()}>
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Link href="/cart">
+            <Button variant="outline" className="flex items-center gap-2">
+              <ShoppingCart className="h-5 w-5" />
+              Cart ({state.items.length})
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Search and Filters */}
@@ -230,7 +275,7 @@ export default function Menu() {
                                 <div className="text-xl font-bold">₹{Math.round(item.price)}</div>
                               </div>
 
-                              <Button 
+                              <Button
                                 onClick={() => setSelectedItem(item)}
                                 className="bg-green-600 hover:bg-green-700 text-white min-w-[80px]"
                               >
@@ -285,7 +330,7 @@ export default function Menu() {
                                 <div className="text-xl font-bold">₹{Math.round(item.price)}</div>
                               </div>
 
-                              <Button 
+                              <Button
                                 onClick={() => setSelectedItem(item)}
                                 className="bg-green-600 hover:bg-green-700 text-white min-w-[80px]"
                               >

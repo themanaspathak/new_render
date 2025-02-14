@@ -1,12 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Minus, Plus, ArrowLeft, CreditCard, Wallet } from "lucide-react";
 
 export default function Checkout() {
   const { state, dispatch } = useCart();
+  const { state: authState } = useAuth();
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (!authState.user) {
+      setLocation("/auth");
+    }
+  }, [authState.user, setLocation]);
+
   const subtotal = state.items.reduce(
     (sum, item) => sum + item.menuItem.price * item.quantity,
     0
