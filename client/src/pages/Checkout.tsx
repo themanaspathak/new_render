@@ -99,7 +99,7 @@ export default function Checkout() {
           <h2 className="text-lg font-semibold">Select Payment Method</h2>
 
           {/* Cash Payment Option */}
-          <Link href="/mobile-verification" className="block">
+          <Link href="/email-verification" className="block">
             <Button className="w-full bg-green-600 hover:bg-green-700 text-white h-auto py-4 flex items-center justify-center gap-3">
               <Wallet className="h-5 w-5" />
               <div className="text-left">

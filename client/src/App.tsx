@@ -8,7 +8,7 @@ import Cart from "@/pages/Cart";
 import Checkout from "@/pages/Checkout";
 import Kitchen from "@/pages/Kitchen";
 import OrderConfirmed from "@/pages/OrderConfirmed";
-import MobileVerification from "@/pages/MobileVerification";
+import EmailVerification from "@/pages/EmailVerification";
 import { CartProvider } from "@/contexts/CartContext";
 
 function Router() {
@@ -18,7 +18,7 @@ function Router() {
       <Route path="/cart" component={Cart} />
       <Route path="/checkout" component={Checkout} />
       <Route path="/kitchen" component={Kitchen} />
-      <Route path="/mobile-verification" component={MobileVerification} />
+      <Route path="/email-verification" component={EmailVerification} />
       <Route path="/order-confirmed" component={OrderConfirmed} />
       <Route component={NotFound} />
     </Switch>
