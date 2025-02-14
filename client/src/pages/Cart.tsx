@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "wouter";
 import { Minus, Plus, Trash2, ArrowLeft } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { MenuItem } from "@shared/schema";
 
 export default function Cart() {
   const { state, dispatch } = useCart();
@@ -12,6 +14,29 @@ export default function Cart() {
   );
   const gst = subtotal * 0.05; // 5% GST
   const total = subtotal + gst;
+
+  // Fetch menu items for recommendations
+  const { data: menuItems } = useQuery<MenuItem[]>({
+    queryKey: ["/api/menu"],
+  });
+
+  // Filter dessert items (assuming items with 'Dessert' category)
+  const desserts = menuItems?.filter(item => 
+    item.name.toLowerCase().includes('jamun') || 
+    item.name.toLowerCase().includes('halwa') ||
+    item.name.toLowerCase().includes('kheer')
+  ) || [];
+
+  const handleAddDessert = (dessert: MenuItem) => {
+    dispatch({
+      type: "ADD_ITEM",
+      item: {
+        menuItem: dessert,
+        quantity: 1,
+        customizations: {},
+      },
+    });
+  };
 
   return (
     <div className="container mx-auto px-4 pb-16">
@@ -47,23 +72,38 @@ export default function Cart() {
           <div className="lg:col-span-2 space-y-4">
             {state.items.map((item) => (
               <Card key={item.menuItem.id}>
-                <CardHeader className="flex flex-row items-center justify-between p-4">
-                  <CardTitle className="text-base md:text-lg">{item.menuItem.name}</CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() =>
-                      dispatch({
-                        type: "REMOVE_ITEM",
-                        menuItemId: item.menuItem.id,
-                      })
-                    }
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </CardHeader>
-                <CardContent className="p-4 pt-0">
+                <CardContent className="p-4">
                   <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {/* Veg/Non-veg indicator */}
+                      <div className={`w-4 h-4 border-2 ${item.menuItem.isVegetarian ? 'border-green-600' : 'border-red-600'} p-0.5`}>
+                        <div className={`w-full h-full rounded-full ${item.menuItem.isVegetarian ? 'bg-green-600' : 'bg-red-600'}`} />
+                      </div>
+                      <div>
+                        <h3 className="font-medium">{item.menuItem.name}</h3>
+                        <div className="text-sm text-gray-600">
+                          {Object.entries(item.customizations).map(([category, choices]) => (
+                            <div key={category}>
+                              {choices.join(", ")}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() =>
+                        dispatch({
+                          type: "REMOVE_ITEM",
+                          menuItemId: item.menuItem.id,
+                        })
+                      }
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-between mt-4">
                     <div className="flex items-center space-x-2">
                       <Button
                         variant="outline"
@@ -99,15 +139,42 @@ export default function Cart() {
                       ₹{Math.round(item.menuItem.price * item.quantity * 80)}
                     </p>
                   </div>
-                  {Object.entries(item.customizations).map(([category, choices]) => (
-                    <div key={category} className="mt-2 text-sm text-gray-600">
-                      <span className="font-medium">{category}:</span>{" "}
-                      {choices.join(", ")}
-                    </div>
-                  ))}
                 </CardContent>
               </Card>
             ))}
+
+            {/* Recommended Desserts Section */}
+            {desserts.length > 0 && (
+              <div className="mt-8">
+                <h2 className="text-xl font-bold mb-4">Complete Your Meal</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {desserts.map((dessert) => (
+                    <Card key={dessert.id} className="overflow-hidden">
+                      <CardContent className="p-3">
+                        <img
+                          src={dessert.imageUrl}
+                          alt={dessert.name}
+                          className="w-full h-24 object-cover rounded-lg mb-2"
+                        />
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <h3 className="font-medium text-sm">{dessert.name}</h3>
+                            <p className="text-sm font-bold">₹{Math.round(dessert.price * 80)}</p>
+                          </div>
+                          <Button
+                            onClick={() => handleAddDessert(dessert)}
+                            size="sm"
+                            className="h-7 bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            Add
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Mobile Add More Dishes */}
             <div className="md:hidden">
