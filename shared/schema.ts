@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, jsonb, real } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb, real, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -24,8 +24,10 @@ export const orders = pgTable("orders", {
     quantity: number;
     customizations: Record<string, string[]>;
   }[]>().notNull(),
-  status: text("status").notNull(),
+  status: text("status").notNull().default('pending'),
+  cookingInstructions: text("cooking_instructions"),
   total: real("total").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const insertMenuItemSchema = createInsertSchema(menuItems);
@@ -517,5 +519,27 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
         }
       ]
     }
+  }
+];
+
+export const MOCK_ORDERS: Order[] = [
+  {
+    id: 1,
+    tableNumber: 5,
+    items: [
+      {
+        menuItemId: 1,
+        quantity: 2,
+        customizations: {
+          "Portion Size": ["medium"],
+          "Preparation": ["Regular"],
+          "Taste": ["spicy"]
+        }
+      }
+    ],
+    status: "pending",
+    cookingInstructions: "Extra spicy please, no onion",
+    total: 698.00,
+    createdAt: new Date(),
   }
 ];
