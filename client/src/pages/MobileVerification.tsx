@@ -28,7 +28,7 @@ export default function MobileVerification() {
     // For now, we'll simulate OTP sending
     toast({
       title: "OTP Sent",
-      description: "Please check your mobile for OTP",
+      description: `Please check your mobile (+91 ${mobileNumber}) for OTP`,
     });
     setShowOtpInput(true);
   };
@@ -52,6 +52,17 @@ export default function MobileVerification() {
     navigate("/order-confirmed");
   };
 
+  const formatPhoneNumber = (value: string) => {
+    // Remove all non-digits
+    const digits = value.replace(/\D/g, "").slice(0, 10);
+
+    // Format as XXXXX XXXXX
+    if (digits.length >= 5) {
+      return `${digits.slice(0, 5)} ${digits.slice(5)}`;
+    }
+    return digits;
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-md">
       <Card>
@@ -62,13 +73,18 @@ export default function MobileVerification() {
           {!showOtpInput ? (
             <>
               <div className="space-y-2">
-                <Input
-                  type="tel"
-                  placeholder="Enter mobile number"
-                  value={mobileNumber}
-                  onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                  className="text-lg"
-                />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                    +91
+                  </span>
+                  <Input
+                    type="tel"
+                    placeholder="Enter mobile number"
+                    value={formatPhoneNumber(mobileNumber)}
+                    onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                    className="pl-12 text-lg tracking-wide"
+                  />
+                </div>
                 <p className="text-sm text-gray-500">
                   We'll send you a one-time password (OTP)
                 </p>
@@ -76,6 +92,7 @@ export default function MobileVerification() {
               <Button 
                 className="w-full bg-green-600 hover:bg-green-700 text-white"
                 onClick={handleSendOtp}
+                disabled={mobileNumber.length !== 10}
               >
                 Send OTP
               </Button>
@@ -90,21 +107,22 @@ export default function MobileVerification() {
                     onChange={(value) => setOtp(value)}
                     render={({ slots }) => (
                       <InputOTPGroup className="gap-2">
-                        {slots.map((slot, index) => (
-                          <InputOTPSlot key={index} {...slot} />
+                        {slots.map((props, index) => (
+                          <InputOTPSlot key={index} {...props} index={index} />
                         ))}
                       </InputOTPGroup>
                     )}
                   />
                 </div>
                 <p className="text-sm text-gray-500 text-center">
-                  Enter the 6-digit code sent to {mobileNumber}
+                  Enter the 6-digit code sent to +91 {formatPhoneNumber(mobileNumber)}
                 </p>
               </div>
               <div className="space-y-2">
                 <Button
                   className="w-full bg-green-600 hover:bg-green-700 text-white"
                   onClick={handleVerifyOtp}
+                  disabled={otp.length !== 6}
                 >
                   Verify OTP
                 </Button>
