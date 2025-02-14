@@ -1,6 +1,5 @@
 import { createContext, useContext, useReducer, ReactNode } from "react";
 import { MenuItem } from "@shared/schema";
-import { useToast } from "@/hooks/use-toast";
 
 interface CartItem {
   menuItem: MenuItem;
@@ -60,8 +59,8 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       };
     case "CLEAR_CART":
       return {
+        ...state,
         items: [],
-        tableNumber: null,
         cookingInstructions: "",
       };
     default:
@@ -75,27 +74,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     tableNumber: null,
     cookingInstructions: "",
   });
-  const { toast } = useToast();
-
-  const wrappedDispatch = (action: CartAction) => {
-    dispatch(action);
-
-    // Show toast notification when adding items
-    if (action.type === "ADD_ITEM") {
-      toast({
-        description: (
-          <p className="text-base font-medium animate-in fade-in-50 duration-300">
-            {action.item.menuItem.name} has been added to your cart
-          </p>
-        ),
-        className: "bg-white border-green-100 shadow-lg rounded-xl p-4",
-        duration: 3000,
-      });
-    }
-  };
 
   return (
-    <CartContext.Provider value={{ state, dispatch: wrappedDispatch }}>
+    <CartContext.Provider value={{ state, dispatch }}>
       {children}
     </CartContext.Provider>
   );
