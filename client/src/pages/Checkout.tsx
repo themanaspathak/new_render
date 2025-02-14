@@ -22,6 +22,14 @@ export default function Checkout() {
     });
   };
 
+  // Handle table selection
+  const handleTableSelect = (tableNumber: number) => {
+    dispatch({
+      type: "SET_TABLE",
+      tableNumber,
+    });
+  };
+
   if (state.items.length === 0) {
     return (
       <div className="p-4 text-center">
@@ -44,6 +52,25 @@ export default function Checkout() {
         </Link>
         <h1 className="text-xl font-bold text-center">Review Order</h1>
       </div>
+
+      {/* Table Selection */}
+      <Card className="p-4 mb-6">
+        <h2 className="text-lg font-semibold mb-4">Select Your Table</h2>
+        <div className="grid grid-cols-3 gap-4">
+          {[1, 2, 3, 4, 5, 6].map((number) => (
+            <button
+              key={number}
+              onClick={() => handleTableSelect(number)}
+              className={`aspect-square rounded-lg border-2 flex items-center justify-center transition-all
+                ${state.tableNumber === number 
+                  ? 'border-green-600 bg-green-50 text-green-600 font-bold' 
+                  : 'border-gray-200 hover:border-green-200 hover:bg-green-50/50'}`}
+            >
+              Table {number}
+            </button>
+          ))}
+        </div>
+      </Card>
 
       {/* Order Items */}
       <div className="space-y-6">
@@ -100,7 +127,10 @@ export default function Checkout() {
 
           {/* Cash Payment Option */}
           <Link href="/email-verification" className="block">
-            <Button className="w-full bg-green-600 hover:bg-green-700 text-white h-auto py-4 flex items-center justify-center gap-3">
+            <Button 
+              className="w-full bg-green-600 hover:bg-green-700 text-white h-auto py-4 flex items-center justify-center gap-3"
+              disabled={!state.tableNumber}
+            >
               <Wallet className="h-5 w-5" />
               <div className="text-left">
                 <div className="font-semibold">Pay with Cash</div>
@@ -112,7 +142,11 @@ export default function Checkout() {
 
           {/* Card Payment Option */}
           <Link href="/payment" className="block">
-            <Button variant="outline" className="w-full h-auto py-4 flex items-center justify-center gap-3">
+            <Button 
+              variant="outline" 
+              className="w-full h-auto py-4 flex items-center justify-center gap-3"
+              disabled={!state.tableNumber}
+            >
               <CreditCard className="h-5 w-5" />
               <div className="text-left">
                 <div className="font-semibold">Pay with Card</div>
@@ -121,6 +155,12 @@ export default function Checkout() {
               <div className="ml-auto font-bold">₹{Math.round(total)}</div>
             </Button>
           </Link>
+
+          {!state.tableNumber && (
+            <p className="text-sm text-red-500 text-center">
+              Please select a table to proceed with payment
+            </p>
+          )}
         </div>
       </div>
     </div>
