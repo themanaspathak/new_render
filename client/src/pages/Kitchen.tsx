@@ -99,11 +99,18 @@ export default function Kitchen() {
                     <div className="mt-4 flex gap-2">
                       <Button 
                         onClick={() => {/* TODO: Update order status */}} 
-                        variant={order.status === "pending" ? "default" : "outline"}
+                        variant="destructive"
                         size="lg"
-                        className="w-full"
+                        className="w-full font-semibold"
                       >
-                        {order.status === "pending" ? "Start Preparing" : "Mark as Ready"}
+                        Can't Serve
+                      </Button>
+                      <Button 
+                        onClick={() => {/* TODO: Update order status */}} 
+                        className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold"
+                        size="lg"
+                      >
+                        Served
                       </Button>
                     </div>
                   </CardContent>
