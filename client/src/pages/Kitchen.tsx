@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Pencil, ChefHat } from "lucide-react";
+import cn from 'classnames'; // Assuming classnames library is used
 
 export default function Kitchen() {
   const { data: menuItems, isLoading: menuLoading } = useQuery<MenuItem[]>({
@@ -51,9 +52,12 @@ export default function Kitchen() {
                         <Badge variant="default" className="text-lg px-3 py-1 bg-primary/90 hover:bg-primary">
                           Order #{order.id}
                         </Badge>
-                        <Badge 
-                          variant={order.status === "pending" ? "destructive" : "secondary"}
-                          className="text-base px-3 py-1"
+                        <Badge
+                          variant={order.status === "pending" ? "outline" : "secondary"}
+                          className={cn(
+                            "text-base px-3 py-1",
+                            order.status === "pending" ? "bg-yellow-100 hover:bg-yellow-100 text-yellow-800 border-yellow-200" : ""
+                          )}
                         >
                           {order.status}
                         </Badge>
@@ -95,16 +99,16 @@ export default function Kitchen() {
                       )}
                     </div>
                     <div className="mt-4 flex gap-2">
-                      <Button 
-                        onClick={() => {/* TODO: Update order status to cancelled */}} 
+                      <Button
+                        onClick={() => {/* TODO: Update order status to cancelled */}}
                         variant="destructive"
                         size="lg"
                         className="w-full"
                       >
                         Can't serve
                       </Button>
-                      <Button 
-                        onClick={() => {/* TODO: Update order status to served */}} 
+                      <Button
+                        onClick={() => {/* TODO: Update order status to served */}}
                         variant="default"
                         size="lg"
                         className="w-full bg-green-600 hover:bg-green-700"
