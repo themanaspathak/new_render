@@ -141,75 +141,22 @@ export default function EmailVerification() {
                 <p className="text-center text-sm text-gray-500">
                   Enter the 6-digit code sent to {email}
                 </p>
-                <div className="flex justify-center gap-2">
-                  {Array.from({ length: 6 }).map((_, index) => (
-                    <Input
-                      key={index}
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      maxLength={1}
-                      className="w-12 h-12 text-center text-2xl"
-                      value={otp[index] || ""}
-                      onChange={(e) => {
-                        const value = e.target.value.slice(-1);
-                        // Only allow numbers
-                        if (!/^\d*$/.test(value)) {
-                          return;
-                        }
 
-                        const newOtp = otp.split("");
-                        newOtp[index] = value;
-                        setOtp(newOtp.join(""));
-
-                        // Auto-focus next input if a number was entered
-                        if (value && index < 5) {
-                          const nextInput = e.target.parentElement?.nextElementSibling?.querySelector("input");
-                          if (nextInput) {
-                            nextInput.focus();
-                          }
-                        }
-                      }}
-                      onKeyDown={(e) => {
-                        // Handle backspace
-                        if (e.key === "Backspace") {
-                          e.preventDefault();
-                          const newOtp = otp.split("");
-                          newOtp[index] = "";
-                          setOtp(newOtp.join(""));
-
-                          if (index > 0) {
-                            const prevInput = e.currentTarget.parentElement?.previousElementSibling?.querySelector("input");
-                            if (prevInput) {
-                              prevInput.focus();
-                            }
-                          }
-                        }
-                      }}
-                      onPaste={(e) => {
-                        e.preventDefault();
-                        const pastedData = e.clipboardData.getData("text");
-                        const numbers = pastedData.match(/\d/g);
-                        if (numbers) {
-                          const newOtp = [...otp];
-                          numbers.forEach((num, idx) => {
-                            if (idx + index < 6) {
-                              newOtp[idx + index] = num;
-                            }
-                          });
-                          setOtp(newOtp.join(""));
-
-                          // Focus the next empty input or the last input
-                          const nextIndex = Math.min(index + numbers.length, 5);
-                          const inputs = e.currentTarget.parentElement?.parentElement?.querySelectorAll("input");
-                          if (inputs && inputs[nextIndex]) {
-                            inputs[nextIndex].focus();
-                          }
-                        }
-                      }}
-                    />
-                  ))}
-                </div>
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  placeholder="• • • • • •"
+                  className="text-center text-2xl tracking-[1em] h-16"
+                  value={otp}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, '');
+                    if (value.length <= 6) {
+                      setOtp(value);
+                    }
+                  }}
+                />
 
                 <div className="pt-4 space-y-4">
                   <Button
