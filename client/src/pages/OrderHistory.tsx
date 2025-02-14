@@ -11,7 +11,7 @@ export default function OrderHistory() {
   const email = localStorage.getItem("verifiedEmail");
 
   const { data: orders, isLoading } = useQuery<Order[]>({
-    queryKey: ["/api/users", email, "orders"],
+    queryKey: [`/api/users/${encodeURIComponent(email)}/orders`],
     enabled: !!email,
   });
 
