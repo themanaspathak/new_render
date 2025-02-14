@@ -13,11 +13,11 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
-import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { ShoppingCart, Star } from "lucide-react";
+import { ShoppingCart, Star, X, Minus, Plus } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Menu() {
@@ -27,7 +27,16 @@ export default function Menu() {
   const { state, dispatch } = useCart();
   const { toast } = useToast();
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
-  const [customizations, setCustomizations] = useState<Record<string, string[]>>({});
+  const [quantity, setQuantity] = useState(1);
+  const [customizations, setCustomizations] = useState<{
+    portionSize: 'medium' | 'full';
+    isJain: boolean;
+    taste: string;
+  }>({
+    portionSize: 'medium',
+    isJain: false,
+    taste: 'regular'
+  });
 
   if (isLoading) {
     return <div className="p-4">Loading menu...</div>;
@@ -40,8 +49,12 @@ export default function Menu() {
       type: "ADD_ITEM",
       item: {
         menuItem: selectedItem,
-        quantity: 1,
-        customizations,
+        quantity,
+        customizations: {
+          "Portion Size": [customizations.portionSize],
+          "Preparation": [customizations.isJain ? "Jain" : "Regular"],
+          "Taste": [customizations.taste],
+        },
       },
     });
 
@@ -51,8 +64,17 @@ export default function Menu() {
     });
 
     setSelectedItem(null);
-    setCustomizations({});
+    setQuantity(1);
+    setCustomizations({
+      portionSize: 'medium',
+      isJain: false,
+      taste: 'regular'
+    });
   };
+
+  const basePrice = selectedItem ? Math.round(selectedItem.price * 80) : 0;
+  const currentPrice = customizations.portionSize === 'full' ? Math.round(basePrice * 1.5) : basePrice;
+  const totalPrice = currentPrice * quantity;
 
   return (
     <div className="container mx-auto px-4 pb-16">
@@ -144,60 +166,121 @@ export default function Menu() {
         ))}
       </div>
 
-      <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
+      <Dialog open={!!selectedItem} onOpenChange={(open) => {
+        if (!open) {
+          setSelectedItem(null);
+          setQuantity(1);
+          setCustomizations({
+            portionSize: 'medium',
+            isJain: false,
+            taste: 'regular'
+          });
+        }
+      }}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Customize Your Order</DialogTitle>
+          <DialogHeader className="relative">
+            <DialogTitle className="text-xl">{selectedItem?.name}</DialogTitle>
+            <DialogClose className="absolute right-4 top-4">
+              <X className="h-4 w-4" />
+            </DialogClose>
           </DialogHeader>
 
-          {selectedItem?.customizations?.options.map((option) => (
-            <div key={option.name} className="space-y-3">
-              <h3 className="font-medium">{option.name}</h3>
-              {option.maxChoices === 1 ? (
-                <RadioGroup
-                  onValueChange={(value) =>
-                    setCustomizations((prev) => ({
-                      ...prev,
-                      [option.name]: [value],
-                    }))
-                  }
-                >
-                  {option.choices.map((choice) => (
-                    <div key={choice} className="flex items-center space-x-2">
-                      <RadioGroupItem value={choice} id={choice} />
-                      <Label htmlFor={choice}>{choice}</Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-              ) : (
-                <div className="space-y-2">
-                  {option.choices.map((choice) => (
-                    <div key={choice} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={choice}
-                        onCheckedChange={(checked) =>
-                          setCustomizations((prev) => {
-                            const current = prev[option.name] || [];
-                            return {
-                              ...prev,
-                              [option.name]: checked
-                                ? [...current, choice]
-                                : current.filter((c) => c !== choice),
-                            };
-                          })
-                        }
-                      />
-                      <Label htmlFor={choice}>{choice}</Label>
-                    </div>
-                  ))}
+          <div className="space-y-6 py-4">
+            {/* Portion Size */}
+            <div className="space-y-4">
+              <h3 className="font-medium text-lg">Portion Size</h3>
+              <p className="text-sm text-gray-500">Select any 1</p>
+              <RadioGroup
+                value={customizations.portionSize}
+                onValueChange={(value: 'medium' | 'full') => 
+                  setCustomizations(prev => ({ ...prev, portionSize: value }))
+                }
+                className="space-y-2"
+              >
+                <div className="flex items-center justify-between p-2 rounded border">
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="medium" id="medium" />
+                    <Label htmlFor="medium">Medium-300ML Aprox.</Label>
+                  </div>
+                  <span className="font-medium">₹{basePrice}</span>
                 </div>
-              )}
+                <div className="flex items-center justify-between p-2 rounded border">
+                  <div className="flex items-center gap-2">
+                    <RadioGroupItem value="full" id="full" />
+                    <Label htmlFor="full">Full-500ML Aprox.</Label>
+                  </div>
+                  <span className="font-medium">₹{Math.round(basePrice * 1.5)}</span>
+                </div>
+              </RadioGroup>
             </div>
-          ))}
 
-          <Button onClick={handleAddToCart} className="w-full mt-4">
-            Add to Cart - ₹{Math.round((selectedItem?.price || 0) * 80)}
-          </Button>
+            {/* Jain Option */}
+            <div className="space-y-4">
+              <h3 className="font-medium text-lg">Select For Jain Prepration</h3>
+              <RadioGroup
+                value={customizations.isJain ? "jain" : "regular"}
+                onValueChange={(value) => 
+                  setCustomizations(prev => ({ ...prev, isJain: value === "jain" }))
+                }
+              >
+                <div className="flex items-center gap-2 p-2 rounded border">
+                  <RadioGroupItem value="jain" id="jain" />
+                  <Label htmlFor="jain">Jain</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Taste Preference */}
+            <div className="space-y-4">
+              <h3 className="font-medium text-lg">Choice Of Taste</h3>
+              <p className="text-sm text-gray-500">Select upto 1</p>
+              <RadioGroup
+                value={customizations.taste}
+                onValueChange={(value) => 
+                  setCustomizations(prev => ({ ...prev, taste: value }))
+                }
+                className="space-y-2"
+              >
+                <div className="flex items-center gap-2 p-2 rounded border">
+                  <RadioGroupItem value="regular" id="regular" />
+                  <Label htmlFor="regular">Regular (little Sweet)</Label>
+                </div>
+                <div className="flex items-center gap-2 p-2 rounded border">
+                  <RadioGroupItem value="spicy" id="spicy" />
+                  <Label htmlFor="spicy">Spicy (punjabi Gravy)</Label>
+                </div>
+              </RadioGroup>
+            </div>
+          </div>
+
+          {/* Quantity and Add Button */}
+          <div className="flex items-center justify-between mt-4 pt-4 border-t">
+            <div className="flex items-center border rounded-md">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10"
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+              <span className="w-10 text-center">{quantity}</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10"
+                onClick={() => setQuantity(quantity + 1)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <Button 
+              onClick={handleAddToCart}
+              className="bg-green-600 hover:bg-green-700 text-white px-8"
+            >
+              Add Item | ₹{totalPrice}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
