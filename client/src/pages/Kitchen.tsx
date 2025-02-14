@@ -47,7 +47,10 @@ export default function Kitchen() {
               <Card key={order.id} className="mb-4">
                 <CardHeader>
                   <div className="flex justify-between items-center">
-                    <CardTitle>Table #{order.tableNumber}</CardTitle>
+                    <div className="flex items-center gap-4">
+                      <Badge className="text-sm px-2 py-1 bg-primary">Order #{order.id}</Badge>
+                      <CardTitle>Table #{order.tableNumber}</CardTitle>
+                    </div>
                     <Badge variant={order.status === "pending" ? "destructive" : "secondary"}>
                       {order.status}
                     </Badge>
