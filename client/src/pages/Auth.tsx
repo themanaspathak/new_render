@@ -5,19 +5,37 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Auth() {
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
   const { loginMutation } = useAuth();
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate mobile number format
+    if (!/^[0-9]{10}$/.test(mobile)) {
+      toast({
+        title: "Invalid mobile number",
+        description: "Please enter a valid 10-digit mobile number",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       await loginMutation.mutateAsync({ name, mobile });
       setLocation("/checkout");
     } catch (error) {
+      toast({
+        title: "Authentication failed",
+        description: "Please try again",
+        variant: "destructive",
+      });
       console.error("Auth error:", error);
     }
   };
@@ -38,6 +56,8 @@ export default function Auth() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                placeholder="Enter your name"
+                className="w-full"
               />
             </div>
             <div className="space-y-2">
@@ -48,9 +68,10 @@ export default function Auth() {
                 pattern="[0-9]{10}"
                 maxLength={10}
                 value={mobile}
-                onChange={(e) => setMobile(e.target.value)}
+                onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
                 required
                 placeholder="Enter 10 digit mobile number"
+                className="w-full"
               />
             </div>
             <Button
