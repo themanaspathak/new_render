@@ -147,8 +147,8 @@ export default function EmailVerification() {
                   inputMode="numeric"
                   pattern="[0-9]*"
                   maxLength={6}
-                  placeholder="• • • • • •"
-                  className="text-center text-2xl tracking-[1em] h-16"
+                  placeholder="Enter OTP"
+                  className="text-center text-xl py-6 bg-muted/50 border-2 border-muted-foreground/20 rounded-xl shadow-sm transition-all duration-200 focus:border-primary/50 focus:bg-background hover:bg-muted/70"
                   value={otp}
                   onChange={(e) => {
                     const value = e.target.value.replace(/[^0-9]/g, '');
@@ -157,6 +157,14 @@ export default function EmailVerification() {
                     }
                   }}
                 />
+
+                <div className="text-center text-3xl font-light tracking-[0.5em] text-muted-foreground/50 font-mono">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <span key={i} className={`transition-all duration-200 ${otp[i] ? 'text-foreground' : ''}`}>
+                      {otp[i] || '•'}
+                    </span>
+                  ))}
+                </div>
 
                 <div className="pt-4 space-y-4">
                   <Button
@@ -192,6 +200,7 @@ export default function EmailVerification() {
                     Change Email
                   </Button>
                 </div>
+
               </div>
             </>
           )}
