@@ -13,11 +13,12 @@ export interface IStorage {
   getMenuItem(id: number): Promise<MenuItem | undefined>;
   createOrder(order: InsertOrder): Promise<Order>;
   getOrder(id: number): Promise<Order | undefined>;
-
-  // New methods for user management
   getUser(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   getUserOrders(email: string): Promise<Order[]>;
+
+  // New method
+  getAllOrders(): Promise<Order[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -68,6 +69,13 @@ export class DatabaseStorage implements IStorage {
     return await db.select()
       .from(orders)
       .where(eq(orders.userEmail, email))
+      .orderBy(desc(orders.createdAt));
+  }
+
+  // New method implementation
+  async getAllOrders(): Promise<Order[]> {
+    return await db.select()
+      .from(orders)
       .orderBy(desc(orders.createdAt));
   }
 }

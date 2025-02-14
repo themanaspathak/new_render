@@ -18,6 +18,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(item);
   });
 
+  // Add endpoint to get all orders
+  app.get("/api/orders", async (req, res) => {
+    try {
+      const orders = await storage.getAllOrders();
+      res.json(orders);
+    } catch (error) {
+      console.error("Failed to fetch orders:", error);
+      res.status(500).json({ message: "Failed to fetch orders" });
+    }
+  });
+
   app.post("/api/orders", async (req, res) => {
     try {
       const order = insertOrderSchema.parse(req.body);
@@ -37,7 +48,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(order);
   });
 
-  // New endpoint to get user order history
+  // User order history endpoint
   app.get("/api/users/:email/orders", async (req, res) => {
     try {
       const { email } = req.params;
