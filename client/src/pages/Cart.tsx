@@ -1,8 +1,7 @@
 import { useCart } from "@/contexts/CartContext";
-import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { Minus, Plus, Trash2, ArrowLeft, Pencil } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { MenuItem } from "@shared/schema";
@@ -10,8 +9,6 @@ import { useState } from "react";
 
 export default function Cart() {
   const { state, dispatch } = useCart();
-  const { state: authState } = useAuth();
-  const [, setLocation] = useLocation();
   const [cookingRequest, setCookingRequest] = useState("");
 
   const subtotal = state.items.reduce(
@@ -231,7 +228,7 @@ export default function Cart() {
                     <span>Total</span>
                     <span>₹{Math.round(total)}</span>
                   </div>
-                  <Link href={authState.user ? "/checkout" : "/auth"} className="block">
+                  <Link href="/checkout" className="block">
                     <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
                       Proceed to Checkout
                     </Button>
