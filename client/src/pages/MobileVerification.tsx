@@ -90,7 +90,7 @@ export default function MobileVerification() {
 
       const orderData = {
         tableNumber: state.tableNumber || 1,
-        user_email: guestEmail, 
+        userEmail: guestEmail, // Changed from user_email to userEmail
         mobileNumber: mobileNumber,
         customerName: customerName,
         items: state.items.map(item => ({
@@ -99,8 +99,8 @@ export default function MobileVerification() {
           customizations: item.customizations || {}
         })),
         status: "pending",
-        paymentStatus: "pending",
-        paymentMethod: "cash",
+        paymentStatus: "pending" as const,
+        paymentMethod: "cash" as const,
         cookingInstructions: state.cookingInstructions || "",
         total: state.items.reduce(
           (sum, item) => sum + item.menuItem.price * item.quantity,
@@ -193,7 +193,7 @@ export default function MobileVerification() {
           </div>
           <CardTitle className="text-2xl font-bold text-center">Verify Your Number</CardTitle>
           <CardDescription className="text-center text-muted-foreground">
-            {!showOtpInput 
+            {!showOtpInput
               ? "We'll send you a one-time password to verify your number"
               : "Enter the verification code we sent you"}
           </CardDescription>
