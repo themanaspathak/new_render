@@ -42,7 +42,9 @@ const menuItemSchema = z.object({
   }),
   isVegetarian: z.boolean().default(false),
   category: z.string().min(1, "Category is required"),
-  image: z.string().optional(),
+  imageUrl: z.string().optional(),
+  isBestSeller: z.boolean().default(false),
+  isAvailable: z.boolean().default(true),
 });
 
 type MenuItemFormData = z.infer<typeof menuItemSchema>;
@@ -61,7 +63,9 @@ export default function MenuManagement() {
       price: "",
       isVegetarian: false,
       category: "",
-      image: "",
+      imageUrl: "",
+      isBestSeller: false,
+      isAvailable: true,
     },
   });
 
@@ -126,7 +130,9 @@ export default function MenuManagement() {
       price: item.price.toString(),
       isVegetarian: item.isVegetarian,
       category: item.category,
-      image: item.image || "",
+      imageUrl: item.imageUrl,
+      isBestSeller: item.isBestSeller,
+      isAvailable: item.isAvailable,
     });
     setIsAddDialogOpen(true);
   };
@@ -233,14 +239,44 @@ export default function MenuManagement() {
                   />
                   <FormField
                     control={form.control}
-                    name="image"
+                    name="imageUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Image URL (Optional)</FormLabel>
+                        <FormLabel>Image URL</FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
                         <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="isBestSeller"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center gap-2">
+                        <FormLabel>Best Seller</FormLabel>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="isAvailable"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center gap-2">
+                        <FormLabel>Available</FormLabel>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
                       </FormItem>
                     )}
                   />
