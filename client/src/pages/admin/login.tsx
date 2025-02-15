@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -29,12 +29,6 @@ export default function AdminLoginPage() {
   const { login, isLoggingIn, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
-  // Redirect if already logged in
-  if (user?.isAdmin) {
-    setLocation("/kitchen");
-    return null;
-  }
-
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -42,6 +36,13 @@ export default function AdminLoginPage() {
       password: "",
     },
   });
+
+  // Handle redirect if user is already logged in
+  useEffect(() => {
+    if (user?.isAdmin) {
+      setLocation("/kitchen");
+    }
+  }, [user, setLocation]);
 
   const onSubmit = async (data: LoginFormData) => {
     if (isLoading) return;
