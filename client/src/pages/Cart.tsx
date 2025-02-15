@@ -6,9 +6,11 @@ import { Minus, Plus, Trash2, ArrowLeft, Pencil } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { MenuItem } from "@shared/schema";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Cart() {
   const { state, dispatch } = useCart();
+  const { toast } = useToast();
   const [cookingRequest, setCookingRequest] = useState("");
 
   const subtotal = state.items.reduce(
@@ -40,6 +42,12 @@ export default function Cart() {
         quantity: 1,
         customizations: {},
       },
+    });
+
+    // Add toast notification
+    toast({
+      title: "Added to cart",
+      description: `${dessert.name} has been added to your cart.`,
     });
   };
 
