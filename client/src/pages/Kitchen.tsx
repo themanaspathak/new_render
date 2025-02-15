@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Pencil, ChefHat, History } from "lucide-react";
+import { Pencil, ChefHat, History, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { formatDistanceToNow, format } from "date-fns";
 import cn from 'classnames';
 
 export default function Kitchen() {
@@ -114,7 +115,7 @@ export default function Kitchen() {
 
   // Filter orders by status
   const activeOrders = orders?.filter(order => getOrderStatus(order) === 'pending') || [];
-  const completedOrders = orders?.filter(order => 
+  const completedOrders = orders?.filter(order =>
     ['completed', 'cancelled'].includes(getOrderStatus(order))
   ) || [];
 
@@ -124,6 +125,7 @@ export default function Kitchen() {
 
   const OrderCard = ({ order }: { order: Order }) => {
     const currentStatus = getOrderStatus(order);
+    const orderDate = new Date(order.createdAt);
     return (
       <Card key={order.id} className="mb-4 border-2">
         <CardHeader className="bg-muted/50">
@@ -138,9 +140,17 @@ export default function Kitchen() {
                 {currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1)}
               </Badge>
             </div>
-            <CardTitle className="text-4xl font-bold">
-              Table #{order.tableNumber}
-            </CardTitle>
+            <div className="flex flex-col items-center gap-1 w-full">
+              <CardTitle className="text-4xl font-bold">
+                Table #{order.tableNumber}
+              </CardTitle>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Clock className="h-4 w-4" />
+                <span title={format(orderDate, 'PPpp')}>
+                  {formatDistanceToNow(orderDate, { addSuffix: true })}
+                </span>
+              </div>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="mt-4">
