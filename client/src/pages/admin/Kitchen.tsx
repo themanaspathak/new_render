@@ -115,12 +115,12 @@ export default function Kitchen() {
     let filteredOrders = [...orders];
 
     if (dateRange.from && dateRange.to) {
+      const startDate = startOfDay(dateRange.from);
+      const endDate = endOfDay(dateRange.to);
+
       filteredOrders = filteredOrders.filter(order => {
         const orderDate = new Date(order.createdAt);
-        return isWithinInterval(orderDate, {
-          start: startOfDay(dateRange.from),
-          end: endOfDay(dateRange.to)
-        });
+        return isWithinInterval(orderDate, { start: startDate, end: endDate });
       });
     }
 
