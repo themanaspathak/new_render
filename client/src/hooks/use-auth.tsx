@@ -3,7 +3,7 @@ import {
   useQuery,
   useMutation,
 } from "@tanstack/react-query";
-import { insertUserSchema, User as SelectUser, InsertUser } from "@shared/schema";
+import { User as SelectUser } from "@shared/schema";
 import { apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -23,10 +23,10 @@ function useLoginMutation() {
     mutationFn: async (credentials: { email: string; password: string }) => {
       const response = await apiRequest("/api/login", "POST", credentials);
       if (!response.ok) {
-        throw new Error("Invalid credentials");
+        const error = await response.json();
+        throw new Error(error.message || "Invalid credentials");
       }
-      const data = await response.json();
-      return data;
+      return response.json();
     },
     onSuccess: (user) => {
       queryClient.setQueryData(["/api/user"], user);
@@ -35,10 +35,10 @@ function useLoginMutation() {
         description: "Welcome back!",
       });
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
         title: "Login failed",
-        description: "Please check your credentials and try again",
+        description: error.message,
         variant: "destructive",
       });
     },
@@ -49,20 +49,30 @@ function useLogoutMutation() {
   const { toast } = useToast();
   return useMutation({
     mutationFn: async () => {
-      queryClient.setQueryData(["/api/user"], null);
+      const response = await apiRequest("/api/logout", "POST");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message);
+      }
     },
     onSuccess: () => {
+      queryClient.setQueryData(["/api/user"], null);
       toast({
         title: "Logged out",
         description: "You have been logged out successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Logout failed",
+        description: error.message,
+        variant: "destructive",
       });
     },
   });
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { toast } = useToast();
-
   const {
     data: user,
     error,
