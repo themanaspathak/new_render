@@ -43,8 +43,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "User not found" });
       }
 
-      console.log("Login successful for user:", email);
       const { password: _, ...userWithoutPassword } = user;
+      console.log("Login successful for user:", email);
       return res.status(200).json(userWithoutPassword);
     } catch (error) {
       console.error("Login error:", error);

@@ -11,23 +11,18 @@ import { promisify } from "util";
 
 const scryptAsync = promisify(scrypt);
 
-async function hashPassword(password: string) {
-  const salt = randomBytes(16).toString("hex");
+const hashPassword = async (password: string): Promise<string> => {
+  const salt = randomBytes(16).toString('hex');
   const derivedKey = await scryptAsync(password, salt, 64) as Buffer;
-  return `${derivedKey.toString("hex")}.${salt}`;
-}
+  return `${derivedKey.toString('hex')}.${salt}`;
+};
 
-async function comparePasswords(supplied: string, stored: string): Promise<boolean> {
-  try {
-    const [hashedPassword, salt] = stored.split(".");
-    const suppliedBuf = await scryptAsync(supplied, salt, 64) as Buffer;
-    const storedBuf = Buffer.from(hashedPassword, "hex");
-    return timingSafeEqual(suppliedBuf, storedBuf);
-  } catch (error) {
-    console.error("Password comparison error:", error);
-    return false;
-  }
-}
+const verifyPassword = async (password: string, hash: string): Promise<boolean> => {
+  const [hashedPassword, salt] = hash.split('.');
+  const derivedKey = await scryptAsync(password, salt, 64) as Buffer;
+  const hashBuffer = Buffer.from(hashedPassword, 'hex');
+  return timingSafeEqual(derivedKey, hashBuffer);
+};
 
 export interface IStorage {
   getMenuItems(): Promise<MenuItem[]>;
@@ -84,7 +79,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const user = await this.getUser(email);
       if (!user) return false;
-      return comparePasswords(password, user.password);
+      return await verifyPassword(password, user.password);
     } catch (error) {
       console.error("Error verifying password:", error);
       return false;
@@ -93,15 +88,11 @@ export class DatabaseStorage implements IStorage {
 
   async createUser(userData: InsertUser): Promise<User> {
     try {
-      if (!userData.password) {
-        throw new Error("Password is required");
-      }
-
       const hashedPassword = await hashPassword(userData.password);
       const [user] = await db.insert(users)
         .values({
           ...userData,
-          password: hashedPassword
+          password: hashedPassword,
         })
         .returning();
       return user;
