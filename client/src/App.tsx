@@ -6,13 +6,14 @@ import NotFound from "@/pages/not-found";
 import Menu from "@/pages/Menu";
 import Cart from "@/pages/Cart";
 import Checkout from "@/pages/Checkout";
-import Kitchen from "@/pages/Kitchen";
+import Kitchen from "@/pages/admin/Kitchen";
 import OrderConfirmed from "@/pages/OrderConfirmed";
 import EmailVerification from "@/pages/EmailVerification";
 import OrderHistory from "@/pages/OrderHistory";
 import AdminLogin from "@/pages/admin/login";
 import { CartProvider } from "@/contexts/CartContext";
 import NavBar from "@/components/NavBar";
+import { ProtectedAdminRoute } from "@/lib/protected-admin-route";
 
 function Router() {
   return (
@@ -22,7 +23,7 @@ function Router() {
         <Route path="/" component={Menu} />
         <Route path="/cart" component={Cart} />
         <Route path="/checkout" component={Checkout} />
-        <Route path="/kitchen" component={Kitchen} />
+        <ProtectedAdminRoute path="/admin/kitchen" component={Kitchen} />
         <Route path="/email-verification" component={EmailVerification} />
         <Route path="/order-confirmed" component={OrderConfirmed} />
         <Route path="/orders/:email" component={OrderHistory} />

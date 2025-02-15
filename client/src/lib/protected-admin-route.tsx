@@ -4,11 +4,11 @@ import { Loader2 } from "lucide-react";
 
 interface ProtectedAdminRouteProps {
   path: string;
-  component: React.ComponentType;
+  component: React.ComponentType<any>;
 }
 
 export function ProtectedAdminRoute({ path, component: Component }: ProtectedAdminRouteProps) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {
     return (
@@ -18,11 +18,10 @@ export function ProtectedAdminRoute({ path, component: Component }: ProtectedAdm
     );
   }
 
-  // If not authenticated, redirect to login
-  if (!isAuthenticated) {
+  // If not authenticated or not admin, redirect to login
+  if (!isAuthenticated || !user?.isAdmin) {
     return <Redirect to="/admin/login" />;
   }
 
-  // Allow access to kitchen page for authenticated admins
   return <Route path={path} component={Component} />;
 }

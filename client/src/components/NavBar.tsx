@@ -12,7 +12,7 @@ export default function NavBar() {
   const totalQuantity = state.items.reduce((sum, item) => sum + item.quantity, 0);
 
   // Hide navigation on admin pages
-  if (location.startsWith("/admin") || location === "/kitchen") {
+  if (location.startsWith("/admin")) {
     return null;
   }
 
