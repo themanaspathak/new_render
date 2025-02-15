@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { MenuItem, Order } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,8 +8,12 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Pencil, ChefHat } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Kitchen() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
   const { data: menuItems, isLoading: menuLoading } = useQuery<MenuItem[]>({
     queryKey: ["/api/menu"],
   });
@@ -24,6 +29,30 @@ export default function Kitchen() {
       ...prev,
       [itemId]: !prev[itemId]
     }));
+  };
+
+  const handleStatusUpdate = async (orderId: number, newStatus: 'completed' | 'cancelled') => {
+    try {
+      await apiRequest(`/api/orders/${orderId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      // Invalidate and refetch orders
+      await queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+
+      toast({
+        title: `Order ${newStatus}`,
+        description: `Order #${orderId} has been marked as ${newStatus}`,
+      });
+    } catch (error) {
+      console.error('Failed to update order status:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update order status',
+        variant: 'destructive',
+      });
+    }
   };
 
   if (menuLoading || ordersLoading) {
@@ -52,8 +81,16 @@ export default function Kitchen() {
                           Order #{order.id}
                         </Badge>
                         <Badge 
-                          variant={order.status === "pending" ? "destructive" : "secondary"}
-                          className="text-base px-3 py-1"
+                          variant={
+                            order.status === "completed" 
+                              ? "default" 
+                              : order.status === "pending" 
+                              ? "destructive" 
+                              : "secondary"
+                          }
+                          className={`text-base px-3 py-1 ${
+                            order.status === "completed" ? "bg-green-600 hover:bg-green-700" : ""
+                          }`}
                         >
                           {order.status}
                         </Badge>
@@ -94,24 +131,26 @@ export default function Kitchen() {
                         </div>
                       )}
                     </div>
-                    <div className="mt-4 flex gap-2">
-                      <Button 
-                        onClick={() => {/* TODO: Update order status to cancelled */}} 
-                        variant="destructive"
-                        size="lg"
-                        className="w-full"
-                      >
-                        Can't serve
-                      </Button>
-                      <Button 
-                        onClick={() => {/* TODO: Update order status to served */}} 
-                        variant="default"
-                        size="lg"
-                        className="w-full bg-green-600 hover:bg-green-700"
-                      >
-                        Served
-                      </Button>
-                    </div>
+                    {order.status === "pending" && (
+                      <div className="mt-4 flex gap-2">
+                        <Button 
+                          onClick={() => handleStatusUpdate(order.id, 'cancelled')} 
+                          variant="destructive"
+                          size="lg"
+                          className="w-full"
+                        >
+                          Can't serve
+                        </Button>
+                        <Button 
+                          onClick={() => handleStatusUpdate(order.id, 'completed')} 
+                          variant="default"
+                          size="lg"
+                          className="w-full bg-green-600 hover:bg-green-700"
+                        >
+                          Served
+                        </Button>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))}
