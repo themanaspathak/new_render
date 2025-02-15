@@ -3,9 +3,19 @@ import {
   users, orders, menuItems,
   type User, type InsertUser,
   type Order, type InsertOrder,
-  type MenuItem, MOCK_MENU_ITEMS
+  type MenuItem
 } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
+import { scrypt, randomBytes, timingSafeEqual } from "crypto";
+import { promisify } from "util";
+
+const scryptAsync = promisify(scrypt);
+
+async function hashPassword(password: string) {
+  const salt = randomBytes(16).toString("hex");
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${buf.toString("hex")}.${salt}`;
+}
 
 export interface IStorage {
   getMenuItems(): Promise<MenuItem[]>;
@@ -24,9 +34,7 @@ export class DatabaseStorage implements IStorage {
   async getMenuItems(): Promise<MenuItem[]> {
     try {
       const items = await db.select().from(menuItems);
-      // If no items in database, return mock data
       if (items.length === 0) {
-        // Initialize database with mock data
         const insertedItems = await db.insert(menuItems)
           .values(MOCK_MENU_ITEMS)
           .returning();
@@ -35,8 +43,7 @@ export class DatabaseStorage implements IStorage {
       return items;
     } catch (error) {
       console.error("Error fetching menu items:", error);
-      // Fallback to mock data if database operation fails
-      return MOCK_MENU_ITEMS;
+      return [];
     }
   }
 
@@ -46,7 +53,7 @@ export class DatabaseStorage implements IStorage {
       return item;
     } catch (error) {
       console.error("Error fetching menu item:", error);
-      return MOCK_MENU_ITEMS.find(item => item.id === id);
+      return undefined;
     }
   }
 
@@ -56,18 +63,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(userData: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(userData).returning();
+    if (!userData.password) {
+      throw new Error("Password is required");
+    }
+
+    const hashedPassword = await hashPassword(userData.password);
+    const [user] = await db.insert(users)
+      .values({
+        ...userData,
+        password: hashedPassword
+      })
+      .returning();
     return user;
   }
 
   async createOrder(orderData: InsertOrder): Promise<Order> {
-    let user = await this.getUser(orderData.userEmail);
-    if (!user) {
-      user = await this.createUser({ email: orderData.userEmail });
-    }
-
-    const order = await db.insert(orders).values(orderData).returning();
-    return order[0];
+    const [order] = await db.insert(orders).values(orderData).returning();
+    return order;
   }
 
   async getOrder(id: number): Promise<Order | undefined> {
@@ -111,19 +123,7 @@ export class DatabaseStorage implements IStorage {
         .returning();
 
       if (!updatedItem) {
-        // If item not in database, try to find it in mock data and insert
-        const mockItem = MOCK_MENU_ITEMS.find(item => item.id === itemId);
-        if (!mockItem) {
-          throw new Error(`Menu item with ID ${itemId} not found`);
-        }
-
-        // Insert the mock item with updated availability
-        const [insertedItem] = await db
-          .insert(menuItems)
-          .values({ ...mockItem, isAvailable })
-          .returning();
-
-        return insertedItem;
+        throw new Error(`Menu item with ID ${itemId} not found`);
       }
 
       return updatedItem;

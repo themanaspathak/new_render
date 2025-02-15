@@ -1,12 +1,45 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertOrderSchema } from "@shared/schema";
+import { insertOrderSchema, insertUserSchema } from "@shared/schema";
 import { menuRouter } from "./routes/menu";
+import { scrypt, timingSafeEqual } from "crypto";
+import { promisify } from "util";
+
+const scryptAsync = promisify(scrypt);
+
+async function comparePasswords(supplied: string, stored: string) {
+  const [hashed, salt] = stored.split(".");
+  const hashedBuf = Buffer.from(hashed, "hex");
+  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+  return timingSafeEqual(hashedBuf, suppliedBuf);
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register menu routes
   app.use("/api/menu", menuRouter);
+
+  // Authentication endpoints
+  app.post("/api/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      const user = await storage.getUser(email);
+
+      if (!user) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      const isValidPassword = await comparePasswords(password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      return res.status(200).json(user);
+    } catch (error) {
+      console.error("Login error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
 
   // Add endpoint to get all orders
   app.get("/api/orders", async (req, res) => {
