@@ -42,7 +42,7 @@ const menuItemSchema = z.object({
   }),
   isVegetarian: z.boolean().default(false),
   category: z.string().min(1, "Category is required"),
-  imageUrl: z.string().optional(),
+  imageUrl: z.string().min(1, "Image URL is required"),
   isBestSeller: z.boolean().default(false),
   isAvailable: z.boolean().default(true),
 });
@@ -75,14 +75,17 @@ export default function MenuManagement() {
 
   const handleSubmit = async (data: MenuItemFormData) => {
     try {
+      const payload = {
+        ...data,
+        price: Number(data.price),
+      };
+
       const endpoint = editingItem ? `/api/menu/${editingItem.id}` : "/api/menu";
       const method = editingItem ? "PATCH" : "POST";
 
-      await apiRequest(endpoint, method, {
-        ...data,
-        price: Number(data.price),
-      });
+      await apiRequest(endpoint, method, payload);
 
+      // Immediately invalidate and refetch menu items
       await queryClient.invalidateQueries({ queryKey: ["/api/menu"] });
 
       toast({
@@ -94,6 +97,7 @@ export default function MenuManagement() {
       setEditingItem(null);
       form.reset();
     } catch (error) {
+      console.error("Error submitting menu item:", error);
       toast({
         title: "Error",
         description: `Failed to ${editingItem ? "update" : "add"} menu item`,
