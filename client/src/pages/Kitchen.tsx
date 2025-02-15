@@ -4,12 +4,13 @@ import { apiRequest } from "@/lib/queryClient";
 import { MenuItem, Order } from "@shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChefHat, Clock, Calendar, FilterX } from "lucide-react";
+import { ChefHat, Clock, Calendar, FilterX, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import cn from 'classnames';
+import { cn } from "@/lib/utils";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import {
   Popover,
@@ -28,7 +29,36 @@ export default function Kitchen() {
     to: undefined,
   });
 
+  const [availabilityMap, setAvailabilityMap] = useState<Record<number, boolean>>({});
   const [updatingOrders, setUpdatingOrders] = useState<Record<number, string>>({});
+
+  const handleAvailabilityToggle = async (itemId: number) => {
+    const menuItem = menuItems?.find(item => item.id === itemId);
+    const newStatus = !menuItem?.isAvailable;
+
+    try {
+      await apiRequest(
+        `/api/menu/${itemId}/availability`,
+        'POST',
+        { isAvailable: newStatus }
+      );
+
+      await queryClient.invalidateQueries({ queryKey: ['/api/menu'] });
+
+      toast({
+        title: `Menu Item ${newStatus ? 'Available' : 'Unavailable'}`,
+        description: `${menuItem?.name} is now ${newStatus ? 'available' : 'unavailable'} for ordering`,
+        variant: newStatus ? 'default' : 'destructive',
+      });
+    } catch (error) {
+      console.error('Failed to update menu item availability:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update menu item availability',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const handleStatusUpdate = async (orderId: number, newStatus: 'completed' | 'cancelled') => {
     try {
@@ -253,6 +283,39 @@ export default function Kitchen() {
           </div>
         </div>
 
+        {/* Menu Availability Section */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-xl">Menu Availability</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {menuItems?.map((item) => (
+                <Card key={item.id} className="border shadow-sm">
+                  <CardContent className="flex items-center justify-between p-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${item.isVegetarian ? 'bg-green-500' : 'bg-red-500'}`} />
+                      <div>
+                        <p className="font-medium">{item.name}</p>
+                        <p className="text-sm text-gray-600">₹{item.price}</p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={item.isAvailable ?? true}
+                      onCheckedChange={() => handleAvailabilityToggle(item.id)}
+                      className={cn(
+                        "data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500",
+                        "focus-visible:ring-green-500"
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Orders Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <div className="lg:col-span-2">
             <div className="flex items-center gap-2 mb-4">
