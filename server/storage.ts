@@ -16,9 +16,9 @@ export interface IStorage {
   getUser(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   getUserOrders(email: string): Promise<Order[]>;
-
-  // New method
   getAllOrders(): Promise<Order[]>;
+  // New method
+  updateOrderStatus(orderId: number, status: 'pending' | 'completed' | 'cancelled'): Promise<Order>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -72,11 +72,25 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(orders.createdAt));
   }
 
-  // New method implementation
   async getAllOrders(): Promise<Order[]> {
     return await db.select()
       .from(orders)
       .orderBy(desc(orders.createdAt));
+  }
+
+  // New method implementation
+  async updateOrderStatus(orderId: number, status: 'pending' | 'completed' | 'cancelled'): Promise<Order> {
+    const [updatedOrder] = await db
+      .update(orders)
+      .set({ status })
+      .where(eq(orders.id, orderId))
+      .returning();
+
+    if (!updatedOrder) {
+      throw new Error(`Order with ID ${orderId} not found`);
+    }
+
+    return updatedOrder;
   }
 }
 

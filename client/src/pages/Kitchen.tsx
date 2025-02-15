@@ -33,13 +33,17 @@ export default function Kitchen() {
 
   const handleStatusUpdate = async (orderId: number, newStatus: 'completed' | 'cancelled') => {
     try {
-      await apiRequest(`/api/orders/${orderId}`, {
-        method: 'PATCH',
+      const response = await fetch(`/api/orders/${orderId}/status`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ status: newStatus }),
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to update order status');
+      }
 
       // Invalidate and refetch orders
       await queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
