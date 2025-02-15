@@ -13,20 +13,22 @@ const scryptAsync = promisify(scrypt);
 
 const hashPassword = async (password: string): Promise<string> => {
   const salt = randomBytes(16).toString('hex');
-  const derivedKey = await scryptAsync(password, salt, 64) as Buffer;
+  const derivedKey = (await scryptAsync(password, salt, 32)) as Buffer;
   return `${derivedKey.toString('hex')}.${salt}`;
 };
 
-const verifyPassword = async (password: string, storedHash: string): Promise<boolean> => {
+const verifyPassword = async (supplied: string, stored: string): Promise<boolean> => {
   try {
-    const [hash, salt] = storedHash.split('.');
-    if (!hash || !salt) {
-      console.error("Invalid password hash format");
+    const [hashedPassword, salt] = stored.split('.');
+    if (!hashedPassword || !salt) {
+      console.error("Invalid stored password format");
       return false;
     }
-    const derivedKey = await scryptAsync(password, salt, 64) as Buffer;
-    const storedKey = Buffer.from(hash, 'hex');
-    return timingSafeEqual(derivedKey, storedKey);
+
+    const hashedBuf = Buffer.from(hashedPassword, 'hex');
+    const suppliedBuf = (await scryptAsync(supplied, salt, 32)) as Buffer;
+
+    return timingSafeEqual(hashedBuf, suppliedBuf);
   } catch (error) {
     console.error("Password verification error:", error);
     return false;
@@ -104,7 +106,6 @@ export class DatabaseStorage implements IStorage {
   async createUser(userData: InsertUser): Promise<User> {
     try {
       const hashedPassword = await hashPassword(userData.password);
-      console.log("Creating user with hashed password:", hashedPassword);
       const [user] = await db.insert(users)
         .values({
           ...userData,
