@@ -9,6 +9,7 @@ import Checkout from "@/pages/Checkout";
 import AdminLogin from "@/pages/admin/login";
 import AdminDashboard from "@/pages/admin/Dashboard";
 import Kitchen from "@/pages/admin/Kitchen";
+import MenuManagement from "@/pages/admin/MenuManagement";
 import OrderConfirmed from "@/pages/OrderConfirmed";
 import EmailVerification from "@/pages/EmailVerification";
 import OrderHistory from "@/pages/OrderHistory";
@@ -33,6 +34,7 @@ function Router() {
         <Route path="/admin/login" component={AdminLogin} />
         <ProtectedAdminRoute path="/admin" component={AdminDashboard} />
         <ProtectedAdminRoute path="/admin/kitchen" component={Kitchen} />
+        <ProtectedAdminRoute path="/admin/menu" component={MenuManagement} />
 
         {/* 404 Route */}
         <Route component={NotFound} />
