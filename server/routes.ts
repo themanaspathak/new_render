@@ -3,15 +3,22 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertOrderSchema, insertUserSchema } from "@shared/schema";
 import { menuRouter } from "./routes/menu";
-import { scrypt, timingSafeEqual } from "crypto";
+import { scrypt, timingSafeEqual, randomBytes } from "crypto";
 import { promisify } from "util";
 
 const scryptAsync = promisify(scrypt);
+
+async function hashPassword(password: string) {
+  const salt = randomBytes(16).toString("hex");
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${buf.toString("hex")}.${salt}`;
+}
 
 async function comparePasswords(supplied: string, stored: string) {
   try {
     const [hashed, salt] = stored.split(".");
     if (!hashed || !salt) {
+      console.error("Invalid password format");
       return false;
     }
     const hashedBuf = Buffer.from(hashed, "hex");
@@ -31,17 +38,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/login", async (req, res) => {
     try {
       const { email, password } = req.body;
-      const user = await storage.getUser(email);
+      console.log("Login attempt for email:", email);
 
+      const user = await storage.getUser(email);
       if (!user) {
+        console.log("User not found");
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
       const isValidPassword = await comparePasswords(password, user.password);
       if (!isValidPassword) {
+        console.log("Invalid password");
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
+      console.log("Login successful");
       return res.status(200).json(user);
     } catch (error) {
       console.error("Login error:", error);

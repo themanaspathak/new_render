@@ -35,7 +35,6 @@ export class DatabaseStorage implements IStorage {
     try {
       const items = await db.select().from(menuItems);
       if (items.length === 0) {
-        // Initialize database with mock data if empty
         const insertedItems = await db.insert(menuItems)
           .values(MOCK_MENU_ITEMS)
           .returning();
@@ -44,7 +43,7 @@ export class DatabaseStorage implements IStorage {
       return items;
     } catch (error) {
       console.error("Error fetching menu items:", error);
-      return MOCK_MENU_ITEMS; // Fallback to mock data if database fails
+      return MOCK_MENU_ITEMS;
     }
   }
 
