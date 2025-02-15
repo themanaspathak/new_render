@@ -5,8 +5,11 @@ import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import session from "express-session";
 import { z } from "zod";
+import connectPgSimple from "connect-pg-simple";
+import { pool } from "../db";
 
 const router = Router();
+const PgSession = connectPgSimple(session);
 
 declare module "express-session" {
   interface SessionData {
@@ -14,9 +17,14 @@ declare module "express-session" {
   }
 }
 
-// Initialize session middleware
+// Initialize session middleware with PostgreSQL store
 router.use(
   session({
+    store: new PgSession({
+      pool,
+      tableName: 'session',
+      createTableIfMissing: true
+    }),
     secret: process.env.SESSION_SECRET || "your-secret-key",
     resave: false,
     saveUninitialized: false,
@@ -24,6 +32,7 @@ router.use(
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax'
     },
   })
 );
