@@ -12,10 +12,10 @@ const OrderConfirmed: React.FC = () => {
     // Submit order to kitchen
     const submitOrder = async () => {
       try {
-        // Get email from earlier verification step
-        const userEmail = localStorage.getItem("verifiedEmail");
-        if (!userEmail) {
-          console.error("No verified email found");
+        // Get mobile number from earlier verification step
+        const userMobile = localStorage.getItem("verifiedMobile");
+        if (!userMobile) {
+          console.error("No verified mobile number found");
           return;
         }
 
@@ -26,7 +26,7 @@ const OrderConfirmed: React.FC = () => {
           },
           body: JSON.stringify({
             tableNumber: state.tableNumber || 1,
-            userEmail, // Include the verified email
+            userMobile, // Include the verified mobile number
             items: state.items.map(item => ({
               menuItemId: item.menuItem.id,
               quantity: item.quantity,
@@ -69,7 +69,7 @@ const OrderConfirmed: React.FC = () => {
               Place Another Order
             </Button>
           </Link>
-          <Link href={`/orders/${encodeURIComponent(localStorage.getItem("verifiedEmail") || "")}`}>
+          <Link href={`/orders/${encodeURIComponent(localStorage.getItem("verifiedMobile") || "")}`}>
             <Button variant="outline" className="w-full">
               View Order History
             </Button>
