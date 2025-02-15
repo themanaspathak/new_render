@@ -33,8 +33,8 @@ const sidebarItems = [
   },
   {
     icon: ClipboardList,
-    label: "Orders",
-    href: "/admin/orders",
+    label: "Kitchen",
+    href: "/admin/kitchen",
   },
   {
     icon: CreditCard,
@@ -62,13 +62,16 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 return (
                   <li key={item.href}>
                     <Link href={item.href}>
-                      <a className={cn(
-                        "flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors",
-                        location === item.href && "bg-primary text-primary-foreground hover:bg-primary/90"
-                      )}>
+                      <Button
+                        variant="ghost"
+                        className={cn(
+                          "w-full justify-start gap-3 font-normal",
+                          location === item.href && "bg-primary text-primary-foreground hover:bg-primary/90"
+                        )}
+                      >
                         <Icon className="h-5 w-5" />
                         {item.label}
-                      </a>
+                      </Button>
                     </Link>
                   </li>
                 );

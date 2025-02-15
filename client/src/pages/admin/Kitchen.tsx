@@ -1,4 +1,3 @@
-// Kitchen component with admin-only access
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -10,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Pencil, ChefHat, Clock, Calendar, FilterX } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { format, isWithinInterval, startOfDay, endOfDay } from "date-fns";
+import { format } from "date-fns";
 import cn from 'classnames';
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import {
@@ -109,24 +108,6 @@ export default function Kitchen() {
     }
   };
 
-  const filterOrdersByDate = (orders: Order[] | undefined) => {
-    if (!orders) return [];
-
-    let filteredOrders = [...orders];
-
-    if (dateRange.from && dateRange.to) {
-      filteredOrders = filteredOrders.filter(order => {
-        const orderDate = new Date(order.createdAt);
-        return isWithinInterval(orderDate, {
-          start: startOfDay(dateRange.from),
-          end: endOfDay(dateRange.to)
-        });
-      });
-    }
-
-    return filteredOrders;
-  };
-
   const { data: menuItems, isLoading: menuLoading } = useQuery<MenuItem[]>({
     queryKey: ["/api/menu"],
   });
@@ -135,7 +116,12 @@ export default function Kitchen() {
     queryKey: ["/api/orders"],
   });
 
-  const filteredOrders = filterOrdersByDate(orders);
+  const filteredOrders = orders?.filter(order => {
+    if (!dateRange.from || !dateRange.to) return true;
+    const orderDate = new Date(order.createdAt);
+    return orderDate >= dateRange.from && orderDate <= dateRange.to;
+  }) || [];
+
   const activeOrders = filteredOrders.filter(order => getOrderStatus(order) === 'pending') || [];
   const completedOrders = filteredOrders.filter(order =>
     ['completed', 'cancelled'].includes(getOrderStatus(order))
@@ -230,8 +216,8 @@ export default function Kitchen() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-2">
           <ChefHat className="h-8 w-8" />
           <h1 className="text-3xl font-bold">Kitchen Dashboard</h1>
