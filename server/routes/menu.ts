@@ -35,6 +35,11 @@ menuRouter.post("/:id/availability", async (req, res) => {
     const itemId = parseInt(req.params.id);
     const { isAvailable } = req.body;
 
+    if (typeof isAvailable !== 'boolean') {
+      res.status(400).json({ error: "isAvailable must be a boolean" });
+      return;
+    }
+
     const updatedItem = await storage.updateMenuItemAvailability(itemId, isAvailable);
     res.json(updatedItem);
   } catch (error) {

@@ -32,8 +32,12 @@ export default function Kitchen() {
 
     try {
       // Make API call to update availability
-      await apiRequest(`/api/menu/${itemId}/availability`, 'POST', {
-        isAvailable: newStatus,
+      await apiRequest(`/api/menu/${itemId}/availability`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ isAvailable: newStatus })
       });
 
       // Invalidate menu queries to refresh data
@@ -46,6 +50,7 @@ export default function Kitchen() {
         variant: newStatus ? 'default' : 'destructive',
       });
     } catch (error) {
+      console.error('Failed to update menu item availability:', error);
       toast({
         title: 'Error',
         description: 'Failed to update menu item availability',
