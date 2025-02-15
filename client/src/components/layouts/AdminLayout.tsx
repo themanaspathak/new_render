@@ -3,7 +3,6 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   Menu as MenuIcon,
-  CreditCard,
   LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,11 +22,6 @@ const sidebarItems = [
     icon: MenuIcon,
     label: "Menu Management",
     href: "/admin/menu",
-  },
-  {
-    icon: CreditCard,
-    label: "Payments & Reports",
-    href: "/admin/reports",
   },
 ];
 
