@@ -109,7 +109,7 @@ export default function OrderHistory() {
                         })}
                       </div>
                     </div>
-                    <Badge 
+                    <Badge
                       className={`${getStatusBadgeStyle(order.status)} px-3 py-1 text-sm font-medium shadow-sm`}
                     >
                       {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
@@ -176,7 +176,12 @@ export default function OrderHistory() {
                       <div className="flex items-center gap-2 justify-end">
                         <CreditCard className="h-4 w-4" />
                         <div className="flex items-center gap-2">
-                          <span>{order.paymentMethod?.toUpperCase() || 'Not specified'}</span>
+                          <span>{order.paymentMethod?.toUpperCase() || 'CASH'}</span>
+                          <Badge
+                            className={`${getPaymentStatusBadgeStyle(order.paymentStatus)} px-2 py-0.5 text-xs font-medium shadow-sm ml-2`}
+                          >
+                            {order.paymentStatus ? (order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)) : 'Pending'}
+                          </Badge>
                         </div>
                       </div>
                     </div>
