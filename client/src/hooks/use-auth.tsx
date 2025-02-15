@@ -14,6 +14,8 @@ export function useAuth() {
   const { data: user, isLoading } = useQuery<User>({
     queryKey: ["/api/admin/user"],
     retry: false,
+    staleTime: 0, // Always fetch fresh data
+    refetchOnWindowFocus: true, // Refetch when window gains focus
   });
 
   const loginMutation = useMutation({
@@ -24,20 +26,19 @@ export function useAuth() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(credentials),
+        credentials: 'include', // Important for cookies
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
+        const data = await response.json();
         throw new Error(data.message || "Login failed");
       }
 
+      const data = await response.json();
       return data as User;
     },
     onSuccess: (data) => {
       queryClient.setQueryData(["/api/admin/user"], data);
-
-      // Show success toast
       toast({
         title: "Login successful",
         description: "Welcome back!",
@@ -56,6 +57,7 @@ export function useAuth() {
     mutationFn: async () => {
       const response = await fetch("/api/admin/logout", {
         method: "POST",
+        credentials: 'include', // Important for cookies
       });
 
       if (!response.ok) {

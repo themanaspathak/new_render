@@ -23,8 +23,10 @@ router.use(
     store: new PgSession({
       pool,
       tableName: 'session',
-      createTableIfMissing: true
+      createTableIfMissing: true,
+      pruneSessionInterval: 60 // Cleanup expired sessions every minute
     }),
+    name: 'sid', // Custom cookie name
     secret: process.env.SESSION_SECRET || "your-secret-key",
     resave: false,
     saveUninitialized: false,
@@ -32,7 +34,8 @@ router.use(
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: process.env.NODE_ENV === "production" ? 'none' : 'lax'
+      sameSite: 'lax',
+      path: '/'
     },
   })
 );
@@ -43,23 +46,22 @@ const loginSchema = z.object({
 });
 
 router.post("/admin/login", async (req, res) => {
-  console.log("Login attempt for email:", req.body.email);
-
   try {
     const { email, password } = loginSchema.parse(req.body);
-    console.log("Validated login data");
-
     const user = await authenticateUser(email, password);
-    console.log("User authenticated:", user.id);
 
     if (!user.isAdmin) {
-      console.log("Non-admin user attempted login:", user.id);
       return res.status(403).json({ message: "Access denied: Admin privileges required" });
     }
 
     // Set user session
     req.session.userId = user.id;
-    console.log("Session set for user:", user.id);
+    await new Promise((resolve, reject) => {
+      req.session.save((err) => {
+        if (err) reject(err);
+        resolve(null);
+      });
+    });
 
     res.json({ 
       id: user.id,
@@ -68,8 +70,6 @@ router.post("/admin/login", async (req, res) => {
       createdAt: user.createdAt
     });
   } catch (error) {
-    console.error("Login error:", error);
-
     if (error instanceof z.ZodError) {
       return res.status(400).json({ message: error.errors[0].message });
     }
@@ -80,22 +80,26 @@ router.post("/admin/login", async (req, res) => {
   }
 });
 
-router.post("/admin/logout", (req, res) => {
-  console.log("Logout attempt for user:", req.session.userId);
+router.post("/admin/logout", async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ message: "Not authenticated" });
+  }
 
-  req.session.destroy((err) => {
-    if (err) {
-      console.error("Logout error:", err);
-      return res.status(500).json({ message: "Failed to logout" });
-    }
-    res.clearCookie("connect.sid");
+  try {
+    await new Promise<void>((resolve, reject) => {
+      req.session.destroy((err) => {
+        if (err) reject(err);
+        resolve();
+      });
+    });
+    res.clearCookie("sid");
     res.json({ message: "Logged out successfully" });
-  });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to logout" });
+  }
 });
 
 router.get("/admin/user", async (req, res) => {
-  console.log("Checking auth status for session:", req.session.userId);
-
   if (!req.session.userId) {
     return res.status(401).json({ message: "Not authenticated" });
   }
@@ -105,12 +109,10 @@ router.get("/admin/user", async (req, res) => {
     const user = result[0];
 
     if (!user) {
-      console.log("User not found for id:", req.session.userId);
       return res.status(404).json({ message: "User not found" });
     }
 
     if (!user.isAdmin) {
-      console.log("Non-admin user attempted access:", user.id);
       return res.status(403).json({ message: "Access denied" });
     }
 
