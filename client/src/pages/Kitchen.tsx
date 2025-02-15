@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Pencil, ChefHat, History, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { formatDistanceToNow, format } from "date-fns";
+import { format } from "date-fns";
 import cn from 'classnames';
 
 export default function Kitchen() {
@@ -113,7 +113,6 @@ export default function Kitchen() {
     }
   };
 
-  // Filter orders by status
   const activeOrders = orders?.filter(order => getOrderStatus(order) === 'pending') || [];
   const completedOrders = orders?.filter(order =>
     ['completed', 'cancelled'].includes(getOrderStatus(order))
@@ -147,7 +146,7 @@ export default function Kitchen() {
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Clock className="h-4 w-4" />
                 <span title={format(orderDate, 'PPpp')}>
-                  {formatDistanceToNow(orderDate, { addSuffix: true })}
+                  {format(orderDate, 'hh:mm aa')} - {format(orderDate, 'MMddyyyy')}
                 </span>
               </div>
             </div>
@@ -215,7 +214,6 @@ export default function Kitchen() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Active Orders Section */}
         <div className="lg:col-span-1">
           <div className="flex items-center gap-2 mb-4">
             <h2 className="text-2xl font-semibold">Active Orders</h2>
@@ -237,7 +235,6 @@ export default function Kitchen() {
           </ScrollArea>
         </div>
 
-        {/* Completed Orders Section */}
         <div className="lg:col-span-1">
           <div className="flex items-center gap-2 mb-4">
             <h2 className="text-2xl font-semibold">Completed Orders</h2>
@@ -259,7 +256,6 @@ export default function Kitchen() {
           </ScrollArea>
         </div>
 
-        {/* Menu Management Section */}
         <div className="lg:col-span-1">
           <h2 className="text-2xl font-semibold mb-4">Menu Availability</h2>
           <ScrollArea className="h-[70vh]">
