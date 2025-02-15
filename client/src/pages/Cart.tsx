@@ -134,8 +134,8 @@ export default function Cart() {
       {/* Mobile Header */}
       <div className="sticky top-0 z-10 flex items-center gap-4 bg-background/95 backdrop-blur py-4 -mx-4 px-4 mb-6 md:hidden">
         <Link href="/">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-5 w-5" />
+          <Button variant="ghost" size="icon" className="h-10 w-10">
+            <ArrowLeft className="h-6 w-6" />
           </Button>
         </Link>
         <h1 className="text-xl font-bold">Your Cart</h1>
@@ -185,6 +185,7 @@ export default function Cart() {
                     <Button
                       variant="ghost"
                       size="icon"
+                      className="h-10 w-10 md:h-8 md:w-8"
                       onClick={() =>
                         dispatch({
                           type: "REMOVE_ITEM",
@@ -192,27 +193,27 @@ export default function Cart() {
                         })
                       }
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-5 w-5 md:h-4 md:w-4" />
                     </Button>
                   </div>
                   <div className="flex items-center justify-between mt-4">
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-3">
                       <Button
                         variant="outline"
                         size="icon"
-                        className="h-8 w-8"
+                        className="h-9 w-9 md:h-8 md:w-8"
                         onClick={() => updateQuantity(item, Math.max(0, item.quantity - 1))}
                       >
-                        <Minus className="h-4 w-4" />
+                        <Minus className="h-5 w-5 md:h-4 md:w-4" />
                       </Button>
                       <span className="w-8 text-center">{item.quantity}</span>
                       <Button
                         variant="outline"
                         size="icon"
-                        className="h-8 w-8"
+                        className="h-9 w-9 md:h-8 md:w-8"
                         onClick={() => updateQuantity(item, item.quantity + 1)}
                       >
-                        <Plus className="h-4 w-4" />
+                        <Plus className="h-5 w-5 md:h-4 md:w-4" />
                       </Button>
                     </div>
                     <p className="font-medium">
@@ -226,8 +227,8 @@ export default function Cart() {
             {/* Cooking Request Section */}
             <Card className="mt-6">
               <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Pencil className="h-5 w-5 text-gray-600" />
+                <div className="flex items-center gap-3 mb-2">
+                  <Pencil className="h-6 w-6 md:h-5 md:w-5 text-gray-600" />
                   <h3 className="font-medium">Special Cooking Instructions</h3>
                 </div>
                 <textarea
@@ -273,10 +274,10 @@ export default function Cart() {
             )}
 
             {/* Add more items - Mobile */}
-            <div className="md:hidden">
+            <div className="md:hidden mt-4">
               <Link href="/">
-                <Button variant="outline" className="w-full flex items-center justify-center gap-2">
-                  <Plus className="h-4 w-4" />
+                <Button variant="outline" className="w-full h-12 flex items-center justify-center gap-3">
+                  <Plus className="h-5 w-5" />
                   Add more items
                 </Button>
               </Link>
