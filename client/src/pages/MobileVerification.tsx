@@ -85,9 +85,12 @@ export default function MobileVerification() {
 
   const placeOrder = async () => {
     try {
+      const guestEmail = `${mobileNumber}@guest.restaurant.com`;
+      console.log("Creating guest order with email:", guestEmail);
+
       const orderData = {
         tableNumber: state.tableNumber || 1,
-        userEmail: `${mobileNumber}@guest.restaurant.com`,
+        user_email: guestEmail, 
         mobileNumber: mobileNumber,
         customerName: customerName,
         items: state.items.map(item => ({
@@ -110,22 +113,21 @@ export default function MobileVerification() {
       const response = await apiRequest("/api/orders", "POST", orderData);
 
       if (!response.ok) {
-        throw new Error(`Order creation failed: ${response.statusText}`);
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create order");
       }
 
-      // Clear the cart after successful order submission
       dispatch({ type: "CLEAR_CART" });
 
-      // Store verified mobile for future reference
       localStorage.setItem("verifiedMobile", mobileNumber);
       localStorage.setItem("customerName", customerName);
 
       navigate("/order-confirmed");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to place order:", error);
       toast({
         title: "Error",
-        description: "Failed to place your order. Please try again.",
+        description: error.message || "Failed to place your order. Please try again.",
         variant: "destructive",
       });
     }
@@ -162,7 +164,6 @@ export default function MobileVerification() {
         description: "Proceeding to place your order",
       });
 
-      // Place order after successful verification
       await placeOrder();
     } catch (error: any) {
       toast({
