@@ -151,11 +151,17 @@ export default function Kitchen() {
               <CardTitle className="text-4xl font-bold">
                 Table #{order.tableNumber}
               </CardTitle>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="h-4 w-4" />
-                <span title={format(orderDate, 'PPpp')}>
-                  {format(orderDate, 'hh:mm aa')} - {format(orderDate, 'dd/MM/yyyy')}
-                </span>
+              <div className="flex flex-col items-center text-sm text-muted-foreground">
+                <div className="font-medium text-base text-foreground">
+                  {order.customerName}
+                </div>
+                <div className="text-sm">+91 {order.mobileNumber}</div>
+                <div className="flex items-center gap-2 mt-1">
+                  <Clock className="h-4 w-4" />
+                  <span title={format(orderDate, 'PPpp')}>
+                    {format(orderDate, 'hh:mm aa')} - {format(orderDate, 'dd/MM/yyyy')}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
