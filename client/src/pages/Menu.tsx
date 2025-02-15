@@ -198,7 +198,7 @@ export default function Menu() {
     <>
       <div className="container mx-auto px-4 pb-16 max-w-5xl">
         <div className="sticky top-0 z-10 flex items-center justify-between bg-background/95 backdrop-blur py-4 -mx-4 px-4 md:hidden">
-          <h1 className="text-xl font-bold">Menu</h1>
+          <h1 className="text-2xl font-bold">Menu</h1>
           <Link href="/cart">
             <Button variant="outline" size="icon" className="relative">
               <ShoppingCart className="h-5 w-5" />
@@ -211,12 +211,12 @@ export default function Menu() {
           </Link>
         </div>
 
-        <div className="py-8 mb-8">
+        <div className="py-10 mb-8">
           <Logo />
         </div>
 
         <div className="hidden md:flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold">Menu</h1>
+          <h1 className="text-4xl font-bold">Menu</h1>
           <Link href="/cart">
             <Button variant="outline" className="flex items-center gap-2">
               <ShoppingCart className="h-5 w-5" />
