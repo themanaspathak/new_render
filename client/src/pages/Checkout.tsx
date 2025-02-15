@@ -7,6 +7,8 @@ import { Minus, Plus, ArrowLeft, CreditCard, Wallet } from "lucide-react";
 
 export default function Checkout() {
   const { state, dispatch } = useCart();
+  const [selectedTable, setSelectedTable] = useState<number | null>(null);
+
   const subtotal = state.items.reduce(
     (sum, item) => sum + item.menuItem.price * item.quantity,
     0
@@ -19,6 +21,14 @@ export default function Checkout() {
       type: "UPDATE_QUANTITY",
       menuItemId,
       quantity: newQuantity,
+    });
+  };
+
+  const handleTableSelect = (tableNumber: number) => {
+    setSelectedTable(tableNumber);
+    dispatch({
+      type: "SET_TABLE",
+      tableNumber,
     });
   };
 
@@ -94,13 +104,35 @@ export default function Checkout() {
           </Card>
         ))}
 
+        {/* Table Selection Grid */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold">Select Your Table</h2>
+          <div className="grid grid-cols-3 gap-3">
+            {[1, 2, 3, 4, 5, 6].map((tableNum) => (
+              <Button
+                key={tableNum}
+                variant={selectedTable === tableNum ? "default" : "outline"}
+                className={`h-16 text-lg font-semibold ${
+                  selectedTable === tableNum ? "ring-2 ring-primary" : ""
+                }`}
+                onClick={() => handleTableSelect(tableNum)}
+              >
+                Table {tableNum}
+              </Button>
+            ))}
+          </div>
+        </div>
+
         {/* Payment Method Selection */}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Select Payment Method</h2>
 
           {/* Cash Payment Option */}
-          <Link href="/email-verification" className="block">
-            <Button className="w-full bg-green-600 hover:bg-green-700 text-white h-auto py-4 flex items-center justify-center gap-3">
+          <Link href={selectedTable ? "/email-verification" : "#"} className="block">
+            <Button 
+              className="w-full bg-green-600 hover:bg-green-700 text-white h-auto py-4 flex items-center justify-center gap-3"
+              disabled={!selectedTable}
+            >
               <Wallet className="h-5 w-5" />
               <div className="text-left">
                 <div className="font-semibold">Pay with Cash</div>
@@ -111,8 +143,12 @@ export default function Checkout() {
           </Link>
 
           {/* Card Payment Option */}
-          <Link href="/payment" className="block">
-            <Button variant="outline" className="w-full h-auto py-4 flex items-center justify-center gap-3">
+          <Link href={selectedTable ? "/payment" : "#"} className="block">
+            <Button 
+              variant="outline" 
+              className="w-full h-auto py-4 flex items-center justify-center gap-3"
+              disabled={!selectedTable}
+            >
               <CreditCard className="h-5 w-5" />
               <div className="text-left">
                 <div className="font-semibold">Pay with Card</div>
@@ -121,6 +157,12 @@ export default function Checkout() {
               <div className="ml-auto font-bold">₹{Math.round(total)}</div>
             </Button>
           </Link>
+
+          {!selectedTable && (
+            <p className="text-sm text-muted-foreground text-center">
+              Please select a table to proceed with payment
+            </p>
+          )}
         </div>
       </div>
     </div>
