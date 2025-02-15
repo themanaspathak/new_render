@@ -23,6 +23,8 @@ export default function Kitchen() {
   });
 
   const [availabilityMap, setAvailabilityMap] = useState<Record<number, boolean>>({});
+  // Track orders being updated
+  const [updatingOrders, setUpdatingOrders] = useState<Record<number, string>>({});
 
   const handleAvailabilityToggle = async (itemId: number) => {
     setAvailabilityMap(prev => ({
@@ -33,6 +35,12 @@ export default function Kitchen() {
 
   const handleStatusUpdate = async (orderId: number, newStatus: 'completed' | 'cancelled') => {
     try {
+      // Optimistically update the UI
+      setUpdatingOrders(prev => ({
+        ...prev,
+        [orderId]: newStatus
+      }));
+
       const response = await fetch(`/api/orders/${orderId}/status`, {
         method: 'POST',
         headers: {
@@ -54,11 +62,36 @@ export default function Kitchen() {
       });
     } catch (error) {
       console.error('Failed to update order status:', error);
+      // Revert the optimistic update
+      setUpdatingOrders(prev => {
+        const newState = { ...prev };
+        delete newState[orderId];
+        return newState;
+      });
+
       toast({
         title: 'Error',
         description: 'Failed to update order status',
         variant: 'destructive',
       });
+    }
+  };
+
+  const getOrderStatus = (order: Order) => {
+    // Return the optimistic status if it exists, otherwise return the actual status
+    return updatingOrders[order.id] || order.status;
+  };
+
+  const getStatusBadgeStyle = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "bg-green-600 hover:bg-green-700 text-white";
+      case "pending":
+        return "bg-yellow-600 hover:bg-yellow-700 text-white";
+      case "cancelled":
+        return "bg-red-600 hover:bg-red-700 text-white";
+      default:
+        return "bg-secondary text-white";
     }
   };
 
@@ -79,88 +112,82 @@ export default function Kitchen() {
           <h2 className="text-2xl font-semibold mb-4">Active Orders</h2>
           <ScrollArea className="h-[70vh]">
             <div className="space-y-4">
-              {orders?.map((order) => (
-                <Card key={order.id} className="mb-4 border-2">
-                  <CardHeader className="bg-muted/50">
-                    <div className="flex flex-col items-center gap-4">
-                      <div className="flex w-full justify-between items-center">
-                        <Badge variant="default" className="text-lg px-3 py-1 bg-primary/90 hover:bg-primary">
-                          Order #{order.id}
-                        </Badge>
-                        <Badge 
-                          variant={
-                            order.status === "completed" 
-                              ? "default" 
-                              : order.status === "pending" 
-                              ? "destructive" 
-                              : "secondary"
-                          }
-                          className={`text-base px-3 py-1 text-white ${
-                            order.status === "completed" ? "bg-green-600 hover:bg-green-700" : ""
-                          }`}
-                        >
-                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                        </Badge>
+              {orders?.map((order) => {
+                const currentStatus = getOrderStatus(order);
+                return (
+                  <Card key={order.id} className="mb-4 border-2">
+                    <CardHeader className="bg-muted/50">
+                      <div className="flex flex-col items-center gap-4">
+                        <div className="flex w-full justify-between items-center">
+                          <Badge variant="default" className="text-lg px-3 py-1 bg-primary/90 hover:bg-primary">
+                            Order #{order.id}
+                          </Badge>
+                          <Badge 
+                            className={`text-base px-3 py-1 ${getStatusBadgeStyle(currentStatus)}`}
+                          >
+                            {currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1)}
+                          </Badge>
+                        </div>
+                        <CardTitle className="text-4xl font-bold">
+                          Table #{order.tableNumber}
+                        </CardTitle>
                       </div>
-                      <CardTitle className="text-4xl font-bold">
-                        Table #{order.tableNumber}
-                      </CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="mt-4">
-                    <div className="space-y-4">
-                      {order.items.map((item, index) => {
-                        const menuItem = menuItems?.find(m => m.id === item.menuItemId);
-                        return (
-                          <div key={index} className="flex justify-between items-start py-2 border-b last:border-0">
-                            <div>
-                              <p className="font-medium">{menuItem?.name} × {item.quantity}</p>
-                              {/* Customizations */}
-                              <div className="text-sm text-gray-600 mt-1">
-                                {Object.entries(item.customizations).map(([category, choices]) => (
-                                  <div key={category} className="ml-4">
-                                    • {category}: {choices.join(", ")}
-                                  </div>
-                                ))}
+                    </CardHeader>
+                    <CardContent className="mt-4">
+                      <div className="space-y-4">
+                        {order.items.map((item, index) => {
+                          const menuItem = menuItems?.find(m => m.id === item.menuItemId);
+                          return (
+                            <div key={index} className="flex justify-between items-start py-2 border-b last:border-0">
+                              <div>
+                                <p className="font-medium">{menuItem?.name} × {item.quantity}</p>
+                                {/* Customizations */}
+                                <div className="text-sm text-gray-600 mt-1">
+                                  {Object.entries(item.customizations).map(([category, choices]) => (
+                                    <div key={category} className="ml-4">
+                                      • {category}: {choices.join(", ")}
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
                             </div>
+                          );
+                        })}
+                        {/* Cooking Instructions */}
+                        {order.cookingInstructions && (
+                          <div className="mt-4 p-3 bg-muted/50 rounded-md">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Pencil className="h-4 w-4 text-gray-600" />
+                              <span className="font-medium">Special Instructions:</span>
+                            </div>
+                            <p className="text-gray-600">{order.cookingInstructions}</p>
                           </div>
-                        );
-                      })}
-                      {/* Cooking Instructions */}
-                      {order.cookingInstructions && (
-                        <div className="mt-4 p-3 bg-muted/50 rounded-md">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Pencil className="h-4 w-4 text-gray-600" />
-                            <span className="font-medium">Special Instructions:</span>
-                          </div>
-                          <p className="text-gray-600">{order.cookingInstructions}</p>
+                        )}
+                      </div>
+                      {currentStatus === "pending" && (
+                        <div className="mt-4 flex gap-2">
+                          <Button 
+                            onClick={() => handleStatusUpdate(order.id, 'cancelled')} 
+                            variant="destructive"
+                            size="lg"
+                            className="w-full"
+                          >
+                            Can't serve
+                          </Button>
+                          <Button 
+                            onClick={() => handleStatusUpdate(order.id, 'completed')} 
+                            variant="default"
+                            size="lg"
+                            className="w-full bg-green-600 hover:bg-green-700"
+                          >
+                            Served
+                          </Button>
                         </div>
                       )}
-                    </div>
-                    {order.status === "pending" && (
-                      <div className="mt-4 flex gap-2">
-                        <Button 
-                          onClick={() => handleStatusUpdate(order.id, 'cancelled')} 
-                          variant="destructive"
-                          size="lg"
-                          className="w-full"
-                        >
-                          Can't serve
-                        </Button>
-                        <Button 
-                          onClick={() => handleStatusUpdate(order.id, 'completed')} 
-                          variant="default"
-                          size="lg"
-                          className="w-full bg-green-600 hover:bg-green-700"
-                        >
-                          Served
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
               {(!orders || orders.length === 0) && (
                 <div className="text-center py-8 text-gray-500">
                   No active orders at the moment
