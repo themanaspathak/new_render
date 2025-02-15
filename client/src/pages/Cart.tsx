@@ -20,6 +20,12 @@ export default function Cart() {
   const gst = subtotal * 0.05; // 5% GST
   const total = subtotal + gst;
 
+  // Function to get quantity of item in cart
+  const getItemQuantity = (itemId: number) => {
+    const cartItem = state.items.find(item => item.menuItem.id === itemId);
+    return cartItem?.quantity || 0;
+  };
+
   // Function to update quantity
   const updateQuantity = (cartItem: { menuItem: MenuItem, quantity: number, customizations: Record<string, string[]> }, newQuantity: number) => {
     if (newQuantity === 0) {
@@ -57,6 +63,7 @@ export default function Cart() {
     item.name.toLowerCase().includes('rasmalai')
   ) || [];
 
+  // Function to handle adding dessert to cart
   const handleAddDessert = (dessert: MenuItem) => {
     dispatch({
       type: "ADD_ITEM",
@@ -71,6 +78,55 @@ export default function Cart() {
       title: "Added to cart",
       description: `${dessert.name} has been added to your cart.`,
     });
+  };
+
+  // Function to render dessert button with quantity controls
+  const renderDessertButton = (dessert: MenuItem) => {
+    const quantity = getItemQuantity(dessert.id);
+
+    if (quantity === 0) {
+      return (
+        <Button
+          onClick={() => handleAddDessert(dessert)}
+          size="sm"
+          className="h-7 bg-green-600 hover:bg-green-700 text-white"
+        >
+          Add
+        </Button>
+      );
+    }
+
+    return (
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-6 w-6"
+          onClick={() => {
+            const existingItem = state.items.find(item => item.menuItem.id === dessert.id);
+            if (existingItem) {
+              updateQuantity(existingItem, Math.max(0, quantity - 1));
+            }
+          }}
+        >
+          <Minus className="h-3 w-3" />
+        </Button>
+        <span className="w-6 text-center text-sm">{quantity}</span>
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-6 w-6"
+          onClick={() => {
+            const existingItem = state.items.find(item => item.menuItem.id === dessert.id);
+            if (existingItem) {
+              updateQuantity(existingItem, quantity + 1);
+            }
+          }}
+        >
+          <Plus className="h-3 w-3" />
+        </Button>
+      </div>
+    );
   };
 
   return (
@@ -207,13 +263,7 @@ export default function Cart() {
                             <h3 className="font-medium text-sm">{dessert.name}</h3>
                             <p className="text-sm font-bold">₹{Math.round(dessert.price)}</p>
                           </div>
-                          <Button
-                            onClick={() => handleAddDessert(dessert)}
-                            size="sm"
-                            className="h-7 bg-green-600 hover:bg-green-700 text-white"
-                          >
-                            Add
-                          </Button>
+                          {renderDessertButton(dessert)}
                         </div>
                       </CardContent>
                     </Card>
