@@ -31,13 +31,6 @@ export function useAuth() {
     onSuccess: (data) => {
       queryClient.setQueryData(["/api/admin/user"], data);
     },
-    onError: (error: Error) => {
-      toast({
-        title: "Login failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
   });
 
   const logoutMutation = useMutation({
@@ -66,7 +59,7 @@ export function useAuth() {
     user,
     isLoading,
     isAuthenticated: !!user?.isAdmin,
-    login: loginMutation.mutate,
+    login: loginMutation.mutateAsync,
     logout: logoutMutation.mutate,
     isLoggingIn: loginMutation.isPending,
     isLoggingOut: logoutMutation.isPending,

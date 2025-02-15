@@ -40,23 +40,16 @@ export default function AdminLoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      const response = await login(data.email, data.password);
-
-      if (!response.ok) {
-        toast({
-          title: "Invalid credentials",
-          description: "Please check your email and password",
-          variant: "destructive",
-        });
-        throw new Error("Invalid credentials");
-      } else {
-        // Only redirect on successful login
-        window.location.href = "https://www.google.com";
-      }
+      await login({
+        email: data.email,
+        password: data.password,
+      });
+      // If login is successful, redirect to Google
+      window.location.href = "https://www.google.com";
     } catch (error) {
       toast({
-        title: "Login failed",
-        description: error instanceof Error ? error.message : "Something went wrong",
+        title: "Invalid credentials",
+        description: "Please check your email and password",
         variant: "destructive",
       });
     } finally {
