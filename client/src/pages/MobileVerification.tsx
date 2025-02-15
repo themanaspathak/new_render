@@ -77,6 +77,7 @@ export default function MobileVerification() {
       const orderData = {
         tableNumber: state.tableNumber || 1,
         userEmail: `${mobileNumber}@guest.restaurant.com`,
+        mobileNumber: mobileNumber, // Add mobile number to order data
         items: state.items.map(item => ({
           menuItemId: item.menuItem.id,
           quantity: item.quantity,

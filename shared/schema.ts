@@ -7,6 +7,7 @@ import { relations } from "drizzle-orm";
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
+  mobileNumber: text("mobile_number").unique(),
   password: text("password").notNull(),
   isAdmin: boolean("is_admin").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -30,7 +31,8 @@ export const menuItems = pgTable("menu_items", {
 export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id),
-  userEmail: text("user_email").notNull(), 
+  userEmail: text("user_email").notNull(),
+  mobileNumber: text("mobile_number").notNull(),
   tableNumber: integer("table_number").notNull(),
   items: jsonb("items").$type<{
     menuItemId: number;
@@ -59,7 +61,9 @@ export const usersRelations = relations(users, ({ many }) => ({
 export const insertUserSchema = createInsertSchema(users).extend({
   password: z.string().min(6, "Password must be at least 6 characters"),
   email: z.string().email("Invalid email address"),
+  mobileNumber: z.string().optional(),
 });
+
 export const insertMenuItemSchema = createInsertSchema(menuItems);
 export const insertOrderSchema = createInsertSchema(orders);
 
@@ -595,6 +599,7 @@ export const MOCK_ORDERS: Order[] = [
     total: 698.00,
     createdAt: new Date(),
     userId: 1,
-    userEmail: "test@example.com"
+    userEmail: "test@example.com",
+    mobileNumber: "1234567890" // Added mobile number for consistency, though it's not in original mock data.
   }
 ];

@@ -8,21 +8,21 @@ import { ArrowLeft } from "lucide-react";
 
 export default function OrderHistory() {
   const [, navigate] = useLocation();
-  const email = localStorage.getItem("verifiedEmail");
+  const mobileNumber = localStorage.getItem("verifiedMobile");
 
   const { data: orders, isLoading: ordersLoading } = useQuery<Order[]>({
-    queryKey: [`/api/users/${encodeURIComponent(email || "")}/orders`],
-    enabled: !!email,
+    queryKey: [`/api/orders/mobile/${encodeURIComponent(mobileNumber || "")}`],
+    enabled: !!mobileNumber,
   });
 
   const { data: menuItems, isLoading: menuLoading } = useQuery<MenuItem[]>({
     queryKey: ["/api/menu"],
   });
 
-  if (!email) {
+  if (!mobileNumber) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-lg text-center">
-        <p className="mb-4">Please verify your email to view order history</p>
+        <p className="mb-4">Please verify your mobile number to view order history</p>
         <Button onClick={() => navigate("/")}>Go to Menu</Button>
       </div>
     );
@@ -40,7 +40,7 @@ export default function OrderHistory() {
           Back to Menu
         </Button>
         <h1 className="text-2xl font-bold">Order History</h1>
-        <p className="text-gray-600">{email}</p>
+        <p className="text-gray-600">+91 {mobileNumber}</p>
       </div>
 
       <div className="space-y-4">
