@@ -24,6 +24,12 @@ export async function sendOTP(email: string): Promise<{
       expires: new Date(Date.now() + 5 * 60 * 1000),
     });
 
+    // Test SendGrid configuration
+    console.log('🔍 Verifying SendGrid configuration...');
+    if (!process.env.SENDGRID_API_KEY?.startsWith('SG.')) {
+      throw new Error('Invalid SendGrid API key format');
+    }
+
     // Prepare email message
     const msg = {
       to: email,
@@ -32,6 +38,7 @@ export async function sendOTP(email: string): Promise<{
         name: 'Restaurant Management'
       },
       subject: 'Your OTP for Restaurant Order',
+      text: `Your OTP is: ${otp}`, // Plain text version
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #333;">Your One-Time Password</h2>
@@ -52,8 +59,12 @@ export async function sendOTP(email: string): Promise<{
       timestamp: new Date().toISOString()
     });
 
-    await sgMail.send(msg);
-    console.log('✅ Email sent successfully');
+    const response = await sgMail.send(msg);
+    console.log('✅ Email sent successfully', {
+      statusCode: response[0]?.statusCode,
+      headers: response[0]?.headers,
+      timestamp: new Date().toISOString()
+    });
 
     return {
       success: true,
@@ -75,6 +86,8 @@ export async function sendOTP(email: string): Promise<{
       errorMessage = "SendGrid authentication failed. Please check the API key.";
     } else if (error.code === 403) {
       errorMessage = "SendGrid authorization failed. Please verify sender verification status.";
+    } else if (error.message.includes('Invalid SendGrid API key format')) {
+      errorMessage = "Invalid SendGrid API key format. Please check your API key.";
     }
 
     return {
