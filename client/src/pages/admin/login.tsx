@@ -26,7 +26,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function AdminLoginPage() {
   const { toast } = useToast();
-  const { login, isLoggingIn } = useAuth();
+  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<LoginFormData>({
@@ -40,13 +40,7 @@ export default function AdminLoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/admin/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+      const response = await login(data.email, data.password);
 
       if (!response.ok) {
         toast({
@@ -55,10 +49,10 @@ export default function AdminLoginPage() {
           variant: "destructive",
         });
         throw new Error("Invalid credentials");
+      } else {
+        // Only redirect on successful login
+        window.location.href = "https://www.google.com";
       }
-
-      // Only redirect on successful login
-      window.location.href = "https://www.google.com";
     } catch (error) {
       toast({
         title: "Login failed",
