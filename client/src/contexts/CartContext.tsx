@@ -28,11 +28,31 @@ const CartContext = createContext<{
 
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
-    case "ADD_ITEM":
+    case "ADD_ITEM": {
+      const existingItemIndex = state.items.findIndex(
+        item => 
+          item.menuItem.id === action.item.menuItem.id && 
+          JSON.stringify(item.customizations) === JSON.stringify(action.item.customizations)
+      );
+
+      if (existingItemIndex !== -1) {
+        // Item exists, update its quantity
+        return {
+          ...state,
+          items: state.items.map((item, index) =>
+            index === existingItemIndex
+              ? { ...item, quantity: item.quantity + action.item.quantity }
+              : item
+          ),
+        };
+      }
+
+      // Item doesn't exist, add it to the cart
       return {
         ...state,
         items: [...state.items, action.item],
       };
+    }
     case "REMOVE_ITEM":
       return {
         ...state,
