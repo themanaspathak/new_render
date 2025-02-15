@@ -7,6 +7,8 @@ import { relations } from "drizzle-orm";
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
+  password: text("password").notNull(),
+  isAdmin: boolean("is_admin").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -25,11 +27,10 @@ export const menuItems = pgTable("menu_items", {
   }>(),
 });
 
-// Modified orders table with user reference
 export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id),
-  userEmail: text("user_email").notNull(), // Store email directly for easier querying
+  userEmail: text("user_email").notNull(), 
   tableNumber: integer("table_number").notNull(),
   items: jsonb("items").$type<{
     menuItemId: number;
@@ -42,7 +43,6 @@ export const orders = pgTable("orders", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-// Define relationships
 export const ordersRelations = relations(orders, ({ one }) => ({
   user: one(users, {
     fields: [orders.userId],
@@ -54,12 +54,13 @@ export const usersRelations = relations(users, ({ many }) => ({
   orders: many(orders),
 }));
 
-// Create schemas
-export const insertUserSchema = createInsertSchema(users);
+export const insertUserSchema = createInsertSchema(users).extend({
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.string().email("Invalid email address"),
+});
 export const insertMenuItemSchema = createInsertSchema(menuItems);
 export const insertOrderSchema = createInsertSchema(orders);
 
-// Export types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type MenuItem = typeof menuItems.$inferSelect;
@@ -67,7 +68,6 @@ export type InsertMenuItem = z.infer<typeof insertMenuItemSchema>;
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 
-// Keep the mock data
 export const MOCK_MENU_ITEMS: MenuItem[] = [
   {
     id: 1,
