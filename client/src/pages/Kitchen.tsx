@@ -7,21 +7,26 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Pencil, ChefHat, History, Clock } from "lucide-react";
+import { Pencil, ChefHat, History, Clock, Calendar, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { format, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import cn from 'classnames';
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 export default function Kitchen() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  const { data: menuItems, isLoading: menuLoading } = useQuery<MenuItem[]>({
-    queryKey: ["/api/menu"],
-  });
-
-  const { data: orders, isLoading: ordersLoading } = useQuery<Order[]>({
-    queryKey: ["/api/orders"],
+  const [dateRange, setDateRange] = useState<{
+    from: Date | undefined;
+    to: Date | undefined;
+  }>({
+    from: undefined,
+    to: undefined,
   });
 
   const [availabilityMap, setAvailabilityMap] = useState<Record<number, boolean>>({});
@@ -113,8 +118,35 @@ export default function Kitchen() {
     }
   };
 
-  const activeOrders = orders?.filter(order => getOrderStatus(order) === 'pending') || [];
-  const completedOrders = orders?.filter(order =>
+  const filterOrdersByDate = (orders: Order[] | undefined) => {
+    if (!orders) return [];
+
+    let filteredOrders = [...orders];
+
+    if (dateRange.from && dateRange.to) {
+      filteredOrders = filteredOrders.filter(order => {
+        const orderDate = new Date(order.createdAt);
+        return isWithinInterval(orderDate, {
+          start: startOfDay(dateRange.from),
+          end: endOfDay(dateRange.to)
+        });
+      });
+    }
+
+    return filteredOrders;
+  };
+
+  const { data: menuItems, isLoading: menuLoading } = useQuery<MenuItem[]>({
+    queryKey: ["/api/menu"],
+  });
+
+  const { data: orders, isLoading: ordersLoading } = useQuery<Order[]>({
+    queryKey: ["/api/orders"],
+  });
+
+  const filteredOrders = filterOrdersByDate(orders);
+  const activeOrders = filteredOrders.filter(order => getOrderStatus(order) === 'pending') || [];
+  const completedOrders = filteredOrders.filter(order =>
     ['completed', 'cancelled'].includes(getOrderStatus(order))
   ) || [];
 
@@ -208,9 +240,68 @@ export default function Kitchen() {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <div className="flex items-center gap-2 mb-8">
-        <ChefHat className="h-8 w-8" />
-        <h1 className="text-3xl font-bold">Kitchen Dashboard</h1>
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-2">
+          <ChefHat className="h-8 w-8" />
+          <h1 className="text-3xl font-bold">Kitchen Dashboard</h1>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "justify-start text-left font-normal",
+                  !dateRange.from && "text-muted-foreground"
+                )}
+              >
+                <Calendar className="mr-2 h-4 w-4" />
+                {dateRange.from ? (
+                  dateRange.to ? (
+                    <>
+                      {format(dateRange.from, "dd/MM/yyyy")} -{" "}
+                      {format(dateRange.to, "dd/MM/yyyy")}
+                    </>
+                  ) : (
+                    format(dateRange.from, "dd/MM/yyyy")
+                  )
+                ) : (
+                  "Filter by date"
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <CalendarComponent
+                initialFocus
+                mode="range"
+                defaultMonth={dateRange.from}
+                selected={{
+                  from: dateRange.from,
+                  to: dateRange.to,
+                }}
+                onSelect={(range) => {
+                  setDateRange({
+                    from: range?.from,
+                    to: range?.to,
+                  });
+                }}
+                numberOfMonths={2}
+              />
+            </PopoverContent>
+          </Popover>
+
+          {(dateRange.from || dateRange.to) && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setDateRange({ from: undefined, to: undefined })}
+              className="h-9 w-9"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
