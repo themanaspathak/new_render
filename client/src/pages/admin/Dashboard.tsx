@@ -3,6 +3,7 @@ import { AdminLayout } from "@/components/layouts/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Order } from "@shared/schema";
 import { ArrowUpRight, ArrowDownRight, DollarSign, Users, ShoppingBag, Clock } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function AdminDashboard() {
   // Fetch active orders
@@ -13,7 +14,7 @@ export default function AdminDashboard() {
   // Calculate statistics
   const activeOrders = orders?.filter(order => order.status === "pending") || [];
   const completedOrders = orders?.filter(order => order.status === "completed") || [];
-  
+
   const todayOrders = orders?.filter(order => {
     const orderDate = new Date(order.createdAt);
     const today = new Date();
@@ -21,7 +22,7 @@ export default function AdminDashboard() {
   }) || [];
 
   const todayRevenue = todayOrders.reduce((sum, order) => sum + order.total, 0);
-  
+
   const yesterdayOrders = orders?.filter(order => {
     const orderDate = new Date(order.createdAt);
     const yesterday = new Date();
@@ -30,7 +31,7 @@ export default function AdminDashboard() {
   }) || [];
 
   const yesterdayRevenue = yesterdayOrders.reduce((sum, order) => sum + order.total, 0);
-  const revenueChange = ((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100;
+  const revenueChange = yesterdayRevenue === 0 ? 0 : ((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100;
 
   const stats = [
     {
@@ -48,7 +49,7 @@ export default function AdminDashboard() {
     {
       title: "Today's Orders",
       value: todayOrders.length.toString(),
-      change: ((todayOrders.length - yesterdayOrders.length) / yesterdayOrders.length) * 100,
+      change: yesterdayOrders.length === 0 ? 0 : ((todayOrders.length - yesterdayOrders.length) / yesterdayOrders.length) * 100,
       icon: Clock,
     },
     {

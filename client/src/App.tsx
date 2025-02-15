@@ -15,21 +15,37 @@ import OrderHistory from "@/pages/OrderHistory";
 import { CartProvider } from "@/contexts/CartContext";
 import NavBar from "@/components/NavBar";
 import { ProtectedAdminRoute } from "@/lib/protected-admin-route";
+import { AdminLayout } from "@/components/layouts/AdminLayout";
 
 function Router() {
   return (
     <>
       <NavBar />
       <Switch>
+        {/* Customer Routes */}
         <Route path="/" component={Menu} />
         <Route path="/cart" component={Cart} />
         <Route path="/checkout" component={Checkout} />
-        <Route path="/admin/login" component={AdminLogin} />
-        <ProtectedAdminRoute path="/admin" component={AdminDashboard} />
-        <ProtectedAdminRoute path="/kitchen" component={Kitchen} />
         <Route path="/email-verification" component={EmailVerification} />
         <Route path="/order-confirmed" component={OrderConfirmed} />
         <Route path="/orders/:email" component={OrderHistory} />
+
+        {/* Admin Routes */}
+        <Route path="/admin/login" component={AdminLogin} />
+        <ProtectedAdminRoute 
+          path="/admin" 
+          component={() => (
+            <AdminLayout>
+              <AdminDashboard />
+            </AdminLayout>
+          )} 
+        />
+        <ProtectedAdminRoute 
+          path="/kitchen" 
+          component={Kitchen} 
+        />
+
+        {/* 404 Route */}
         <Route component={NotFound} />
       </Switch>
     </>

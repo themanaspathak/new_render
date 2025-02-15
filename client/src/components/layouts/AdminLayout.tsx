@@ -79,7 +79,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             <Button
               variant="outline"
               className="w-full flex items-center gap-2"
-              onClick={logout}
+              onClick={() => logout()}
             >
               <LogOut className="h-4 w-4" />
               Sign Out
