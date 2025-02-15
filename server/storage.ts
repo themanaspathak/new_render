@@ -146,9 +146,14 @@ export class DatabaseStorage implements IStorage {
         throw new Error(`Cannot modify order ${orderId} as it is already ${currentOrder.status}`);
       }
 
+      // If the new status is cancelled, also update the payment status to failed
+      const updateData = status === 'cancelled' 
+        ? { status, paymentStatus: 'failed' as const }
+        : { status };
+
       const [updatedOrder] = await db
         .update(orders)
-        .set({ status })
+        .set(updateData)
         .where(eq(orders.id, orderId))
         .returning();
 
