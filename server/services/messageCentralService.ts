@@ -12,8 +12,8 @@ export async function sendOTP(mobileNumber: string): Promise<{
   message: string;
 }> {
   try {
-    // Generate a 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate a 4-digit OTP
+    const otp = Math.floor(1000 + Math.random() * 9000).toString();
     console.log(`📤 Attempting to send OTP to ${mobileNumber}`);
 
     // Store OTP with 5-minute expiration
@@ -78,9 +78,15 @@ export function verifyOTP(mobileNumber: string, otp: string): {
   success: boolean;
   message: string;
 } {
+  console.log(`🔍 Verifying OTP for ${mobileNumber}`, { 
+    receivedOtp: otp,
+    storedData: otpStore.get(mobileNumber)
+  });
+
   const storedData = otpStore.get(mobileNumber);
 
   if (!storedData) {
+    console.log("❌ No OTP found in store for", mobileNumber);
     return {
       success: false,
       message: "No OTP found. Please request a new OTP.",
@@ -91,6 +97,7 @@ export function verifyOTP(mobileNumber: string, otp: string): {
 
   // Check if OTP is expired
   if (expires < new Date()) {
+    console.log("❌ OTP expired for", mobileNumber);
     otpStore.delete(mobileNumber);
     return {
       success: false,
@@ -100,6 +107,11 @@ export function verifyOTP(mobileNumber: string, otp: string): {
 
   // Verify OTP
   const isValid = storedOtp === otp;
+  console.log(`${isValid ? '✅' : '❌'} OTP verification ${isValid ? 'successful' : 'failed'}`, {
+    storedOtp,
+    receivedOtp: otp,
+    mobileNumber
+  });
 
   // Clear OTP after verification (whether successful or not)
   otpStore.delete(mobileNumber);
