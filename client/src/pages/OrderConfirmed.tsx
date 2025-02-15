@@ -1,58 +1,10 @@
-import React, { useEffect } from "react";
-import { useCart } from "@/contexts/CartContext";
+import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { CheckCircle2 } from "lucide-react";
 
 const OrderConfirmed: React.FC = () => {
-  const { state, dispatch } = useCart();
-
-  useEffect(() => {
-    // Submit order to kitchen
-    const submitOrder = async () => {
-      try {
-        // Get mobile number from earlier verification step
-        const userMobile = localStorage.getItem("verifiedMobile");
-        if (!userMobile) {
-          console.error("No verified mobile number found");
-          return;
-        }
-
-        await fetch("/api/orders", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            tableNumber: state.tableNumber || 1,
-            userMobile, // Include the verified mobile number
-            items: state.items.map(item => ({
-              menuItemId: item.menuItem.id,
-              quantity: item.quantity,
-              customizations: item.customizations
-            })),
-            status: "pending",
-            cookingInstructions: state.cookingInstructions,
-            total: state.items.reduce(
-              (sum, item) => sum + item.menuItem.price * item.quantity,
-              0
-            ),
-          }),
-        });
-
-        // Clear the cart after successful order submission
-        dispatch({ type: "CLEAR_CART" });
-      } catch (error) {
-        console.error("Failed to submit order:", error);
-      }
-    };
-
-    if (state.items.length > 0) {
-      submitOrder();
-    }
-  }, [state.items, state.tableNumber, state.cookingInstructions, dispatch]);
-
   return (
     <div className="container mx-auto px-4 py-8 max-w-lg">
       <Card className="p-6 text-center">

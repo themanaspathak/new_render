@@ -4,10 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useCart } from "@/contexts/CartContext";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function MobileVerification() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const { state, dispatch } = useCart();
   const [mobileNumber, setMobileNumber] = useState("");
   const [otp, setOtp] = useState("");
   const [showOtpInput, setShowOtpInput] = useState(false);
@@ -69,6 +72,41 @@ export default function MobileVerification() {
     }
   };
 
+  const placeOrder = async () => {
+    try {
+      await apiRequest("/api/orders", "POST", {
+        tableNumber: state.tableNumber || 1,
+        userMobile: mobileNumber,
+        items: state.items.map(item => ({
+          menuItemId: item.menuItem.id,
+          quantity: item.quantity,
+          customizations: item.customizations
+        })),
+        status: "pending",
+        cookingInstructions: state.cookingInstructions,
+        total: state.items.reduce(
+          (sum, item) => sum + item.menuItem.price * item.quantity,
+          0
+        ),
+      });
+
+      // Clear the cart after successful order submission
+      dispatch({ type: "CLEAR_CART" });
+
+      // Store verified mobile for future reference
+      localStorage.setItem("verifiedMobile", mobileNumber);
+
+      navigate("/order-confirmed");
+    } catch (error) {
+      console.error("Failed to place order:", error);
+      toast({
+        title: "Error",
+        description: "Failed to place your order. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleVerifyOtp = async () => {
     if (!otp || otp.length !== 4) {
       toast({
@@ -95,14 +133,13 @@ export default function MobileVerification() {
         throw new Error(data.message);
       }
 
-      // Store verified mobile in localStorage
-      localStorage.setItem("verifiedMobile", mobileNumber);
-
       toast({
         title: "Mobile Verified",
-        description: "Proceeding to order confirmation",
+        description: "Proceeding to place your order",
       });
-      navigate("/order-confirmed");
+
+      // Place order after successful verification
+      await placeOrder();
     } catch (error: any) {
       toast({
         title: "Verification Failed",
