@@ -24,8 +24,6 @@ export default function Menu() {
   const { state, dispatch } = useCart();
   const { toast } = useToast();
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
-  const [quantity, setQuantity] = useState(1);
-  const [showQuantityControl, setShowQuantityControl] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState({
     vegOnly: false,
@@ -33,6 +31,51 @@ export default function Menu() {
     bestSeller: false
   });
 
+  // Function to get quantity of item in cart
+  const getItemQuantity = (itemId: number) => {
+    const cartItem = state.items.find(item => item.menuItem.id === itemId);
+    return cartItem?.quantity || 0;
+  };
+
+  // Function to handle adding item to cart
+  const handleAddToCart = (item: MenuItem) => {
+    dispatch({
+      type: "ADD_ITEM",
+      item: {
+        menuItem: item,
+        quantity: 1,
+        customizations: {},
+      },
+    });
+
+    toast({
+      title: "Added to cart",
+      description: `${item.name} has been added to your cart.`,
+    });
+  };
+
+  // Function to update quantity
+  const updateQuantity = (item: MenuItem, newQuantity: number) => {
+    if (newQuantity === 0) {
+      dispatch({
+        type: "REMOVE_ITEM",
+        menuItemId: item.id,
+      });
+      toast({
+        title: "Removed from cart",
+        description: `${item.name} has been removed from your cart.`,
+      });
+    } else {
+      dispatch({
+        type: "UPDATE_QUANTITY",
+        menuItemId: item.id,
+        quantity: newQuantity,
+      });
+    }
+  };
+
+  const [quantity, setQuantity] = useState(1);
+  const [showQuantityControl, setShowQuantityControl] = useState(false);
   const [customizations, setCustomizations] = useState<{
     portionSize: 'medium' | 'full';
     isJain: boolean;
@@ -66,36 +109,6 @@ export default function Menu() {
     }, {} as Record<string, MenuItem[]>);
   }, [menuItems, filters, searchQuery]);
 
-  const handleAddToCart = () => {
-    if (!selectedItem) return;
-
-    dispatch({
-      type: "ADD_ITEM",
-      item: {
-        menuItem: selectedItem,
-        quantity,
-        customizations: {
-          "Portion Size": [customizations.portionSize],
-          "Preparation": [customizations.isJain ? "Jain" : "Regular"],
-          "Taste": [customizations.taste],
-        },
-      },
-    });
-
-    toast({
-      title: "Added to cart",
-      description: `${selectedItem.name} has been added to your cart.`,
-    });
-
-    setSelectedItem(null);
-    setQuantity(1);
-    setCustomizations({
-      portionSize: 'medium',
-      isJain: false,
-      taste: 'regular'
-    });
-  };
-
   const handleItemClick = (item: MenuItem) => {
     setSelectedItem(item);
     setQuantity(1);
@@ -110,6 +123,44 @@ export default function Menu() {
   const basePrice = selectedItem ? Math.round(selectedItem.price) : 0;
   const currentPrice = customizations.portionSize === 'full' ? Math.round(basePrice * 1.5) : basePrice;
   const totalPrice = currentPrice * quantity;
+
+  const renderItemButton = (item: MenuItem) => {
+    const quantity = getItemQuantity(item.id);
+
+    if (quantity === 0) {
+      return (
+        <Button 
+          onClick={() => handleAddToCart(item)}
+          className="bg-green-600 hover:bg-green-700 text-white min-w-[80px]"
+        >
+          ADD
+        </Button>
+      );
+    }
+
+    return (
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => updateQuantity(item, quantity - 1)}
+        >
+          <Minus className="h-4 w-4" />
+        </Button>
+        <span className="w-8 text-center">{quantity}</span>
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => updateQuantity(item, quantity + 1)}
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  };
+
 
   if (isLoading) {
     return <div className="p-4">Loading menu...</div>;
@@ -233,12 +284,7 @@ export default function Menu() {
                                 <div className="text-xl font-bold">₹{Math.round(item.price)}</div>
                               </div>
 
-                              <Button 
-                                onClick={() => handleItemClick(item)}
-                                className="bg-green-600 hover:bg-green-700 text-white min-w-[80px]"
-                              >
-                                ADD
-                              </Button>
+                              {renderItemButton(item)}
                             </div>
                           </div>
 
@@ -284,12 +330,7 @@ export default function Menu() {
                                 <div className="text-xl font-bold">₹{Math.round(item.price)}</div>
                               </div>
 
-                              <Button 
-                                onClick={() => handleItemClick(item)}
-                                className="bg-green-600 hover:bg-green-700 text-white min-w-[80px]"
-                              >
-                                ADD
-                              </Button>
+                              {renderItemButton(item)}
                             </div>
                           </div>
 
