@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,19 @@ export default function MobileVerification() {
   const [otp, setOtp] = useState("");
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (resendTimer > 0) {
+      timer = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [resendTimer]);
 
   const handleSendOtp = async () => {
     if (!mobileNumber || mobileNumber.length !== 10) {
@@ -44,6 +57,7 @@ export default function MobileVerification() {
         description: `Please check your mobile (+91 ${formatPhoneNumber(mobileNumber)}) for OTP`,
       });
       setShowOtpInput(true);
+      setResendTimer(30); // Start 30-second countdown
     } catch (error: any) {
       toast({
         title: "Failed to send OTP",
@@ -176,17 +190,27 @@ export default function MobileVerification() {
                   >
                     {isLoading ? "Verifying..." : "Verify OTP"}
                   </Button>
-                  <Button
-                    variant="ghost"
-                    className="w-full"
-                    onClick={() => {
-                      setShowOtpInput(false);
-                      setOtp("");
-                    }}
-                    disabled={isLoading}
-                  >
-                    Change Number
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      className="flex-1"
+                      onClick={() => {
+                        setShowOtpInput(false);
+                        setOtp("");
+                      }}
+                      disabled={isLoading}
+                    >
+                      Change Number
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={handleSendOtp}
+                      disabled={isLoading || resendTimer > 0}
+                    >
+                      {resendTimer > 0 ? `Resend in ${resendTimer}s` : "Resend OTP"}
+                    </Button>
+                  </div>
                 </div>
               </div>
             </>
