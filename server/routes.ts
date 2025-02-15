@@ -59,6 +59,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add endpoint to get orders by mobile number
+  app.get("/api/orders/mobile/:mobileNumber", async (req, res) => {
+    try {
+      const { mobileNumber } = req.params;
+      const orders = await storage.getUserOrdersByMobile(mobileNumber);
+      res.json(orders);
+    } catch (error) {
+      console.error("Failed to fetch orders by mobile:", error);
+      res.status(500).json({ message: "Failed to fetch orders" });
+    }
+  });
+
   app.post("/api/orders", async (req, res) => {
     try {
       const order = insertOrderSchema.parse(req.body);
