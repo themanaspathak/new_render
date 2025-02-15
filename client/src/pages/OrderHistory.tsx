@@ -61,9 +61,9 @@ export default function OrderHistory() {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <div className="mb-8 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10 py-4 px-4 rounded-lg shadow-sm">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate("/")} 
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/")}
             className="mb-4 -ml-2 text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -83,8 +83,8 @@ export default function OrderHistory() {
 
         <div className="space-y-6">
           {orders?.map((order) => (
-            <Card 
-              key={order.id} 
+            <Card
+              key={order.id}
               className="overflow-hidden transition-all hover:shadow-lg hover:translate-y-[-2px] duration-300"
             >
               <CardHeader className="bg-muted/50 pb-4">
@@ -109,18 +109,11 @@ export default function OrderHistory() {
                         })}
                       </div>
                     </div>
-                    <div className="flex flex-col gap-2 items-end">
-                      <Badge 
-                        className={`${getStatusBadgeStyle(order.status)} px-3 py-1 text-sm font-medium shadow-sm`}
-                      >
-                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                      </Badge>
-                      <Badge
-                        className={`${getPaymentStatusBadgeStyle(order.paymentStatus)} px-3 py-1 text-sm font-medium shadow-sm`}
-                      >
-                        {order.paymentStatus ? (order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)) : 'Pending'}
-                      </Badge>
-                    </div>
+                    <Badge 
+                      className={`${getStatusBadgeStyle(order.status)} px-3 py-1 text-sm font-medium shadow-sm`}
+                    >
+                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                    </Badge>
                   </div>
                 </div>
               </CardHeader>
@@ -182,9 +175,9 @@ export default function OrderHistory() {
                       </div>
                       <div className="flex items-center gap-2 justify-end">
                         <CreditCard className="h-4 w-4" />
-                        <span>
-                          {order.paymentMethod?.toUpperCase() || 'Not specified'}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span>{order.paymentMethod?.toUpperCase() || 'Not specified'}</span>
+                        </div>
                       </div>
                     </div>
                     <div className="flex justify-between items-center bg-muted/50 p-3 rounded-lg">
@@ -207,8 +200,8 @@ export default function OrderHistory() {
                 <p className="text-muted-foreground mb-6">
                   Looks like you haven't placed any orders yet. Start your culinary journey with us!
                 </p>
-                <Button 
-                  onClick={() => navigate("/")} 
+                <Button
+                  onClick={() => navigate("/")}
                   variant="default"
                   className="bg-primary hover:bg-primary/90"
                 >
