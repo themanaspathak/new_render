@@ -25,6 +25,7 @@ export default function Menu() {
   const { toast } = useToast();
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const [showQuantityControl, setShowQuantityControl] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState({
     vegOnly: false,
@@ -95,6 +96,17 @@ export default function Menu() {
     });
   };
 
+  const handleItemClick = (item: MenuItem) => {
+    setSelectedItem(item);
+    setQuantity(1);
+    setShowQuantityControl(true);
+    setCustomizations({
+      portionSize: 'medium',
+      isJain: false,
+      taste: 'regular'
+    });
+  };
+
   const basePrice = selectedItem ? Math.round(selectedItem.price) : 0;
   const currentPrice = customizations.portionSize === 'full' ? Math.round(basePrice * 1.5) : basePrice;
   const totalPrice = currentPrice * quantity;
@@ -107,7 +119,6 @@ export default function Menu() {
 
   return (
     <div className="container mx-auto px-4 pb-16 max-w-5xl">
-      {/* Mobile Header with Cart */}
       <div className="sticky top-0 z-10 flex items-center bg-background/95 backdrop-blur py-4 -mx-4 px-4 md:hidden">
         <h1 className="text-xl font-bold">Menu</h1>
         <div className="ml-auto">
@@ -124,7 +135,6 @@ export default function Menu() {
         </div>
       </div>
 
-      {/* Desktop Header */}
       <div className="hidden md:flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold">Menu</h1>
         <Link href="/cart">
@@ -135,9 +145,7 @@ export default function Menu() {
         </Link>
       </div>
 
-      {/* Search and Filters */}
       <div className="space-y-4 mb-6">
-        {/* Search Bar */}
         <div className="relative">
           <Input
             type="text"
@@ -149,7 +157,6 @@ export default function Menu() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
         </div>
 
-        {/* Filter Options */}
         <div className="flex gap-2 overflow-x-auto pb-2">
           <Button
             variant={filters.vegOnly ? "default" : "outline"}
@@ -194,7 +201,6 @@ export default function Menu() {
             <section key={category}>
               <h2 className="text-2xl font-bold mb-6">{category}</h2>
 
-              {/* Vegetarian Section */}
               {vegItems.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold mb-4 text-green-600">
@@ -205,7 +211,6 @@ export default function Menu() {
                       <Card key={item.id} className="relative overflow-hidden">
                         <CardContent className="p-4">
                           <div className="flex gap-4">
-                            {/* Image Section */}
                             <div className="w-24 h-24 flex-shrink-0">
                               <img
                                 src={item.imageUrl}
@@ -214,11 +219,9 @@ export default function Menu() {
                               />
                             </div>
 
-                            {/* Content Section */}
                             <div className="flex flex-1 justify-between items-start">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
-                                  {/* Bestseller tag */}
                                   {item.isBestSeller && (
                                     <span className="text-[#ff645a] text-sm font-medium bg-[#fff3f3] px-2 py-0.5 rounded">
                                       ★ Bestseller
@@ -231,7 +234,7 @@ export default function Menu() {
                               </div>
 
                               <Button 
-                                onClick={() => setSelectedItem(item)}
+                                onClick={() => handleItemClick(item)}
                                 className="bg-green-600 hover:bg-green-700 text-white min-w-[80px]"
                               >
                                 ADD
@@ -249,7 +252,6 @@ export default function Menu() {
                 </div>
               )}
 
-              {/* Non-Vegetarian Section */}
               {nonVegItems.length > 0 && (
                 <div>
                   <h3 className="text-lg font-semibold mb-4 text-red-600">
@@ -260,7 +262,6 @@ export default function Menu() {
                       <Card key={item.id} className="relative overflow-hidden">
                         <CardContent className="p-4">
                           <div className="flex gap-4">
-                            {/* Image Section */}
                             <div className="w-24 h-24 flex-shrink-0">
                               <img
                                 src={item.imageUrl}
@@ -269,11 +270,9 @@ export default function Menu() {
                               />
                             </div>
 
-                            {/* Content Section */}
                             <div className="flex flex-1 justify-between items-start">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
-                                  {/* Bestseller tag */}
                                   {item.isBestSeller && (
                                     <span className="text-[#ff645a] text-sm font-medium bg-[#fff3f3] px-2 py-0.5 rounded">
                                       ★ Bestseller
@@ -286,7 +285,7 @@ export default function Menu() {
                               </div>
 
                               <Button 
-                                onClick={() => setSelectedItem(item)}
+                                onClick={() => handleItemClick(item)}
                                 className="bg-green-600 hover:bg-green-700 text-white min-w-[80px]"
                               >
                                 ADD
@@ -308,11 +307,11 @@ export default function Menu() {
         })}
       </div>
 
-      {/* Customization Dialog */}
       <Dialog open={!!selectedItem} onOpenChange={(open) => {
         if (!open) {
           setSelectedItem(null);
           setQuantity(1);
+          setShowQuantityControl(false);
           setCustomizations({
             portionSize: 'medium',
             isJain: false,
@@ -326,7 +325,6 @@ export default function Menu() {
           </DialogHeader>
 
           <div className="space-y-6 py-4">
-            {/* Portion Size */}
             <div className="space-y-3">
               <h3 className="font-medium">Portion Size</h3>
               <p className="text-sm text-gray-500">Select any 1</p>
@@ -354,7 +352,6 @@ export default function Menu() {
               </RadioGroup>
             </div>
 
-            {/* Jain Preparation */}
             <div className="space-y-3">
               <h3 className="font-medium">Select For Jain Prepration</h3>
               <RadioGroup
@@ -371,7 +368,6 @@ export default function Menu() {
               </RadioGroup>
             </div>
 
-            {/* Taste Preference */}
             <div className="space-y-3">
               <h3 className="font-medium">Choice Of Taste</h3>
               <p className="text-sm text-gray-500">Select upto 1</p>
@@ -393,7 +389,6 @@ export default function Menu() {
               </RadioGroup>
             </div>
 
-            {/* Quantity and Add to Cart */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
