@@ -23,6 +23,25 @@ async function comparePasswords(supplied: string, stored: string) {
 export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/menu", menuRouter);
 
+  app.get("/api/user", async (req, res) => {
+    try {
+      const userEmail = req.headers['x-user-email'];
+      if (!userEmail || typeof userEmail !== 'string') {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const user = await storage.getUser(userEmail);
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.post("/api/login", async (req, res) => {
     try {
       const { email, password } = req.body;
@@ -41,7 +60,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log("Login successful for user:", email);
-      return res.status(200).json(user);
+      // Don't send the password in the response
+      const { password: _, ...userWithoutPassword } = user;
+      return res.status(200).json(userWithoutPassword);
     } catch (error) {
       console.error("Login error:", error);
       return res.status(500).json({ message: "Internal server error" });

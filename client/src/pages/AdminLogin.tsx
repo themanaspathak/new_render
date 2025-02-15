@@ -14,6 +14,9 @@ import { useToast } from "@/hooks/use-toast";
 const loginSchema = insertUserSchema.pick({
   email: true,
   password: true,
+}).extend({
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(1, "Password is required"),
 });
 
 type LoginData = z.infer<typeof loginSchema>;
@@ -32,7 +35,6 @@ export default function AdminLogin() {
   });
 
   useEffect(() => {
-    // Check if user is already logged in and is admin
     if (user?.isAdmin) {
       setLocation("/kitchen");
     }
@@ -41,8 +43,8 @@ export default function AdminLogin() {
   const onSubmit = async (data: LoginData) => {
     try {
       await loginMutation.mutateAsync(data);
-      // Successful login will update the user in context and trigger the useEffect
     } catch (error) {
+      console.error("Login error:", error);
       toast({
         title: "Login failed",
         description: "Please check your credentials and try again",
@@ -67,6 +69,7 @@ export default function AdminLogin() {
             <Input
               id="email"
               type="email"
+              disabled={loginMutation.isPending}
               {...form.register("email")}
               placeholder="admin@restaurant.com"
             />
@@ -82,6 +85,7 @@ export default function AdminLogin() {
             <Input
               id="password"
               type="password"
+              disabled={loginMutation.isPending}
               {...form.register("password")}
             />
             {form.formState.errors.password && (
