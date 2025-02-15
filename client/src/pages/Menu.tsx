@@ -42,7 +42,6 @@ export default function Menu() {
     taste: 'regular'
   });
 
-  // Categorize and filter items
   const categorizedItems = useMemo(() => {
     if (!menuItems) return {};
 
@@ -65,35 +64,6 @@ export default function Menu() {
       return acc;
     }, {} as Record<string, MenuItem[]>);
   }, [menuItems, filters, searchQuery]);
-
-  // Add this function to get item quantity from cart
-  const getItemQuantityInCart = (itemId: number) => {
-    const cartItem = state.items.find(item => item.menuItem.id === itemId);
-    return cartItem?.quantity || 0;
-  };
-
-  // Add this function to handle quick quantity updates
-  const handleQuickQuantityUpdate = (item: MenuItem, newQuantity: number) => {
-    if (newQuantity === 0) {
-      dispatch({
-        type: "REMOVE_ITEM",
-        menuItemId: item.id,
-      });
-      toast({
-        title: "Removed from cart",
-        description: `${item.name} has been removed from your cart.`,
-      });
-    } else {
-      dispatch({
-        type: "ADD_ITEM",
-        item: {
-          menuItem: item,
-          quantity: newQuantity,
-          customizations: {},
-        },
-      });
-    }
-  };
 
   const handleAddToCart = () => {
     if (!selectedItem) return;
@@ -134,44 +104,6 @@ export default function Menu() {
   }
 
   const categoryOrder = ["Starters", "Main Course", "Rice and Biryani", "South Indian", "Fast Food", "Desserts"];
-
-  // Render item buttons (ADD or quantity controls)
-  const renderItemButtons = (item: MenuItem) => {
-    const quantityInCart = getItemQuantityInCart(item.id);
-
-    if (quantityInCart > 0) {
-      return (
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => handleQuickQuantityUpdate(item, quantityInCart - 1)}
-          >
-            <Minus className="h-4 w-4" />
-          </Button>
-          <span className="w-8 text-center">{quantityInCart}</span>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => handleQuickQuantityUpdate(item, quantityInCart + 1)}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
-      );
-    }
-
-    return (
-      <Button 
-        onClick={() => setSelectedItem(item)}
-        className="bg-green-600 hover:bg-green-700 text-white min-w-[80px]"
-      >
-        ADD
-      </Button>
-    );
-  };
 
   return (
     <div className="container mx-auto px-4 pb-16 max-w-5xl">
@@ -286,6 +218,7 @@ export default function Menu() {
                             <div className="flex flex-1 justify-between items-start">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
+                                  {/* Bestseller tag */}
                                   {item.isBestSeller && (
                                     <span className="text-[#ff645a] text-sm font-medium bg-[#fff3f3] px-2 py-0.5 rounded">
                                       ★ Bestseller
@@ -297,7 +230,12 @@ export default function Menu() {
                                 <div className="text-xl font-bold">₹{Math.round(item.price)}</div>
                               </div>
 
-                              {renderItemButtons(item)}
+                              <Button 
+                                onClick={() => setSelectedItem(item)}
+                                className="bg-green-600 hover:bg-green-700 text-white min-w-[80px]"
+                              >
+                                ADD
+                              </Button>
                             </div>
                           </div>
 
@@ -335,6 +273,7 @@ export default function Menu() {
                             <div className="flex flex-1 justify-between items-start">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
+                                  {/* Bestseller tag */}
                                   {item.isBestSeller && (
                                     <span className="text-[#ff645a] text-sm font-medium bg-[#fff3f3] px-2 py-0.5 rounded">
                                       ★ Bestseller
@@ -346,7 +285,12 @@ export default function Menu() {
                                 <div className="text-xl font-bold">₹{Math.round(item.price)}</div>
                               </div>
 
-                              {renderItemButtons(item)}
+                              <Button 
+                                onClick={() => setSelectedItem(item)}
+                                className="bg-green-600 hover:bg-green-700 text-white min-w-[80px]"
+                              >
+                                ADD
+                              </Button>
                             </div>
                           </div>
 
