@@ -95,8 +95,8 @@ export default function Kitchen() {
                               ? "destructive" 
                               : "secondary"
                           }
-                          className={`text-base px-3 py-1 ${
-                            order.status === "completed" ? "bg-green-600 hover:bg-green-700 text-white" : ""
+                          className={`text-base px-3 py-1 text-white ${
+                            order.status === "completed" ? "bg-green-600 hover:bg-green-700" : ""
                           }`}
                         >
                           {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
