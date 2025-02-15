@@ -65,7 +65,7 @@ export default function AdminLoginPage() {
           <Shield className="h-12 w-12 text-primary mb-2" />
           <h1 className="text-2xl font-bold text-center">Admin Login</h1>
           <p className="text-sm text-muted-foreground text-center mt-1">
-            Please sign in to access the admin panel
+            Please sign in to access the kitchen dashboard
           </p>
         </div>
 

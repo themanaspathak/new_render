@@ -18,8 +18,14 @@ export function ProtectedAdminRoute({ path, component: Component }: ProtectedAdm
     );
   }
 
+  // If not authenticated, redirect to login
   if (!isAuthenticated) {
     return <Redirect to="/admin/login" />;
+  }
+
+  // Only allow access to kitchen page for authenticated admins
+  if (path !== "/kitchen") {
+    return <Redirect to="/kitchen" />;
   }
 
   return <Route path={path} component={Component} />;
