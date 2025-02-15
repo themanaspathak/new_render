@@ -3,16 +3,10 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertOrderSchema, insertUserSchema } from "@shared/schema";
 import { menuRouter } from "./routes/menu";
-import { scrypt, timingSafeEqual, randomBytes } from "crypto";
+import { scrypt, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 
 const scryptAsync = promisify(scrypt);
-
-async function hashPassword(password: string) {
-  const salt = randomBytes(16).toString("hex");
-  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-  return `${buf.toString("hex")}.${salt}`;
-}
 
 async function comparePasswords(supplied: string, stored: string) {
   try {
@@ -27,10 +21,8 @@ async function comparePasswords(supplied: string, stored: string) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Register menu routes
   app.use("/api/menu", menuRouter);
 
-  // Authentication endpoints
   app.post("/api/login", async (req, res) => {
     try {
       const { email, password } = req.body;
@@ -56,7 +48,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add orders endpoints
   app.get("/api/orders", async (req, res) => {
     try {
       const orders = await storage.getAllOrders();
@@ -77,6 +68,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/orders/:id/status", async (req, res) => {
+    try {
+      const { status } = req.body;
+      const orderId = parseInt(req.params.id);
+
+      if (!['completed', 'cancelled'].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+
+      const updatedOrder = await storage.updateOrderStatus(orderId, status);
+      res.json(updatedOrder);
+    } catch (error) {
+      console.error("Failed to update order status:", error);
+      res.status(500).json({ message: "Failed to update order status" });
+    }
+  });
+
   app.get("/api/orders/:id", async (req, res) => {
     const order = await storage.getOrder(parseInt(req.params.id));
     if (!order) {
@@ -86,7 +94,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(order);
   });
 
-  // User order history endpoint
   app.get("/api/users/:email/orders", async (req, res) => {
     try {
       const { email } = req.params;

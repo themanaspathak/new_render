@@ -68,23 +68,35 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(userData: InsertUser): Promise<User> {
-    if (!userData.password) {
-      throw new Error("Password is required");
-    }
+    try {
+      if (!userData.password) {
+        throw new Error("Password is required");
+      }
 
-    const hashedPassword = await hashPassword(userData.password);
-    const [user] = await db.insert(users)
-      .values({
-        ...userData,
-        password: hashedPassword
-      })
-      .returning();
-    return user;
+      const hashedPassword = await hashPassword(userData.password);
+      const [user] = await db.insert(users)
+        .values({
+          ...userData,
+          password: hashedPassword
+        })
+        .returning();
+      return user;
+    } catch (error) {
+      console.error("Error creating user:", error);
+      throw error;
+    }
   }
 
   async createOrder(orderData: InsertOrder): Promise<Order> {
-    const [order] = await db.insert(orders).values(orderData).returning();
-    return order;
+    try {
+      const [order] = await db.insert(orders)
+        .values(orderData)
+        .returning();
+      return order;
+    } catch (error) {
+      console.error("Error creating order:", error);
+      throw error;
+    }
   }
 
   async getOrder(id: number): Promise<Order | undefined> {
