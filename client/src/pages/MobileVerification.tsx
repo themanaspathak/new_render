@@ -74,9 +74,9 @@ export default function MobileVerification() {
 
   const placeOrder = async () => {
     try {
-      await apiRequest("/api/orders", "POST", {
+      const orderData = {
         tableNumber: state.tableNumber || 1,
-        userEmail: `${mobileNumber}@guest.restaurant.com`, // Create a guest email since we only have mobile
+        userEmail: `${mobileNumber}@guest.restaurant.com`,
         items: state.items.map(item => ({
           menuItemId: item.menuItem.id,
           quantity: item.quantity,
@@ -84,12 +84,21 @@ export default function MobileVerification() {
         })),
         status: "pending",
         paymentStatus: "pending",
+        paymentMethod: "cash",
         cookingInstructions: state.cookingInstructions || "",
         total: state.items.reduce(
           (sum, item) => sum + item.menuItem.price * item.quantity,
           0
         ),
-      });
+      };
+
+      console.log("Attempting to place order with data:", orderData);
+
+      const response = await apiRequest("/api/orders", "POST", orderData);
+
+      if (!response.ok) {
+        throw new Error(`Order creation failed: ${response.statusText}`);
+      }
 
       // Clear the cart after successful order submission
       dispatch({ type: "CLEAR_CART" });
