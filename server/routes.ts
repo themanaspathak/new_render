@@ -34,7 +34,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return;
       }
 
-      const result = verifyOTP(mobileNumber, otp);
+      const result = await verifyOTP(mobileNumber, otp);
       if (result.success) {
         // Store verified mobile number in session
         if (req.session) {

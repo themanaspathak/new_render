@@ -4,23 +4,15 @@ if (!process.env.MESSAGE_CENTRAL_AUTH_TOKEN) {
   throw new Error("MESSAGE_CENTRAL_AUTH_TOKEN environment variable must be set");
 }
 
-// Store OTPs temporarily (in production, use Redis or similar)
-const otpStore = new Map<string, { otp: string; expires: Date }>();
+// Store verification IDs temporarily (in production, use Redis or similar)
+const verificationStore = new Map<string, { verificationId: string; expires: Date }>();
 
 export async function sendOTP(mobileNumber: string): Promise<{
   success: boolean;
   message: string;
 }> {
   try {
-    // Generate a 4-digit OTP
-    const otp = Math.floor(1000 + Math.random() * 9000).toString();
     console.log(`📤 Attempting to send OTP to ${mobileNumber}`);
-
-    // Store OTP with 5-minute expiration
-    otpStore.set(mobileNumber, {
-      otp,
-      expires: new Date(Date.now() + 5 * 60 * 1000),
-    });
 
     const options = {
       method: 'POST',
@@ -46,16 +38,31 @@ export async function sendOTP(mobileNumber: string): Promise<{
           });
         }
 
-        console.log('✅ SMS sent successfully', {
-          statusCode: response.statusCode,
-          body: response.body,
-          timestamp: new Date().toISOString()
-        });
+        try {
+          const responseData = JSON.parse(response.body);
+          console.log('✅ SMS sent successfully', {
+            statusCode: response.statusCode,
+            body: response.body,
+            timestamp: new Date().toISOString()
+          });
 
-        resolve({
-          success: true,
-          message: "OTP sent successfully"
-        });
+          // Store the verification ID
+          verificationStore.set(mobileNumber, {
+            verificationId: responseData.data.verificationId,
+            expires: new Date(Date.now() + 5 * 60 * 1000) // 5 minutes expiry
+          });
+
+          resolve({
+            success: true,
+            message: "OTP sent successfully"
+          });
+        } catch (parseError) {
+          console.error("❌ Failed to parse response:", parseError);
+          reject({
+            success: false,
+            message: "Failed to process OTP request."
+          });
+        }
       });
     });
   } catch (error: any) {
@@ -80,44 +87,74 @@ export function verifyOTP(mobileNumber: string, otp: string): {
 } {
   console.log(`🔍 Verifying OTP for ${mobileNumber}`, { 
     receivedOtp: otp,
-    storedData: otpStore.get(mobileNumber)
+    storedData: verificationStore.get(mobileNumber)
   });
 
-  const storedData = otpStore.get(mobileNumber);
+  const storedData = verificationStore.get(mobileNumber);
 
   if (!storedData) {
-    console.log("❌ No OTP found in store for", mobileNumber);
+    console.log("❌ No verification ID found for", mobileNumber);
     return {
       success: false,
-      message: "No OTP found. Please request a new OTP.",
+      message: "Verification session expired. Please request a new OTP.",
     };
   }
 
-  const { otp: storedOtp, expires } = storedData;
+  const { verificationId, expires } = storedData;
 
-  // Check if OTP is expired
+  // Check if verification session is expired
   if (expires < new Date()) {
-    console.log("❌ OTP expired for", mobileNumber);
-    otpStore.delete(mobileNumber);
+    console.log("❌ Verification session expired for", mobileNumber);
+    verificationStore.delete(mobileNumber);
     return {
       success: false,
-      message: "OTP has expired. Please request a new OTP.",
+      message: "Verification session expired. Please request a new OTP.",
     };
   }
 
-  // Verify OTP
-  const isValid = storedOtp === otp;
-  console.log(`${isValid ? '✅' : '❌'} OTP verification ${isValid ? 'successful' : 'failed'}`, {
-    storedOtp,
-    receivedOtp: otp,
-    mobileNumber
-  });
-
-  // Clear OTP after verification (whether successful or not)
-  otpStore.delete(mobileNumber);
-
-  return {
-    success: isValid,
-    message: isValid ? "OTP verified successfully" : "Invalid OTP. Please try again.",
+  const options = {
+    method: 'POST',
+    url: `https://cpaas.messagecentral.com/verification/v3/verify?verificationId=${verificationId}&otp=${otp}`,
+    headers: {
+      'authToken': process.env.MESSAGE_CENTRAL_AUTH_TOKEN
+    }
   };
+
+  return new Promise((resolve) => {
+    request(options, function (error, response) {
+      if (error) {
+        console.error("❌ Verification request failed:", error);
+        return resolve({
+          success: false,
+          message: "Failed to verify OTP. Please try again."
+        });
+      }
+
+      try {
+        const responseData = JSON.parse(response.body);
+        const isValid = responseData.responseCode === 200;
+
+        console.log(`${isValid ? '✅' : '❌'} OTP verification ${isValid ? 'successful' : 'failed'}`, {
+          verificationId,
+          receivedOtp: otp,
+          mobileNumber,
+          response: responseData
+        });
+
+        // Clear verification data after attempt
+        verificationStore.delete(mobileNumber);
+
+        return resolve({
+          success: isValid,
+          message: isValid ? "OTP verified successfully" : "Invalid OTP. Please try again.",
+        });
+      } catch (parseError) {
+        console.error("❌ Failed to parse verification response:", parseError);
+        return resolve({
+          success: false,
+          message: "Failed to verify OTP. Please try again."
+        });
+      }
+    });
+  });
 }
