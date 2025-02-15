@@ -312,6 +312,7 @@ export default function Menu() {
                                   </div>
 
                                   <h3 className="font-medium text-lg mb-1">{item.name}</h3>
+                                  <p className="text-sm text-gray-600 mb-2">{item.description}</p>
                                   <div className="text-xl font-bold">₹{Math.round(item.price)}</div>
                                 </div>
 
@@ -358,6 +359,7 @@ export default function Menu() {
                                   </div>
 
                                   <h3 className="font-medium text-lg mb-1">{item.name}</h3>
+                                  <p className="text-sm text-gray-600 mb-2">{item.description}</p>
                                   <div className="text-xl font-bold">₹{Math.round(item.price)}</div>
                                 </div>
 
