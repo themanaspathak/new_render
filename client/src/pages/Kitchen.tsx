@@ -33,9 +33,9 @@ export default function Kitchen() {
 
   const handleStatusUpdate = async (orderId: number, newStatus: 'completed' | 'cancelled') => {
     try {
-      await apiRequest(`/api/orders/${orderId}`, {
+      await apiRequest('/api/orders/' + orderId, {
         method: 'PATCH',
-        body: JSON.stringify({ status: newStatus }),
+        body: { status: newStatus },
       });
 
       // Invalidate and refetch orders
@@ -89,10 +89,10 @@ export default function Kitchen() {
                               : "secondary"
                           }
                           className={`text-base px-3 py-1 ${
-                            order.status === "completed" ? "bg-green-600 hover:bg-green-700" : ""
+                            order.status === "completed" ? "bg-green-600 hover:bg-green-700 text-white" : ""
                           }`}
                         >
-                          {order.status}
+                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                         </Badge>
                       </div>
                       <CardTitle className="text-4xl font-bold">
