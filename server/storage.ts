@@ -1,8 +1,9 @@
+import { db } from "./db";
 import { 
   users, orders, menuItems,
   type User, type InsertUser,
   type Order, type InsertOrder,
-  type MenuItem
+  type MenuItem, MOCK_MENU_ITEMS
 } from "@shared/schema";
 import { eq, desc } from "drizzle-orm";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
@@ -33,10 +34,17 @@ export class DatabaseStorage implements IStorage {
   async getMenuItems(): Promise<MenuItem[]> {
     try {
       const items = await db.select().from(menuItems);
+      if (items.length === 0) {
+        // Initialize database with mock data if empty
+        const insertedItems = await db.insert(menuItems)
+          .values(MOCK_MENU_ITEMS)
+          .returning();
+        return insertedItems;
+      }
       return items;
     } catch (error) {
       console.error("Error fetching menu items:", error);
-      return [];
+      return MOCK_MENU_ITEMS; // Fallback to mock data if database fails
     }
   }
 
@@ -46,7 +54,7 @@ export class DatabaseStorage implements IStorage {
       return item;
     } catch (error) {
       console.error("Error fetching menu item:", error);
-      return undefined;
+      return MOCK_MENU_ITEMS.find(item => item.id === id);
     }
   }
 
