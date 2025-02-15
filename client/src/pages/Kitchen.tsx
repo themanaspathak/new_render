@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Pencil, ChefHat } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import cn from 'classnames';
 
 export default function Kitchen() {
   const { toast } = useToast();
@@ -122,7 +123,7 @@ export default function Kitchen() {
                           <Badge variant="default" className="text-lg px-3 py-1 bg-primary/90 hover:bg-primary">
                             Order #{order.id}
                           </Badge>
-                          <Badge 
+                          <Badge
                             className={`text-base px-3 py-1 ${getStatusBadgeStyle(currentStatus)}`}
                           >
                             {currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1)}
@@ -166,16 +167,16 @@ export default function Kitchen() {
                       </div>
                       {currentStatus === "pending" && (
                         <div className="mt-4 flex gap-2">
-                          <Button 
-                            onClick={() => handleStatusUpdate(order.id, 'cancelled')} 
+                          <Button
+                            onClick={() => handleStatusUpdate(order.id, 'cancelled')}
                             variant="destructive"
                             size="lg"
                             className="w-full"
                           >
                             Can't serve
                           </Button>
-                          <Button 
-                            onClick={() => handleStatusUpdate(order.id, 'completed')} 
+                          <Button
+                            onClick={() => handleStatusUpdate(order.id, 'completed')}
                             variant="default"
                             size="lg"
                             className="w-full bg-green-600 hover:bg-green-700"
@@ -215,6 +216,10 @@ export default function Kitchen() {
                     <Switch
                       checked={availabilityMap[item.id] ?? true}
                       onCheckedChange={() => handleAvailabilityToggle(item.id)}
+                      className={cn(
+                        "data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500",
+                        "focus-visible:ring-green-500"
+                      )}
                     />
                   </CardContent>
                 </Card>
