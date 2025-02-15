@@ -21,25 +21,25 @@ export default function Cart() {
   const total = subtotal + gst;
 
   // Function to update quantity
-  const updateQuantity = (item: MenuItem, newQuantity: number) => {
+  const updateQuantity = (cartItem: { menuItem: MenuItem, quantity: number, customizations: Record<string, string[]> }, newQuantity: number) => {
     if (newQuantity === 0) {
       dispatch({
         type: "REMOVE_ITEM",
-        menuItemId: item.id,
+        menuItemId: cartItem.menuItem.id,
       });
       toast({
         title: "Removed from cart",
-        description: `${item.name} has been removed from your cart.`,
+        description: `${cartItem.menuItem.name} has been removed from your cart.`,
       });
     } else {
       dispatch({
         type: "UPDATE_QUANTITY",
-        menuItemId: item.id,
+        menuItemId: cartItem.menuItem.id,
         quantity: newQuantity,
       });
       toast({
         title: "Quantity Updated",
-        description: `Quantity of ${item.name} updated to ${newQuantity}.`,
+        description: `Quantity of ${cartItem.menuItem.name} updated to ${newQuantity}.`,
       });
     }
   };
@@ -145,7 +145,7 @@ export default function Cart() {
                         variant="outline"
                         size="icon"
                         className="h-8 w-8"
-                        onClick={() => updateQuantity(item.menuItem, Math.max(0, item.quantity - 1))}
+                        onClick={() => updateQuantity(item, Math.max(0, item.quantity - 1))}
                       >
                         <Minus className="h-4 w-4" />
                       </Button>
@@ -154,7 +154,7 @@ export default function Cart() {
                         variant="outline"
                         size="icon"
                         className="h-8 w-8"
-                        onClick={() => updateQuantity(item.menuItem, item.quantity + 1)}
+                        onClick={() => updateQuantity(item, item.quantity + 1)}
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
@@ -194,7 +194,7 @@ export default function Cart() {
               <div className="mt-8">
                 <h2 className="text-xl font-bold mb-4">Complete Your Meal</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {desserts.map((dessert) => (
+                  {desserts.slice(0, 3).map((dessert) => (
                     <Card key={dessert.id} className="overflow-hidden">
                       <CardContent className="p-3">
                         <img
