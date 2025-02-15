@@ -114,16 +114,11 @@ export async function verifyOTP(mobileNumber: string, otp: string): Promise<{
     }
 
     const options = {
-      method: 'POST',
-      url: `https://cpaas.messagecentral.com/verification/v3/verify`,
+      method: 'GET',
+      url: `https://cpaas.messagecentral.com/verification/v3/validateOtp?countryCode=91&mobileNumber=${mobileNumber}&verificationId=${verificationId}&customerId=C-0BD79595E45C4DB&code=${otp}`,
       headers: {
-        'Content-Type': 'application/json',
         'authToken': process.env.MESSAGE_CENTRAL_AUTH_TOKEN
-      },
-      body: JSON.stringify({
-        verificationId,
-        otp
-      })
+      }
     };
 
     return new Promise((resolve) => {
