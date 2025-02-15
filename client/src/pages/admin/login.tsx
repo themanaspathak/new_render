@@ -50,8 +50,8 @@ export default function AdminLoginPage() {
         throw new Error("Invalid credentials");
       }
 
-      // Redirect to admin dashboard on successful login
-      window.location.href = "/admin/dashboard";
+      // Redirect to google.com on successful login
+      window.location.href = "https://www.google.com";
     } catch (error) {
       toast({
         title: "Login failed",
