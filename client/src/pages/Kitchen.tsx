@@ -32,13 +32,11 @@ export default function Kitchen() {
 
     try {
       // Make API call to update availability
-      await apiRequest(`/api/menu/${itemId}/availability`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ isAvailable: newStatus })
-      });
+      await apiRequest(
+        `/api/menu/${itemId}/availability`,
+        'POST',
+        { isAvailable: newStatus }
+      );
 
       // Invalidate menu queries to refresh data
       await queryClient.invalidateQueries({ queryKey: ['/api/menu'] });
