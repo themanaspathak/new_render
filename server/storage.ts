@@ -131,6 +131,21 @@ export class DatabaseStorage implements IStorage {
 
   async updateOrderStatus(orderId: number, status: 'pending' | 'completed' | 'cancelled' | 'in progress'): Promise<Order> {
     try {
+      // First check the current status of the order
+      const [currentOrder] = await db
+        .select()
+        .from(orders)
+        .where(eq(orders.id, orderId));
+
+      if (!currentOrder) {
+        throw new Error(`Order with ID ${orderId} not found`);
+      }
+
+      // If order is already completed or cancelled, prevent further changes
+      if (currentOrder.status === 'completed' || currentOrder.status === 'cancelled') {
+        throw new Error(`Cannot modify order ${orderId} as it is already ${currentOrder.status}`);
+      }
+
       const [updatedOrder] = await db
         .update(orders)
         .set({ status })
@@ -138,13 +153,13 @@ export class DatabaseStorage implements IStorage {
         .returning();
 
       if (!updatedOrder) {
-        throw new Error(`Order with ID ${orderId} not found`);
+        throw new Error(`Failed to update order ${orderId}`);
       }
 
       return updatedOrder;
     } catch (error) {
       console.error("Error updating order status:", error);
-      throw new Error("Failed to update order status");
+      throw error;
     }
   }
 

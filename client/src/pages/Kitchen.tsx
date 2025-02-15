@@ -82,9 +82,10 @@ export default function Kitchen() {
         return newState;
       });
 
+      // Show more specific error message
       toast({
-        title: 'Error',
-        description: 'Failed to update order status',
+        title: 'Cannot Update Order',
+        description: error instanceof Error ? error.message : 'Failed to update order status',
         variant: 'destructive',
       });
     }
@@ -136,6 +137,8 @@ export default function Kitchen() {
   const OrderCard = ({ order }: { order: Order }) => {
     const currentStatus = getOrderStatus(order);
     const orderDate = new Date(order.createdAt);
+    const isActionable = currentStatus === "in progress";
+
     return (
       <Card key={order.id} className="mb-4 border-2">
         <CardHeader className="bg-muted/50">
@@ -184,11 +187,15 @@ export default function Kitchen() {
             })}
             {order.cookingInstructions && (
               <div className="mt-4 p-3 bg-muted/50 rounded-md">
+                <div className="flex items-center gap-2 mb-2">
+                  <Pencil className="h-4 w-4 text-gray-600" />
+                  <span className="font-medium">Special Instructions:</span>
+                </div>
                 <p className="text-gray-600">{order.cookingInstructions}</p>
               </div>
             )}
           </div>
-          {currentStatus === "in progress" && (
+          {isActionable && (
             <div className="mt-4 flex gap-2">
               <Button
                 onClick={() => handleStatusUpdate(order.id, 'cancelled')}
