@@ -24,7 +24,7 @@ export function ProtectedAdminRoute({
   if (!user || !user.isAdmin) {
     return (
       <Route path={path}>
-        <Redirect to="/" />
+        <Redirect to="/admin" />
       </Route>
     );
   }

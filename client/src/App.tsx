@@ -10,6 +10,7 @@ import Kitchen from "@/pages/Kitchen";
 import OrderConfirmed from "@/pages/OrderConfirmed";
 import EmailVerification from "@/pages/EmailVerification";
 import OrderHistory from "@/pages/OrderHistory";
+import AdminLogin from "@/pages/AdminLogin";
 import { CartProvider } from "@/contexts/CartContext";
 import NavBar from "@/components/NavBar";
 import { AuthProvider } from "@/hooks/use-auth";
@@ -23,6 +24,7 @@ function Router() {
         <Route path="/" component={Menu} />
         <Route path="/cart" component={Cart} />
         <Route path="/checkout" component={Checkout} />
+        <Route path="/admin" component={AdminLogin} />
         <ProtectedAdminRoute path="/kitchen" component={Kitchen} />
         <Route path="/email-verification" component={EmailVerification} />
         <Route path="/order-confirmed" component={OrderConfirmed} />
