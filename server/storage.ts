@@ -1,4 +1,3 @@
-import { db } from "./db";
 import { 
   users, orders, menuItems,
   type User, type InsertUser,
@@ -34,12 +33,6 @@ export class DatabaseStorage implements IStorage {
   async getMenuItems(): Promise<MenuItem[]> {
     try {
       const items = await db.select().from(menuItems);
-      if (items.length === 0) {
-        const insertedItems = await db.insert(menuItems)
-          .values(MOCK_MENU_ITEMS)
-          .returning();
-        return insertedItems;
-      }
       return items;
     } catch (error) {
       console.error("Error fetching menu items:", error);
@@ -58,8 +51,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUser(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user;
+    try {
+      const [user] = await db.select().from(users).where(eq(users.email, email));
+      return user;
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      return undefined;
+    }
   }
 
   async createUser(userData: InsertUser): Promise<User> {
