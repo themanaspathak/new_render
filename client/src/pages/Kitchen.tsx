@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Pencil, ChefHat, Clock, Calendar, X } from "lucide-react";
+import { Pencil, ChefHat, Clock, Calendar, FilterX } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import cn from 'classnames';
@@ -230,23 +230,26 @@ export default function Kitchen() {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div className="flex items-center gap-2">
           <ChefHat className="h-8 w-8" />
           <h1 className="text-3xl font-bold">Kitchen Dashboard</h1>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-muted-foreground" />
+            <span className="text-sm font-medium">Date Filter:</span>
+          </div>
           <Popover>
             <PopoverTrigger asChild>
               <Button
-                variant="outline"
+                variant={dateRange.from ? "default" : "outline"}
                 className={cn(
-                  "justify-start text-left font-normal",
+                  "justify-start text-left font-normal min-w-[240px]",
                   !dateRange.from && "text-muted-foreground"
                 )}
               >
-                <Calendar className="mr-2 h-4 w-4" />
                 {dateRange.from ? (
                   dateRange.to ? (
                     <>
@@ -257,11 +260,17 @@ export default function Kitchen() {
                     format(dateRange.from, "dd/MM/yyyy")
                   )
                 ) : (
-                  "Filter by date"
+                  "Select date range"
                 )}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
+              <div className="p-3 border-b">
+                <h3 className="font-medium">Filter Orders by Date</h3>
+                <p className="text-sm text-muted-foreground">
+                  Select a date range to view orders
+                </p>
+              </div>
               <CalendarComponent
                 initialFocus
                 mode="range"
@@ -277,6 +286,7 @@ export default function Kitchen() {
                   });
                 }}
                 numberOfMonths={2}
+                className="p-3"
               />
             </PopoverContent>
           </Popover>
@@ -286,9 +296,10 @@ export default function Kitchen() {
               variant="ghost"
               size="icon"
               onClick={() => setDateRange({ from: undefined, to: undefined })}
-              className="h-9 w-9"
+              className="h-9 w-9 rounded-full"
+              title="Clear date filter"
             >
-              <X className="h-4 w-4" />
+              <FilterX className="h-4 w-4" />
             </Button>
           )}
         </div>
