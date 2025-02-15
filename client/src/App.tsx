@@ -15,19 +15,6 @@ import OrderHistory from "@/pages/OrderHistory";
 import { CartProvider } from "@/contexts/CartContext";
 import NavBar from "@/components/NavBar";
 import { ProtectedAdminRoute } from "@/lib/protected-admin-route";
-import { AdminLayout } from "@/components/layouts/AdminLayout";
-
-function AdminRoutes() {
-  return (
-    <AdminLayout>
-      <Switch>
-        <Route path="/admin" component={AdminDashboard} />
-        <Route path="/admin/kitchen" component={Kitchen} />
-        <Route component={NotFound} />
-      </Switch>
-    </AdminLayout>
-  );
-}
 
 function Router() {
   return (
@@ -44,7 +31,8 @@ function Router() {
 
         {/* Admin Routes */}
         <Route path="/admin/login" component={AdminLogin} />
-        <ProtectedAdminRoute path="/admin/*" component={AdminRoutes} />
+        <ProtectedAdminRoute path="/admin" component={AdminDashboard} />
+        <ProtectedAdminRoute path="/admin/kitchen" component={Kitchen} />
 
         {/* 404 Route */}
         <Route component={NotFound} />

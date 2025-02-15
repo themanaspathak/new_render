@@ -61,18 +61,17 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 const Icon = item.icon;
                 return (
                   <li key={item.href}>
-                    <Link href={item.href}>
-                      <Button
-                        variant="ghost"
-                        className={cn(
-                          "w-full justify-start gap-3 font-normal",
-                          location === item.href && "bg-primary text-primary-foreground hover:bg-primary/90"
-                        )}
-                      >
-                        <Icon className="h-5 w-5" />
-                        {item.label}
-                      </Button>
-                    </Link>
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        "w-full justify-start gap-3 font-normal",
+                        location === item.href && "bg-primary text-primary-foreground hover:bg-primary/90"
+                      )}
+                      onClick={() => window.location.href = item.href}
+                    >
+                      <Icon className="h-5 w-5" />
+                      {item.label}
+                    </Button>
                   </li>
                 );
               })}
