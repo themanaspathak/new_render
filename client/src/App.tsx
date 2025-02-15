@@ -8,7 +8,7 @@ import Cart from "@/pages/Cart";
 import Checkout from "@/pages/Checkout";
 import AdminLogin from "@/pages/admin/login";
 import AdminDashboard from "@/pages/admin/Dashboard";
-import Kitchen from "@/pages/admin/Kitchen";
+import Kitchen from "@/pages/Kitchen";
 import MenuManagement from "@/pages/admin/MenuManagement";
 import OrderConfirmed from "@/pages/OrderConfirmed";
 import EmailVerification from "@/pages/EmailVerification";
@@ -29,11 +29,11 @@ function Router() {
         <Route path="/email-verification" component={EmailVerification} />
         <Route path="/order-confirmed" component={OrderConfirmed} />
         <Route path="/orders/:email" component={OrderHistory} />
+        <Route path="/kitchen" component={Kitchen} />
 
         {/* Admin Routes */}
         <Route path="/admin/login" component={AdminLogin} />
         <ProtectedAdminRoute path="/admin" component={AdminDashboard} />
-        <ProtectedAdminRoute path="/admin/kitchen" component={Kitchen} />
         <ProtectedAdminRoute path="/admin/menu" component={MenuManagement} />
 
         {/* 404 Route */}
