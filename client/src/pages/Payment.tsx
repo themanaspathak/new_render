@@ -7,6 +7,7 @@ import { ArrowLeft, QrCode, Copy, Check, Loader2, Smartphone } from "lucide-reac
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { SiGooglepay, SiPhonepe, SiPaytm } from "react-icons/si";
+import { createUPIPaymentLink, verifyUPIPayment, generateOrderId } from "@/lib/upiPayment";
 
 export default function Payment() {
   const { state, dispatch } = useCart();
@@ -15,6 +16,7 @@ export default function Payment() {
   const [copied, setCopied] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [selectedApp, setSelectedApp] = useState<string | null>(null);
+  const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
 
   const total = state.items.reduce(
     (sum, item) => sum + item.menuItem.price * item.quantity,
@@ -34,34 +36,21 @@ export default function Payment() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const getUPILink = (app: string) => {
-    const amount = Math.round(total).toString();
-    const tn = `ORDER_${Date.now()}`; // Transaction reference
-    const params = new URLSearchParams({
-      pa: upiId,
-      pn: "Restaurant Name",
-      tn,
-      am: amount,
-      cu: "INR"
-    });
-
-    switch (app) {
-      case "gpay":
-        return `tez://upi/pay?${params.toString()}`;
-      case "phonepe":
-        return `phonepe://pay?${params.toString()}`;
-      case "paytm":
-        return `paytmmp://pay?${params.toString()}`;
-      case "mobikwik":
-        return `mobikwik://pay?${params.toString()}`;
-      default:
-        return `upi://pay?${params.toString()}`;
-    }
-  };
-
   const handleAppPayment = async (app: string) => {
     setSelectedApp(app);
-    const paymentLink = getUPILink(app);
+    const orderId = generateOrderId();
+    setCurrentOrderId(orderId);
+
+    const paymentLink = createUPIPaymentLink(
+      Math.round(total),
+      orderId,
+      upiId,
+      app,
+      {
+        merchantName: "Your Restaurant Name",
+        transactionNote: `Food Order #${orderId}`,
+      }
+    );
 
     // Open the UPI app
     window.location.href = paymentLink;
@@ -74,6 +63,15 @@ export default function Payment() {
   };
 
   const handlePaymentVerification = async () => {
+    if (!currentOrderId) {
+      toast({
+        title: "Error",
+        description: "Invalid order reference. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setIsProcessing(true);
 
@@ -89,33 +87,40 @@ export default function Payment() {
         return;
       }
 
-      // Create the order with UPI payment method
-      const response = await apiRequest("/api/orders", "POST", {
-        tableNumber: state.tableNumber || 1,
-        userEmail,
-        items: state.items.map(item => ({
-          menuItemId: item.menuItem.id,
-          quantity: item.quantity,
-          customizations: item.customizations
-        })),
-        status: "pending",
-        paymentStatus: "paid",
-        paymentMethod: "upi",
-        cookingInstructions: state.cookingInstructions,
-        total: total,
-      });
+      // Verify UPI Payment
+      const paymentStatus = await verifyUPIPayment(currentOrderId);
 
-      if (response.ok) {
-        // Clear cart and redirect to confirmation
-        dispatch({ type: "CLEAR_CART" });
-        navigate("/order-confirmed");
-
-        toast({
-          title: "Payment Successful",
-          description: "Your order has been placed successfully!",
+      if (paymentStatus.status === "success") {
+        // Create the order with UPI payment method
+        const response = await apiRequest("/api/orders", "POST", {
+          tableNumber: state.tableNumber || 1,
+          userEmail,
+          items: state.items.map(item => ({
+            menuItemId: item.menuItem.id,
+            quantity: item.quantity,
+            customizations: item.customizations
+          })),
+          status: "pending",
+          paymentStatus: "paid",
+          paymentMethod: "upi",
+          cookingInstructions: state.cookingInstructions,
+          total: total,
         });
+
+        if (response.ok) {
+          // Clear cart and redirect to confirmation
+          dispatch({ type: "CLEAR_CART" });
+          navigate("/order-confirmed");
+
+          toast({
+            title: "Payment Successful",
+            description: "Your order has been placed successfully!",
+          });
+        } else {
+          throw new Error("Failed to create order");
+        }
       } else {
-        throw new Error("Failed to create order");
+        throw new Error("Payment verification failed");
       }
     } catch (error) {
       console.error("Payment verification failed:", error);
