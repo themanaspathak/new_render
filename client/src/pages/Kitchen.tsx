@@ -31,7 +31,7 @@ export default function Kitchen() {
     const newStatus = !menuItem?.isAvailable;
 
     try {
-      // Make API call to update availability
+      // Make API call to update availability using proper method format
       await apiRequest(
         `/api/menu/${itemId}/availability`,
         'POST',
