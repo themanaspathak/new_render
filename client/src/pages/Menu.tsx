@@ -292,36 +292,42 @@ export default function Menu() {
                       {vegItems.map((item) => (
                         <Card key={item.id} className={`relative overflow-hidden ${!item.isAvailable ? 'opacity-60' : ''}`}>
                           <CardContent className="p-4">
-                            <div className="flex gap-4">
-                              <div className="w-24 h-24 flex-shrink-0">
+                            <div className="flex flex-col md:flex-row gap-4">
+                              {/* Image Section */}
+                              <div className="w-full md:w-24 h-48 md:h-24 relative rounded-lg overflow-hidden">
                                 <img
                                   src={item.imageUrl}
                                   alt={item.name}
-                                  className={`w-full h-full object-cover rounded-lg ${!item.isAvailable ? 'grayscale' : ''}`}
+                                  className={`w-full h-full object-cover ${!item.isAvailable ? 'grayscale' : ''}`}
                                 />
+                                {/* Veg indicator overlay */}
+                                <div className="absolute top-2 right-2 bg-white p-1 rounded-md shadow">
+                                  <div className="w-4 h-4 border-2 border-green-600 p-0.5">
+                                    <div className="w-full h-full rounded-full bg-green-600" />
+                                  </div>
+                                </div>
                               </div>
 
-                              <div className="flex flex-1 justify-between items-start">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
+                              {/* Content Section */}
+                              <div className="flex-1">
+                                <div className="flex flex-col h-full justify-between">
+                                  <div>
                                     {item.isBestSeller && (
-                                      <span className="text-[#ff645a] text-sm font-medium bg-[#fff3f3] px-2 py-0.5 rounded">
+                                      <span className="text-[#ff645a] text-sm font-medium bg-[#fff3f3] px-2 py-0.5 rounded inline-block mb-2">
                                         ★ Bestseller
                                       </span>
                                     )}
+                                    <h3 className="font-medium text-lg mb-1">{item.name}</h3>
+                                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">{item.description}</p>
+                                    <div className="text-xl font-bold mb-3">₹{Math.round(item.price)}</div>
                                   </div>
 
-                                  <h3 className="font-medium text-lg mb-1">{item.name}</h3>
-                                  <p className="text-sm text-gray-600 mb-2">{item.description}</p>
-                                  <div className="text-xl font-bold">₹{Math.round(item.price)}</div>
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-500">Customizable</span>
+                                    {renderItemButton(item)}
+                                  </div>
                                 </div>
-
-                                {renderItemButton(item)}
                               </div>
-                            </div>
-
-                            <div className="mt-2 text-sm text-gray-500">
-                              <span>Customisable</span>
                             </div>
                           </CardContent>
                         </Card>
@@ -339,36 +345,42 @@ export default function Menu() {
                       {nonVegItems.map((item) => (
                         <Card key={item.id} className={`relative overflow-hidden ${!item.isAvailable ? 'opacity-60' : ''}`}>
                           <CardContent className="p-4">
-                            <div className="flex gap-4">
-                              <div className="w-24 h-24 flex-shrink-0">
+                            <div className="flex flex-col md:flex-row gap-4">
+                              {/* Image Section */}
+                              <div className="w-full md:w-24 h-48 md:h-24 relative rounded-lg overflow-hidden">
                                 <img
                                   src={item.imageUrl}
                                   alt={item.name}
-                                  className={`w-full h-full object-cover rounded-lg ${!item.isAvailable ? 'grayscale' : ''}`}
+                                  className={`w-full h-full object-cover ${!item.isAvailable ? 'grayscale' : ''}`}
                                 />
+                                {/* Non-veg indicator overlay */}
+                                <div className="absolute top-2 right-2 bg-white p-1 rounded-md shadow">
+                                  <div className="w-4 h-4 border-2 border-red-600 p-0.5">
+                                    <div className="w-full h-full rounded-full bg-red-600" />
+                                  </div>
+                                </div>
                               </div>
 
-                              <div className="flex flex-1 justify-between items-start">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
+                              {/* Content Section */}
+                              <div className="flex-1">
+                                <div className="flex flex-col h-full justify-between">
+                                  <div>
                                     {item.isBestSeller && (
-                                      <span className="text-[#ff645a] text-sm font-medium bg-[#fff3f3] px-2 py-0.5 rounded">
+                                      <span className="text-[#ff645a] text-sm font-medium bg-[#fff3f3] px-2 py-0.5 rounded inline-block mb-2">
                                         ★ Bestseller
                                       </span>
                                     )}
+                                    <h3 className="font-medium text-lg mb-1">{item.name}</h3>
+                                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">{item.description}</p>
+                                    <div className="text-xl font-bold mb-3">₹{Math.round(item.price)}</div>
                                   </div>
 
-                                  <h3 className="font-medium text-lg mb-1">{item.name}</h3>
-                                  <p className="text-sm text-gray-600 mb-2">{item.description}</p>
-                                  <div className="text-xl font-bold">₹{Math.round(item.price)}</div>
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-500">Customizable</span>
+                                    {renderItemButton(item)}
+                                  </div>
                                 </div>
-
-                                {renderItemButton(item)}
                               </div>
-                            </div>
-
-                            <div className="mt-2 text-sm text-gray-500">
-                              <span>Customisable</span>
                             </div>
                           </CardContent>
                         </Card>
