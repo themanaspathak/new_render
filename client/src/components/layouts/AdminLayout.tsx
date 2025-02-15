@@ -3,7 +3,6 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   Menu as MenuIcon,
-  Table,
   ClipboardList,
   CreditCard,
   LogOut,
@@ -25,11 +24,6 @@ const sidebarItems = [
     icon: MenuIcon,
     label: "Menu Management",
     href: "/admin/menu",
-  },
-  {
-    icon: Table,
-    label: "Tables",
-    href: "/admin/tables",
   },
   {
     icon: ClipboardList,
