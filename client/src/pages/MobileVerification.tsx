@@ -90,7 +90,7 @@ export default function MobileVerification() {
 
       const orderData = {
         tableNumber: state.tableNumber || 1,
-        userEmail: guestEmail, // Changed from user_email to userEmail
+        userEmail: guestEmail,
         mobileNumber: mobileNumber,
         customerName: customerName,
         items: state.items.map(item => ({
@@ -98,7 +98,7 @@ export default function MobileVerification() {
           quantity: item.quantity,
           customizations: item.customizations || {}
         })),
-        status: "pending",
+        status: "in progress",
         paymentStatus: "pending" as const,
         paymentMethod: "cash" as const,
         cookingInstructions: state.cookingInstructions || "",

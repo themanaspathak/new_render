@@ -75,15 +75,8 @@ export class DatabaseStorage implements IStorage {
       // Create the order with "in progress" status
       const [order] = await db.insert(orders)
         .values({
-          mobileNumber: orderData.mobileNumber,
-          customerName: orderData.customerName,
-          tableNumber: orderData.tableNumber,
-          items: orderData.items,
+          ...orderData,
           status: 'in progress',
-          paymentStatus: 'pending',
-          paymentMethod: orderData.paymentMethod,
-          cookingInstructions: orderData.cookingInstructions,
-          total: orderData.total,
           createdAt: new Date()
         })
         .returning();
@@ -92,7 +85,7 @@ export class DatabaseStorage implements IStorage {
       return order;
     } catch (error) {
       console.error("Error creating order:", error);
-      throw new Error("Failed to create order");
+      throw error;
     }
   }
 
