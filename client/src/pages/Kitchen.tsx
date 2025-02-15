@@ -24,24 +24,47 @@ export default function Kitchen() {
   });
 
   const [availabilityMap, setAvailabilityMap] = useState<Record<number, boolean>>({});
-  // Track orders being updated
   const [updatingOrders, setUpdatingOrders] = useState<Record<number, string>>({});
 
   const handleAvailabilityToggle = async (itemId: number) => {
     const menuItem = menuItems?.find(item => item.id === itemId);
     const newStatus = !availabilityMap[itemId];
 
-    setAvailabilityMap(prev => ({
-      ...prev,
-      [itemId]: newStatus
-    }));
+    try {
+      // Update local state optimistically
+      setAvailabilityMap(prev => ({
+        ...prev,
+        [itemId]: newStatus
+      }));
 
-    // Show toast notification
-    toast({
-      title: `Menu Item ${newStatus ? 'Available' : 'Unavailable'}`,
-      description: `${menuItem?.name} is now ${newStatus ? 'available' : 'unavailable'} for ordering`,
-      variant: newStatus ? 'default' : 'destructive',
-    });
+      // Make API call to update availability
+      await apiRequest(`/api/menu/${itemId}/availability`, {
+        method: 'POST',
+        body: { isAvailable: newStatus },
+      });
+
+      // Invalidate menu queries to refresh data
+      await queryClient.invalidateQueries({ queryKey: ['/api/menu'] });
+
+      // Show success toast
+      toast({
+        title: `Menu Item ${newStatus ? 'Available' : 'Unavailable'}`,
+        description: `${menuItem?.name} is now ${newStatus ? 'available' : 'unavailable'} for ordering`,
+        variant: newStatus ? 'default' : 'destructive',
+      });
+    } catch (error) {
+      // Revert optimistic update on error
+      setAvailabilityMap(prev => ({
+        ...prev,
+        [itemId]: !newStatus
+      }));
+
+      toast({
+        title: 'Error',
+        description: 'Failed to update menu item availability',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleStatusUpdate = async (orderId: number, newStatus: 'completed' | 'cancelled') => {
@@ -224,7 +247,7 @@ export default function Kitchen() {
                       </div>
                     </div>
                     <Switch
-                      checked={availabilityMap[item.id] ?? true}
+                      checked={item.isAvailable ?? true}
                       onCheckedChange={() => handleAvailabilityToggle(item.id)}
                       className={cn(
                         "data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500",

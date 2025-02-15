@@ -139,9 +139,21 @@ export default function Menu() {
   const renderItemButton = (item: MenuItem) => {
     const quantity = getItemQuantity(item.id);
 
+    // If item is not available, show unavailable button
+    if (!item.isAvailable) {
+      return (
+        <Button
+          disabled
+          className="min-w-[80px] bg-gray-300 text-gray-500 cursor-not-allowed"
+        >
+          UNAVAILABLE
+        </Button>
+      );
+    }
+
     if (quantity === 0) {
       return (
-        <Button 
+        <Button
           onClick={() => handleItemClick(item)}
           className="bg-green-600 hover:bg-green-700 text-white min-w-[80px]"
         >
@@ -271,14 +283,14 @@ export default function Menu() {
                   </h3>
                   <div className="space-y-4">
                     {vegItems.map((item) => (
-                      <Card key={item.id} className="relative overflow-hidden">
+                      <Card key={item.id} className={`relative overflow-hidden ${!item.isAvailable ? 'opacity-60' : ''}`}>
                         <CardContent className="p-4">
                           <div className="flex gap-4">
                             <div className="w-24 h-24 flex-shrink-0">
                               <img
                                 src={item.imageUrl}
                                 alt={item.name}
-                                className="w-full h-full object-cover rounded-lg"
+                                className={`w-full h-full object-cover rounded-lg ${!item.isAvailable ? 'grayscale' : ''}`}
                               />
                             </div>
 
@@ -317,14 +329,14 @@ export default function Menu() {
                   </h3>
                   <div className="space-y-4">
                     {nonVegItems.map((item) => (
-                      <Card key={item.id} className="relative overflow-hidden">
+                      <Card key={item.id} className={`relative overflow-hidden ${!item.isAvailable ? 'opacity-60' : ''}`}>
                         <CardContent className="p-4">
                           <div className="flex gap-4">
                             <div className="w-24 h-24 flex-shrink-0">
                               <img
                                 src={item.imageUrl}
                                 alt={item.name}
-                                className="w-full h-full object-cover rounded-lg"
+                                className={`w-full h-full object-cover rounded-lg ${!item.isAvailable ? 'grayscale' : ''}`}
                               />
                             </div>
 
@@ -462,8 +474,8 @@ export default function Menu() {
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
-                <Button 
-                  onClick={handleCustomizedAddToCart} 
+                <Button
+                  onClick={handleCustomizedAddToCart}
                   className="bg-green-600 hover:bg-green-700 text-white"
                 >
                   Add Item | ₹{totalPrice}
