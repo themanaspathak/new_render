@@ -283,41 +283,9 @@ export default function Kitchen() {
           </div>
         </div>
 
-        {/* Menu Availability Section */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-xl">Menu Availability</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {menuItems?.map((item) => (
-                <Card key={item.id} className="border shadow-sm">
-                  <CardContent className="flex items-center justify-between p-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${item.isVegetarian ? 'bg-green-500' : 'bg-red-500'}`} />
-                      <div>
-                        <p className="font-medium">{item.name}</p>
-                        <p className="text-sm text-gray-600">₹{item.price}</p>
-                      </div>
-                    </div>
-                    <Switch
-                      checked={item.isAvailable ?? true}
-                      onCheckedChange={() => handleAvailabilityToggle(item.id)}
-                      className={cn(
-                        "data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500",
-                        "focus-visible:ring-green-500"
-                      )}
-                    />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Orders Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-1">
             <div className="flex items-center gap-2 mb-4">
               <h2 className="text-2xl font-semibold">Active Orders</h2>
               <Badge variant="secondary" className="text-sm">
@@ -374,6 +342,42 @@ export default function Kitchen() {
                 {cancelledOrders.length === 0 && (
                   <div className="text-center py-8 text-gray-500">
                     No cancelled orders
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+
+          <div className="lg:col-span-1">
+            <div className="flex items-center gap-2 mb-4">
+              <h2 className="text-2xl font-semibold">Menu Availability</h2>
+            </div>
+            <ScrollArea className="h-[calc(100vh-200px)]">
+              <div className="space-y-4 pr-4">
+                {menuItems?.map((item) => (
+                  <Card key={item.id} className="border shadow-sm">
+                    <CardContent className="flex items-center justify-between p-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-3 h-3 rounded-full ${item.isVegetarian ? 'bg-green-500' : 'bg-red-500'}`} />
+                        <div>
+                          <p className="font-medium">{item.name}</p>
+                          <p className="text-sm text-gray-600">₹{item.price}</p>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={item.isAvailable ?? true}
+                        onCheckedChange={() => handleAvailabilityToggle(item.id)}
+                        className={cn(
+                          "data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500",
+                          "focus-visible:ring-green-500"
+                        )}
+                      />
+                    </CardContent>
+                  </Card>
+                ))}
+                {!menuItems?.length && (
+                  <div className="text-center py-8 text-gray-500">
+                    No menu items available
                   </div>
                 )}
               </div>
