@@ -17,10 +17,6 @@ async function hashPassword(password: string) {
 async function comparePasswords(supplied: string, stored: string) {
   try {
     const [hashed, salt] = stored.split(".");
-    if (!hashed || !salt) {
-      console.error("Invalid password format");
-      return false;
-    }
     const hashedBuf = Buffer.from(hashed, "hex");
     const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
     return timingSafeEqual(hashedBuf, suppliedBuf);
@@ -42,17 +38,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const user = await storage.getUser(email);
       if (!user) {
-        console.log("User not found");
+        console.log("User not found:", email);
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
       const isValidPassword = await comparePasswords(password, user.password);
       if (!isValidPassword) {
-        console.log("Invalid password");
+        console.log("Invalid password for user:", email);
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      console.log("Login successful");
+      console.log("Login successful for user:", email);
       return res.status(200).json(user);
     } catch (error) {
       console.error("Login error:", error);
@@ -60,7 +56,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add endpoint to get all orders
+  // Add orders endpoints
   app.get("/api/orders", async (req, res) => {
     try {
       const orders = await storage.getAllOrders();

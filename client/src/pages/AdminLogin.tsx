@@ -9,6 +9,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertUserSchema } from "@shared/schema";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const loginSchema = insertUserSchema.pick({
   email: true,
@@ -20,6 +21,7 @@ type LoginData = z.infer<typeof loginSchema>;
 export default function AdminLogin() {
   const { user, loginMutation } = useAuth();
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
 
   const form = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
@@ -30,13 +32,23 @@ export default function AdminLogin() {
   });
 
   useEffect(() => {
+    // Check if user is already logged in and is admin
     if (user?.isAdmin) {
       setLocation("/kitchen");
     }
   }, [user, setLocation]);
 
   const onSubmit = async (data: LoginData) => {
-    loginMutation.mutate(data);
+    try {
+      await loginMutation.mutateAsync(data);
+      // Successful login will update the user in context and trigger the useEffect
+    } catch (error) {
+      toast({
+        title: "Login failed",
+        description: "Please check your credentials and try again",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
