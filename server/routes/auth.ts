@@ -1,57 +1,103 @@
 import { Router } from "express";
-import { sendOTP, verifyOTP } from "../services/emailService";
+import { authenticateUser, hashPassword } from "../services/auth";
+import { db } from "../db";
+import { users } from "@shared/schema";
+import { eq } from "drizzle-orm";
+import session from "express-session";
 import { z } from "zod";
 
 const router = Router();
 
-const emailSchema = z.object({
+declare module "express-session" {
+  interface SessionData {
+    userId: number;
+  }
+}
+
+// Initialize session middleware
+router.use(
+  session({
+    secret: process.env.SESSION_SECRET || "your-secret-key",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    },
+  })
+);
+
+const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-const verifySchema = z.object({
-  email: z.string().email("Invalid email address"),
-  otp: z.string().length(6, "OTP must be 6 digits"),
-});
-
-router.post("/send-email-otp", async (req, res) => {
+router.post("/admin/login", async (req, res) => {
   try {
-    const { email } = emailSchema.parse(req.body);
+    const { email, password } = loginSchema.parse(req.body);
 
-    const { success, message } = await sendOTP(email);
+    const user = await authenticateUser(email, password);
 
-    if (success) {
-      res.json({ message });
-    } else {
-      res.status(500).json({ error: message });
+    if (!user.isAdmin) {
+      return res.status(403).json({ message: "Access denied: Admin privileges required" });
     }
+
+    // Set user session
+    req.session.userId = user.id;
+
+    res.json({ 
+      id: user.id,
+      email: user.email,
+      isAdmin: user.isAdmin,
+      createdAt: user.createdAt
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      res.status(400).json({ error: error.errors[0].message });
-    } else {
-      console.error("Send OTP error:", error);
-      res.status(500).json({ error: "Internal server error" });
+      return res.status(400).json({ message: error.errors[0].message });
     }
+    if (error instanceof Error) {
+      return res.status(401).json({ message: error.message });
+    }
+    res.status(500).json({ message: "Internal server error" });
   }
 });
 
-router.post("/verify-email-otp", (req, res) => {
+router.post("/admin/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ message: "Failed to logout" });
+    }
+    res.clearCookie("connect.sid");
+    res.json({ message: "Logged out successfully" });
+  });
+});
+
+router.get("/admin/user", async (req, res) => {
+  if (!req.session.userId) {
+    return res.status(401).json({ message: "Not authenticated" });
+  }
+
   try {
-    const { email, otp } = verifySchema.parse(req.body);
+    const result = await db.select().from(users).where(eq(users.id, req.session.userId));
+    const user = result[0];
 
-    const { success, message } = verifyOTP(email, otp);
-
-    if (success) {
-      res.json({ message });
-    } else {
-      res.status(400).json({ error: message });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
+
+    if (!user.isAdmin) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    res.json({
+      id: user.id,
+      email: user.email,
+      isAdmin: user.isAdmin,
+      createdAt: user.createdAt
+    });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      res.status(400).json({ error: error.errors[0].message });
-    } else {
-      console.error("Verify OTP error:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
+    res.status(500).json({ message: "Failed to fetch user data" });
   }
 });
 

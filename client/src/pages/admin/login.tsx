@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useLocation } from "wouter";
 import {
   Form,
   FormControl,
@@ -13,7 +14,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
 import { Shield } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -25,9 +25,15 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function AdminLoginPage() {
-  const { toast } = useToast();
-  const { login } = useAuth();
+  const [, setLocation] = useLocation();
+  const { login, isLoggingIn, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Redirect if already logged in
+  if (user?.isAdmin) {
+    setLocation("/kitchen");
+    return null;
+  }
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -38,29 +44,14 @@ export default function AdminLoginPage() {
   });
 
   const onSubmit = async (data: LoginFormData) => {
+    if (isLoading) return;
+
     setIsLoading(true);
     try {
-      const user = await login({
-        email: data.email,
-        password: data.password,
-      });
-
-      if (user && user.isAdmin) {
-        // Only redirect on successful login and if user is admin
-        window.location.href = "https://www.google.com";
-      } else {
-        toast({
-          title: "Access Denied",
-          description: "You do not have admin privileges",
-          variant: "destructive",
-        });
+      const user = await login(data);
+      if (user?.isAdmin) {
+        setLocation("/kitchen");
       }
-    } catch (error) {
-      toast({
-        title: "Invalid credentials",
-        description: "Please check your email and password",
-        variant: "destructive",
-      });
     } finally {
       setIsLoading(false);
     }
@@ -90,6 +81,7 @@ export default function AdminLoginPage() {
                       type="email"
                       placeholder="admin@example.com"
                       {...field}
+                      disabled={isLoading}
                     />
                   </FormControl>
                   <FormMessage />
@@ -108,6 +100,7 @@ export default function AdminLoginPage() {
                       type="password"
                       placeholder="••••••••"
                       {...field}
+                      disabled={isLoading}
                     />
                   </FormControl>
                   <FormMessage />
@@ -118,9 +111,9 @@ export default function AdminLoginPage() {
             <Button
               type="submit"
               className="w-full"
-              disabled={isLoading}
+              disabled={isLoading || isLoggingIn}
             >
-              {isLoading ? "Signing in..." : "Sign in"}
+              {isLoading || isLoggingIn ? "Signing in..." : "Sign in"}
             </Button>
           </form>
         </Form>

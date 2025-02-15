@@ -3,6 +3,11 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { User } from "@shared/schema";
 
+type LoginCredentials = {
+  email: string;
+  password: string;
+};
+
 export function useAuth() {
   const { toast } = useToast();
 
@@ -12,7 +17,7 @@ export function useAuth() {
   });
 
   const loginMutation = useMutation({
-    mutationFn: async (credentials: { email: string; password: string }) => {
+    mutationFn: async (credentials: LoginCredentials) => {
       const response = await fetch("/api/admin/login", {
         method: "POST",
         headers: {
@@ -21,16 +26,29 @@ export function useAuth() {
         body: JSON.stringify(credentials),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const error = await response.text();
-        throw new Error(error || "Login failed");
+        throw new Error(data.message || "Login failed");
       }
 
-      const data = await response.json();
       return data as User;
     },
     onSuccess: (data) => {
       queryClient.setQueryData(["/api/admin/user"], data);
+
+      // Show success toast
+      toast({
+        title: "Login successful",
+        description: "Welcome back!",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Login failed",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
@@ -41,11 +59,13 @@ export function useAuth() {
       });
 
       if (!response.ok) {
-        throw new Error("Logout failed");
+        const data = await response.json();
+        throw new Error(data.message || "Logout failed");
       }
     },
     onSuccess: () => {
       queryClient.setQueryData(["/api/admin/user"], null);
+      window.location.href = "/admin/login";
     },
     onError: (error: Error) => {
       toast({
