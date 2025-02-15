@@ -4,11 +4,14 @@ import nodemailer from "nodemailer";
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465,
-  secure: true, // Use SSL/TLS
+  secure: true,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD,
   },
+  connectionTimeout: 5000, // 5 seconds timeout
+  greetingTimeout: 5000,
+  socketTimeout: 5000,
   debug: true,
   logger: true
 });
@@ -16,35 +19,32 @@ const transporter = nodemailer.createTransport({
 // Enhanced connection verification with detailed logging
 async function verifyEmailConfiguration() {
   try {
+    console.log("🔍 Verifying email configuration...");
+    console.log("📧 Using email:", process.env.EMAIL_USER);
+    console.log("🔑 Password configured:", !!process.env.EMAIL_PASSWORD);
+
     const verified = await transporter.verify();
     if (verified) {
-      console.log("✓ SMTP server is ready to send messages");
-      console.log("Email configuration:", {
-        host: "smtp.gmail.com",
-        port: 465,
-        secure: true,
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: "configured: " + (!!process.env.EMAIL_PASSWORD)
-        }
-      });
+      console.log("✅ SMTP server connection successful");
       return true;
     }
-  } catch (error) {
-    console.error("✗ SMTP connection error:", error);
-    console.error("Email configuration state:", {
+  } catch (error: any) {
+    console.error("❌ SMTP connection failed:");
+    console.error("Configuration state:", {
       EMAIL_USER_SET: !!process.env.EMAIL_USER,
       EMAIL_PASSWORD_SET: !!process.env.EMAIL_PASSWORD,
-      ERROR_MESSAGE: error.message,
-      ERROR_CODE: error.code,
-      ERROR_RESPONSE: error.response
+      ERROR_DETAILS: {
+        message: error.message,
+        code: error.code,
+        command: error.command,
+        response: error.response,
+        responseCode: error.responseCode,
+        timestamp: new Date().toISOString()
+      }
     });
     return false;
   }
 }
-
-// Verify configuration on startup
-verifyEmailConfiguration();
 
 // Store OTPs temporarily (in production, use Redis or similar)
 const otpStore = new Map<string, { otp: string; expires: Date }>();
@@ -54,27 +54,27 @@ export async function sendOTP(email: string): Promise<{
   message: string;
 }> {
   try {
-    // Verify email configuration first
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-      console.error("Email configuration error: Missing credentials");
-      throw new Error("Email credentials are not properly configured");
+    // Verify configuration first
+    const isConfigValid = await verifyEmailConfiguration();
+    if (!isConfigValid) {
+      throw new Error("Email configuration verification failed");
     }
 
     // Generate a 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log(`Attempting to send OTP to ${email}`);
+    console.log(`📤 Attempting to send OTP to ${email}`);
 
     // Store OTP with 5-minute expiration
     otpStore.set(email, {
       otp,
-      expires: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
+      expires: new Date(Date.now() + 5 * 60 * 1000),
     });
 
     // Enhanced email options with better formatting
     const mailOptions = {
       from: {
         name: "Restaurant Management",
-        address: process.env.EMAIL_USER
+        address: process.env.EMAIL_USER as string
       },
       to: email,
       subject: "Your OTP for Restaurant Order",
@@ -91,7 +91,7 @@ export async function sendOTP(email: string): Promise<{
       `,
     };
 
-    console.log('🚀 Attempting to send email with configuration:', {
+    console.log('📧 Sending email with configuration:', {
       from: mailOptions.from,
       to: mailOptions.to,
       subject: mailOptions.subject,
@@ -99,7 +99,7 @@ export async function sendOTP(email: string): Promise<{
     });
 
     const info = await transporter.sendMail(mailOptions);
-    console.log('✓ Email sent successfully:', {
+    console.log('✅ Email sent successfully:', {
       messageId: info.messageId,
       response: info.response,
       envelope: info.envelope,
@@ -110,28 +110,25 @@ export async function sendOTP(email: string): Promise<{
       success: true,
       message: "OTP sent successfully",
     };
-  } catch (error) {
-    console.error("✗ Failed to send OTP. Detailed error:", error);
+  } catch (error: any) {
+    console.error("❌ Failed to send OTP:", {
+      error: {
+        message: error.message,
+        name: error.name,
+        code: error.code,
+        command: error.command,
+        response: error.response,
+        timestamp: new Date().toISOString()
+      }
+    });
 
     let errorMessage = "Failed to send OTP";
-    if (error instanceof Error) {
-      // Enhanced error detection
-      if (error.message.includes("Invalid login") || error.message.includes("535-5.7.8")) {
-        errorMessage = "Email authentication failed. Please ensure you're using a valid Gmail App Password.";
-      } else if (error.message.includes("Email credentials are not configured")) {
-        errorMessage = error.message;
-      } else if (error.message.includes("getaddrinfo")) {
-        errorMessage = "Network connection error. Please check your internet connection.";
-      }
-
-      console.error('Detailed error diagnostics:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name,
-        code: (error as any).code,
-        command: (error as any).command,
-        timestamp: new Date().toISOString()
-      });
+    if (error.message.includes("535-5.7.8") || error.message.includes("535-5.7.9")) {
+      errorMessage = "Gmail authentication failed. Please ensure you're using a valid Gmail App Password.";
+    } else if (error.message.includes("getaddrinfo")) {
+      errorMessage = "Network connection error. Please check your internet connection.";
+    } else if (error.responseCode === 550) {
+      errorMessage = "Email sending failed due to Gmail's security settings. Please check your Gmail account settings.";
     }
 
     return {
