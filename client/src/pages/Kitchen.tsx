@@ -33,9 +33,12 @@ export default function Kitchen() {
 
   const handleStatusUpdate = async (orderId: number, newStatus: 'completed' | 'cancelled') => {
     try {
-      await apiRequest('/api/orders/' + orderId, {
+      await apiRequest(`/api/orders/${orderId}`, {
         method: 'PATCH',
-        body: { status: newStatus },
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus }),
       });
 
       // Invalidate and refetch orders
