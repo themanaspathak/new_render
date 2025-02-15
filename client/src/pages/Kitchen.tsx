@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Pencil, ChefHat } from "lucide-react";
+import { Pencil, ChefHat, History } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import cn from 'classnames';
 
@@ -31,17 +31,14 @@ export default function Kitchen() {
     const newStatus = !menuItem?.isAvailable;
 
     try {
-      // Make API call to update availability using proper method format
       await apiRequest(
         `/api/menu/${itemId}/availability`,
         'POST',
         { isAvailable: newStatus }
       );
 
-      // Invalidate menu queries to refresh data
       await queryClient.invalidateQueries({ queryKey: ['/api/menu'] });
 
-      // Show success toast
       toast({
         title: `Menu Item ${newStatus ? 'Available' : 'Unavailable'}`,
         description: `${menuItem?.name} is now ${newStatus ? 'available' : 'unavailable'} for ordering`,
@@ -59,7 +56,6 @@ export default function Kitchen() {
 
   const handleStatusUpdate = async (orderId: number, newStatus: 'completed' | 'cancelled') => {
     try {
-      // Optimistically update the UI
       setUpdatingOrders(prev => ({
         ...prev,
         [orderId]: newStatus
@@ -77,7 +73,6 @@ export default function Kitchen() {
         throw new Error('Failed to update order status');
       }
 
-      // Invalidate and refetch orders
       await queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
 
       toast({
@@ -86,7 +81,6 @@ export default function Kitchen() {
       });
     } catch (error) {
       console.error('Failed to update order status:', error);
-      // Revert the optimistic update
       setUpdatingOrders(prev => {
         const newState = { ...prev };
         delete newState[orderId];
@@ -102,7 +96,6 @@ export default function Kitchen() {
   };
 
   const getOrderStatus = (order: Order) => {
-    // Return the optimistic status if it exists, otherwise return the actual status
     return updatingOrders[order.id] || order.status;
   };
 
@@ -119,9 +112,90 @@ export default function Kitchen() {
     }
   };
 
+  // Filter orders by status
+  const activeOrders = orders?.filter(order => getOrderStatus(order) === 'pending') || [];
+  const completedOrders = orders?.filter(order => 
+    ['completed', 'cancelled'].includes(getOrderStatus(order))
+  ) || [];
+
   if (menuLoading || ordersLoading) {
     return <div className="p-4">Loading kitchen dashboard...</div>;
   }
+
+  const OrderCard = ({ order }: { order: Order }) => {
+    const currentStatus = getOrderStatus(order);
+    return (
+      <Card key={order.id} className="mb-4 border-2">
+        <CardHeader className="bg-muted/50">
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex w-full justify-between items-center">
+              <Badge variant="default" className="text-lg px-3 py-1 bg-primary/90 hover:bg-primary">
+                Order #{order.id}
+              </Badge>
+              <Badge
+                className={`text-base px-3 py-1 ${getStatusBadgeStyle(currentStatus)}`}
+              >
+                {currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1)}
+              </Badge>
+            </div>
+            <CardTitle className="text-4xl font-bold">
+              Table #{order.tableNumber}
+            </CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent className="mt-4">
+          <div className="space-y-4">
+            {order.items.map((item, index) => {
+              const menuItem = menuItems?.find(m => m.id === item.menuItemId);
+              return (
+                <div key={index} className="flex justify-between items-start py-2 border-b last:border-0">
+                  <div>
+                    <p className="font-medium">{menuItem?.name} × {item.quantity}</p>
+                    <div className="text-sm text-gray-600 mt-1">
+                      {Object.entries(item.customizations).map(([category, choices]) => (
+                        <div key={category} className="ml-4">
+                          • {category}: {choices.join(", ")}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            {order.cookingInstructions && (
+              <div className="mt-4 p-3 bg-muted/50 rounded-md">
+                <div className="flex items-center gap-2 mb-2">
+                  <Pencil className="h-4 w-4 text-gray-600" />
+                  <span className="font-medium">Special Instructions:</span>
+                </div>
+                <p className="text-gray-600">{order.cookingInstructions}</p>
+              </div>
+            )}
+          </div>
+          {currentStatus === "pending" && (
+            <div className="mt-4 flex gap-2">
+              <Button
+                onClick={() => handleStatusUpdate(order.id, 'cancelled')}
+                variant="destructive"
+                size="lg"
+                className="w-full"
+              >
+                Can't serve
+              </Button>
+              <Button
+                onClick={() => handleStatusUpdate(order.id, 'completed')}
+                variant="default"
+                size="lg"
+                className="w-full bg-green-600 hover:bg-green-700"
+              >
+                Served
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -130,89 +204,21 @@ export default function Kitchen() {
         <h1 className="text-3xl font-bold">Kitchen Dashboard</h1>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Active Orders Section */}
-        <div className="space-y-4">
-          <h2 className="text-2xl font-semibold mb-4">Active Orders</h2>
+        <div className="lg:col-span-1">
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="text-2xl font-semibold">Active Orders</h2>
+            <Badge variant="secondary" className="text-sm">
+              {activeOrders.length}
+            </Badge>
+          </div>
           <ScrollArea className="h-[70vh]">
-            <div className="space-y-4">
-              {orders?.map((order) => {
-                const currentStatus = getOrderStatus(order);
-                return (
-                  <Card key={order.id} className="mb-4 border-2">
-                    <CardHeader className="bg-muted/50">
-                      <div className="flex flex-col items-center gap-4">
-                        <div className="flex w-full justify-between items-center">
-                          <Badge variant="default" className="text-lg px-3 py-1 bg-primary/90 hover:bg-primary">
-                            Order #{order.id}
-                          </Badge>
-                          <Badge
-                            className={`text-base px-3 py-1 ${getStatusBadgeStyle(currentStatus)}`}
-                          >
-                            {currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1)}
-                          </Badge>
-                        </div>
-                        <CardTitle className="text-4xl font-bold">
-                          Table #{order.tableNumber}
-                        </CardTitle>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="mt-4">
-                      <div className="space-y-4">
-                        {order.items.map((item, index) => {
-                          const menuItem = menuItems?.find(m => m.id === item.menuItemId);
-                          return (
-                            <div key={index} className="flex justify-between items-start py-2 border-b last:border-0">
-                              <div>
-                                <p className="font-medium">{menuItem?.name} × {item.quantity}</p>
-                                {/* Customizations */}
-                                <div className="text-sm text-gray-600 mt-1">
-                                  {Object.entries(item.customizations).map(([category, choices]) => (
-                                    <div key={category} className="ml-4">
-                                      • {category}: {choices.join(", ")}
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                        {/* Cooking Instructions */}
-                        {order.cookingInstructions && (
-                          <div className="mt-4 p-3 bg-muted/50 rounded-md">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Pencil className="h-4 w-4 text-gray-600" />
-                              <span className="font-medium">Special Instructions:</span>
-                            </div>
-                            <p className="text-gray-600">{order.cookingInstructions}</p>
-                          </div>
-                        )}
-                      </div>
-                      {currentStatus === "pending" && (
-                        <div className="mt-4 flex gap-2">
-                          <Button
-                            onClick={() => handleStatusUpdate(order.id, 'cancelled')}
-                            variant="destructive"
-                            size="lg"
-                            className="w-full"
-                          >
-                            Can't serve
-                          </Button>
-                          <Button
-                            onClick={() => handleStatusUpdate(order.id, 'completed')}
-                            variant="default"
-                            size="lg"
-                            className="w-full bg-green-600 hover:bg-green-700"
-                          >
-                            Served
-                          </Button>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-              {(!orders || orders.length === 0) && (
+            <div className="space-y-4 pr-4">
+              {activeOrders.map((order) => (
+                <OrderCard key={order.id} order={order} />
+              ))}
+              {activeOrders.length === 0 && (
                 <div className="text-center py-8 text-gray-500">
                   No active orders at the moment
                 </div>
@@ -221,11 +227,33 @@ export default function Kitchen() {
           </ScrollArea>
         </div>
 
+        {/* Completed Orders Section */}
+        <div className="lg:col-span-1">
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="text-2xl font-semibold">Completed Orders</h2>
+            <Badge variant="secondary" className="text-sm">
+              {completedOrders.length}
+            </Badge>
+          </div>
+          <ScrollArea className="h-[70vh]">
+            <div className="space-y-4 pr-4">
+              {completedOrders.map((order) => (
+                <OrderCard key={order.id} order={order} />
+              ))}
+              {completedOrders.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  No completed orders
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+        </div>
+
         {/* Menu Management Section */}
-        <div>
+        <div className="lg:col-span-1">
           <h2 className="text-2xl font-semibold mb-4">Menu Availability</h2>
           <ScrollArea className="h-[70vh]">
-            <div className="space-y-4">
+            <div className="space-y-4 pr-4">
               {menuItems?.map((item) => (
                 <Card key={item.id}>
                   <CardContent className="flex items-center justify-between p-4">
