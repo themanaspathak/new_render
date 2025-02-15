@@ -12,6 +12,8 @@ import EmailVerification from "@/pages/EmailVerification";
 import OrderHistory from "@/pages/OrderHistory";
 import { CartProvider } from "@/contexts/CartContext";
 import NavBar from "@/components/NavBar";
+import { AuthProvider } from "@/hooks/use-auth";
+import { ProtectedAdminRoute } from "@/lib/protected-admin-route";
 
 function Router() {
   return (
@@ -21,7 +23,7 @@ function Router() {
         <Route path="/" component={Menu} />
         <Route path="/cart" component={Cart} />
         <Route path="/checkout" component={Checkout} />
-        <Route path="/kitchen" component={Kitchen} />
+        <ProtectedAdminRoute path="/kitchen" component={Kitchen} />
         <Route path="/email-verification" component={EmailVerification} />
         <Route path="/order-confirmed" component={OrderConfirmed} />
         <Route path="/orders/:email" component={OrderHistory} />
@@ -34,10 +36,12 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <CartProvider>
-        <Router />
-        <Toaster />
-      </CartProvider>
+      <AuthProvider>
+        <CartProvider>
+          <Router />
+          <Toaster />
+        </CartProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
