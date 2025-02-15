@@ -211,7 +211,7 @@ export default function Menu() {
           </Link>
         </div>
 
-        <div className="py-10 mb-8">
+        <div className="flex justify-center py-4">
           <Logo />
         </div>
 
