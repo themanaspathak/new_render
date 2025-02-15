@@ -16,8 +16,8 @@ export function Footer() {
             <h3 className="font-semibold text-lg mb-4">Contact Us</h3>
             <div className="space-y-2 text-gray-600">
               <p>Email: contact@zinglebell.com</p>
-              <p>Phone: +91 1800-123-4567</p>
-              <p>Address: 123 Food Street, Foodie District</p>
+              <p>Phone: +91 8769456454</p>
+              <p>Address: Udaipur, Rajasthan</p>
             </div>
           </div>
         </div>
