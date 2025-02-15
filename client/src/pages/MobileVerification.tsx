@@ -12,8 +12,9 @@ export default function MobileVerification() {
   const [mobileNumber, setMobileNumber] = useState("");
   const [otp, setOtp] = useState("");
   const [showOtpInput, setShowOtpInput] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSendOtp = () => {
+  const handleSendOtp = async () => {
     if (!mobileNumber || mobileNumber.length !== 10) {
       toast({
         title: "Invalid mobile number",
@@ -23,16 +24,39 @@ export default function MobileVerification() {
       return;
     }
 
-    // TODO: Integrate with actual OTP service
-    // For now, we'll simulate OTP sending with code 123456
-    toast({
-      title: "OTP Sent",
-      description: `Please check your mobile (+91 ${formatPhoneNumber(mobileNumber)}) for OTP`,
-    });
-    setShowOtpInput(true);
+    try {
+      setIsLoading(true);
+      const response = await fetch("/api/send-mobile-otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ mobileNumber }),
+      });
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.message);
+      }
+
+      toast({
+        title: "OTP Sent",
+        description: `Please check your mobile (+91 ${formatPhoneNumber(mobileNumber)}) for OTP`,
+      });
+      setShowOtpInput(true);
+    } catch (error: any) {
+      toast({
+        title: "Failed to send OTP",
+        description: error.message || "Please try again later",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleVerifyOtp = () => {
+  const handleVerifyOtp = async () => {
     if (!otp || otp.length !== 6) {
       toast({
         title: "Invalid OTP",
@@ -42,12 +66,39 @@ export default function MobileVerification() {
       return;
     }
 
-    // For testing, accept any 6-digit OTP
-    toast({
-      title: "Mobile Verified",
-      description: "Proceeding to order confirmation",
-    });
-    navigate("/order-confirmed");
+    try {
+      setIsLoading(true);
+      const response = await fetch("/api/verify-mobile-otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ mobileNumber, otp }),
+      });
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.message);
+      }
+
+      // Store verified mobile in localStorage
+      localStorage.setItem("verifiedMobile", mobileNumber);
+
+      toast({
+        title: "Mobile Verified",
+        description: "Proceeding to order confirmation",
+      });
+      navigate("/order-confirmed");
+    } catch (error: any) {
+      toast({
+        title: "Verification Failed",
+        description: error.message || "Invalid OTP. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const formatPhoneNumber = (value: string) => {
@@ -81,6 +132,7 @@ export default function MobileVerification() {
                     value={formatPhoneNumber(mobileNumber)}
                     onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
                     className="pl-12 text-lg tracking-wide"
+                    disabled={isLoading}
                   />
                 </div>
                 <p className="text-sm text-gray-500">
@@ -90,9 +142,9 @@ export default function MobileVerification() {
               <Button 
                 className="w-full bg-green-600 hover:bg-green-700 text-white"
                 onClick={handleSendOtp}
-                disabled={mobileNumber.length !== 10}
+                disabled={mobileNumber.length !== 10 || isLoading}
               >
-                Send OTP
+                {isLoading ? "Sending..." : "Send OTP"}
               </Button>
             </>
           ) : (
@@ -108,23 +160,27 @@ export default function MobileVerification() {
                         className="w-12 h-12 text-center text-2xl"
                         value={otp[index] || ""}
                         onChange={(e) => {
-                          const newOtp = otp.split("");
-                          newOtp[index] = e.target.value;
-                          setOtp(newOtp.join(""));
+                          const value = e.target.value.replace(/[^0-9]/g, '');
+                          if (value.length <= 1) {
+                            const newOtp = otp.split('');
+                            newOtp[index] = value;
+                            setOtp(newOtp.join(''));
 
-                          // Auto-focus next input
-                          if (e.target.value && index < 5) {
-                            const nextInput = e.target.parentElement?.nextElementSibling?.querySelector("input");
-                            if (nextInput) nextInput.focus();
+                            // Auto-focus next input
+                            if (value && index < 5) {
+                              const nextInput = e.target.parentElement?.nextElementSibling?.querySelector('input');
+                              if (nextInput) nextInput.focus();
+                            }
                           }
                         }}
                         onKeyDown={(e) => {
                           // Handle backspace
-                          if (e.key === "Backspace" && !otp[index] && index > 0) {
-                            const prevInput = e.currentTarget.parentElement?.previousElementSibling?.querySelector("input");
+                          if (e.key === 'Backspace' && !otp[index] && index > 0) {
+                            const prevInput = e.currentTarget.parentElement?.previousElementSibling?.querySelector('input');
                             if (prevInput) prevInput.focus();
                           }
                         }}
+                        disabled={isLoading}
                       />
                     ))}
                   </div>
@@ -136,9 +192,9 @@ export default function MobileVerification() {
                   <Button
                     className="w-full bg-green-600 hover:bg-green-700 text-white"
                     onClick={handleVerifyOtp}
-                    disabled={otp.length !== 6}
+                    disabled={otp.length !== 6 || isLoading}
                   >
-                    Verify OTP
+                    {isLoading ? "Verifying..." : "Verify OTP"}
                   </Button>
                   <Button
                     variant="ghost"
@@ -147,6 +203,7 @@ export default function MobileVerification() {
                       setShowOtpInput(false);
                       setOtp("");
                     }}
+                    disabled={isLoading}
                   >
                     Change Number
                   </Button>
