@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { useCart } from "@/contexts/CartContext";
 
 export default function MobileVerification() {
   const [, navigate] = useLocation();
@@ -57,10 +56,10 @@ export default function MobileVerification() {
   };
 
   const handleVerifyOtp = async () => {
-    if (!otp || otp.length !== 6) {
+    if (!otp || otp.length !== 4) {
       toast({
         title: "Invalid OTP",
-        description: "Please enter a valid 6-digit OTP",
+        description: "Please enter a valid 4-digit OTP",
         variant: "destructive",
       });
       return;
@@ -151,48 +150,29 @@ export default function MobileVerification() {
             <>
               <div className="space-y-4">
                 <div className="flex flex-col items-center gap-2">
-                  <div className="flex gap-2">
-                    {Array.from({ length: 6 }).map((_, index) => (
-                      <Input
-                        key={index}
-                        type="text"
-                        maxLength={1}
-                        className="w-12 h-12 text-center text-2xl"
-                        value={otp[index] || ""}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/[^0-9]/g, '');
-                          if (value.length <= 1) {
-                            const newOtp = otp.split('');
-                            newOtp[index] = value;
-                            setOtp(newOtp.join(''));
-
-                            // Auto-focus next input
-                            if (value && index < 5) {
-                              const nextInput = e.target.parentElement?.nextElementSibling?.querySelector('input');
-                              if (nextInput) nextInput.focus();
-                            }
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          // Handle backspace
-                          if (e.key === 'Backspace' && !otp[index] && index > 0) {
-                            const prevInput = e.currentTarget.parentElement?.previousElementSibling?.querySelector('input');
-                            if (prevInput) prevInput.focus();
-                          }
-                        }}
-                        disabled={isLoading}
-                      />
-                    ))}
-                  </div>
+                  <Input
+                    type="text"
+                    maxLength={4}
+                    className="text-center text-2xl tracking-[1em] h-16 font-mono"
+                    value={otp}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9]/g, '');
+                      if (value.length <= 4) {
+                        setOtp(value);
+                      }
+                    }}
+                    placeholder="••••"
+                    disabled={isLoading}
+                  />
                   <p className="text-sm text-gray-500">
-                    Enter the 6-digit code sent to +91 {formatPhoneNumber(mobileNumber)}
+                    Enter the 4-digit code sent to +91 {formatPhoneNumber(mobileNumber)}
                   </p>
                 </div>
                 <div className="space-y-2">
                   <Button
                     className="w-full bg-green-600 hover:bg-green-700 text-white"
                     onClick={handleVerifyOtp}
-                    disabled={otp.length !== 6 || isLoading}
+                    disabled={otp.length !== 4 || isLoading}
                   >
                     {isLoading ? "Verifying..." : "Verify OTP"}
                   </Button>
