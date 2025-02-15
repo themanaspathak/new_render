@@ -1,11 +1,11 @@
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { CheckCircle2 } from "lucide-react";
 
-export default function OrderConfirmed() {
+const OrderConfirmed: React.FC = () => {
   const { state, dispatch } = useCart();
 
   useEffect(() => {
@@ -51,7 +51,7 @@ export default function OrderConfirmed() {
     if (state.items.length > 0) {
       submitOrder();
     }
-  }, []);
+  }, [state.items, state.tableNumber, state.cookingInstructions, dispatch]);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-lg">
@@ -78,4 +78,6 @@ export default function OrderConfirmed() {
       </Card>
     </div>
   );
-}
+};
+
+export default OrderConfirmed;
