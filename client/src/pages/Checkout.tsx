@@ -128,7 +128,7 @@ export default function Checkout() {
           <h2 className="text-lg font-semibold">Payment Method</h2>
 
           {/* Cash Payment Option */}
-          <Link href={selectedTable ? "/mobile-verification" : "#"} className="block">
+          <Link href={selectedTable ? "/email-verification" : "#"} className="block">
             <Button 
               className="w-full bg-green-600 hover:bg-green-700 text-white h-auto py-4 flex items-center justify-center gap-3"
               disabled={!selectedTable}

@@ -303,7 +303,7 @@ export default function Cart() {
                     <span>Total</span>
                     <span>₹{Math.round(total)}</span>
                   </div>
-                  <Link href="/mobile-verification" className="block">
+                  <Link href="/checkout" className="block">
                     <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
                       Proceed to Checkout
                     </Button>

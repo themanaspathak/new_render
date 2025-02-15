@@ -7,7 +7,6 @@ import session from "express-session";
 import { z } from "zod";
 import connectPgSimple from "connect-pg-simple";
 import { pool } from "../db";
-import { sendSMSOTP, verifySMSOTP } from "../services/smsService";
 
 const router = Router();
 const PgSession = connectPgSimple(session);
@@ -124,51 +123,6 @@ router.get("/admin/user", async (req, res) => {
   } catch (error) {
     console.error("Error fetching user data:", error);
     res.status(500).json({ message: "Failed to fetch user data" });
-  }
-});
-
-// Add SMS OTP routes
-router.post("/send-mobile-otp", async (req, res) => {
-  const { phoneNumber } = req.body;
-
-  if (!phoneNumber || !/^\d{10}$/.test(phoneNumber)) {
-    return res.status(400).json({
-      success: false,
-      message: "Please provide a valid 10-digit phone number"
-    });
-  }
-
-  try {
-    const result = await sendSMSOTP(phoneNumber);
-    res.json(result);
-  } catch (error) {
-    console.error("Failed to send SMS OTP:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to send OTP"
-    });
-  }
-});
-
-router.post("/verify-mobile-otp", async (req, res) => {
-  const { phoneNumber, otp } = req.body;
-
-  if (!phoneNumber || !otp) {
-    return res.status(400).json({
-      success: false,
-      message: "Phone number and OTP are required"
-    });
-  }
-
-  try {
-    const result = await verifySMSOTP(phoneNumber, otp);
-    res.json(result);
-  } catch (error) {
-    console.error("Failed to verify SMS OTP:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to verify OTP"
-    });
   }
 });
 
