@@ -24,9 +24,7 @@ export class DatabaseStorage implements IStorage {
   async getMenuItems(): Promise<MenuItem[]> {
     try {
       const items = await db.select().from(menuItems);
-      // If no items in database, return mock data
       if (items.length === 0) {
-        // Initialize database with mock data
         const insertedItems = await db.insert(menuItems)
           .values(MOCK_MENU_ITEMS)
           .returning();
@@ -35,7 +33,6 @@ export class DatabaseStorage implements IStorage {
       return items;
     } catch (error) {
       console.error("Error fetching menu items:", error);
-      // Fallback to mock data if database operation fails
       return MOCK_MENU_ITEMS;
     }
   }
@@ -51,55 +48,108 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUser(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user;
+    try {
+      const [user] = await db.select().from(users).where(eq(users.email, email));
+      return user;
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      return undefined;
+    }
   }
 
   async createUser(userData: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(userData).returning();
-    return user;
+    try {
+      const [user] = await db.insert(users).values(userData).returning();
+      return user;
+    } catch (error) {
+      console.error("Error creating user:", error);
+      throw new Error("Failed to create user");
+    }
   }
 
   async createOrder(orderData: InsertOrder): Promise<Order> {
-    let user = await this.getUser(orderData.userEmail);
-    if (!user) {
-      user = await this.createUser({ email: orderData.userEmail });
-    }
+    try {
+      console.log("Creating order with data:", orderData);
 
-    const order = await db.insert(orders).values(orderData).returning();
-    return order[0];
+      // Handle user creation if needed
+      let user = await this.getUser(orderData.userEmail);
+      if (!user) {
+        user = await this.createUser({
+          email: orderData.userEmail,
+          password: 'guest', // Since this is a guest user
+          isAdmin: false
+        });
+      }
+
+      // Create the order
+      const [order] = await db.insert(orders)
+        .values({
+          ...orderData,
+          userId: user.id,
+          status: 'pending',
+          paymentStatus: 'pending',
+          createdAt: new Date()
+        })
+        .returning();
+
+      console.log("Order created successfully:", order);
+      return order;
+    } catch (error) {
+      console.error("Error creating order:", error);
+      throw new Error("Failed to create order");
+    }
   }
 
   async getOrder(id: number): Promise<Order | undefined> {
-    const [order] = await db.select().from(orders).where(eq(orders.id, id));
-    return order;
+    try {
+      const [order] = await db.select().from(orders).where(eq(orders.id, id));
+      return order;
+    } catch (error) {
+      console.error("Error fetching order:", error);
+      return undefined;
+    }
   }
 
   async getUserOrders(email: string): Promise<Order[]> {
-    return await db.select()
-      .from(orders)
-      .where(eq(orders.userEmail, email))
-      .orderBy(desc(orders.createdAt));
+    try {
+      return await db.select()
+        .from(orders)
+        .where(eq(orders.userEmail, email))
+        .orderBy(desc(orders.createdAt));
+    } catch (error) {
+      console.error("Error fetching user orders:", error);
+      return [];
+    }
   }
 
   async getAllOrders(): Promise<Order[]> {
-    return await db.select()
-      .from(orders)
-      .orderBy(desc(orders.createdAt));
+    try {
+      return await db.select()
+        .from(orders)
+        .orderBy(desc(orders.createdAt));
+    } catch (error) {
+      console.error("Error fetching all orders:", error);
+      return [];
+    }
   }
 
   async updateOrderStatus(orderId: number, status: 'pending' | 'completed' | 'cancelled'): Promise<Order> {
-    const [updatedOrder] = await db
-      .update(orders)
-      .set({ status })
-      .where(eq(orders.id, orderId))
-      .returning();
+    try {
+      const [updatedOrder] = await db
+        .update(orders)
+        .set({ status })
+        .where(eq(orders.id, orderId))
+        .returning();
 
-    if (!updatedOrder) {
-      throw new Error(`Order with ID ${orderId} not found`);
+      if (!updatedOrder) {
+        throw new Error(`Order with ID ${orderId} not found`);
+      }
+
+      return updatedOrder;
+    } catch (error) {
+      console.error("Error updating order status:", error);
+      throw new Error("Failed to update order status");
     }
-
-    return updatedOrder;
   }
 
   async updateMenuItemAvailability(itemId: number, isAvailable: boolean): Promise<MenuItem> {
@@ -111,13 +161,11 @@ export class DatabaseStorage implements IStorage {
         .returning();
 
       if (!updatedItem) {
-        // If item not in database, try to find it in mock data and insert
         const mockItem = MOCK_MENU_ITEMS.find(item => item.id === itemId);
         if (!mockItem) {
           throw new Error(`Menu item with ID ${itemId} not found`);
         }
 
-        // Insert the mock item with updated availability
         const [insertedItem] = await db
           .insert(menuItems)
           .values({ ...mockItem, isAvailable })
