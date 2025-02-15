@@ -7,6 +7,16 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASSWORD,
   },
   debug: true, // Enable debug logging
+  logger: true // Enable detailed logging
+});
+
+// Verify the connection configuration
+transporter.verify(function(error, success) {
+  if (error) {
+    console.error('SMTP connection error:', error);
+  } else {
+    console.log("SMTP server is ready to send messages");
+  }
 });
 
 // Store OTPs temporarily (in production, use Redis or similar)
@@ -18,11 +28,13 @@ export async function sendOTP(email: string): Promise<{
 }> {
   try {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+      console.error("Email configuration error: Missing credentials");
       throw new Error("Email credentials are not configured");
     }
 
     // Generate a 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log(`Attempting to send OTP to ${email}`);
 
     // Store OTP with 5-minute expiration
     otpStore.set(email, {
@@ -31,7 +43,7 @@ export async function sendOTP(email: string): Promise<{
     });
 
     // Send email
-    await transporter.sendMail({
+    const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
       subject: "Your OTP for Restaurant Order",
@@ -46,22 +58,27 @@ export async function sendOTP(email: string): Promise<{
           <p style="color: #999; font-size: 12px;">If you didn't request this OTP, please ignore this email.</p>
         </div>
       `,
-    });
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully:', info.response);
 
     return {
       success: true,
       message: "OTP sent successfully",
     };
   } catch (error) {
-    console.error("Failed to send OTP:", error);
+    console.error("Failed to send OTP. Detailed error:", error);
 
     let errorMessage = "Failed to send OTP";
     if (error instanceof Error) {
       // Check for specific Gmail errors
       if (error.message.includes("Invalid login") || error.message.includes("535-5.7.8")) {
-        errorMessage = "Email authentication failed. Please ensure valid app-specific password is configured.";
+        errorMessage = "Email authentication failed. Please check if you're using an app-specific password for Gmail.";
       } else if (error.message.includes("Email credentials are not configured")) {
         errorMessage = error.message;
+      } else if (error.message.includes("getaddrinfo")) {
+        errorMessage = "Network connection error. Please check your internet connection.";
       }
     }
 

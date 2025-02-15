@@ -23,10 +23,6 @@ export function ProtectedAdminRoute({ path, component: Component }: ProtectedAdm
     return <Redirect to="/admin/login" />;
   }
 
-  // Only allow access to kitchen page for authenticated admins
-  if (path !== "/kitchen") {
-    return <Redirect to="/kitchen" />;
-  }
-
+  // Allow access to kitchen page for authenticated admins
   return <Route path={path} component={Component} />;
 }
