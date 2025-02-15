@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Pencil, ChefHat, History, Clock, Calendar, X } from "lucide-react";
+import { Pencil, ChefHat, Clock, Calendar, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import cn from 'classnames';
