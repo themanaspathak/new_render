@@ -32,7 +32,7 @@ export default function OrderPayment() {
       console.error('Failed to update payment status:', error);
       toast({
         title: 'Error',
-        description: 'Failed to update payment status',
+        description: error instanceof Error ? error.message : 'Failed to update payment status',
         variant: 'destructive',
       });
     }
@@ -40,7 +40,9 @@ export default function OrderPayment() {
 
   // Group orders by payment status
   const paidOrders = orders?.filter(order => order.paymentStatus === "paid") || [];
-  const pendingPaymentOrders = orders?.filter(order => order.paymentStatus === "pending") || [];
+  const pendingPaymentOrders = orders?.filter(order => 
+    order.paymentStatus === "pending" || !order.paymentStatus
+  ) || [];
   const failedPaymentOrders = orders?.filter(order => order.paymentStatus === "failed") || [];
 
   const OrderCard = ({ order, showActions = false }: { order: Order, showActions?: boolean }) => (
