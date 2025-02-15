@@ -7,12 +7,9 @@ import { relations } from "drizzle-orm";
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
-  password: text("password").notNull(),
-  isAdmin: boolean("is_admin").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-// Keep other tables unchanged
 export const menuItems = pgTable("menu_items", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -28,10 +25,11 @@ export const menuItems = pgTable("menu_items", {
   }>(),
 });
 
+// Modified orders table with user reference
 export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id),
-  userEmail: text("user_email").notNull(),
+  userEmail: text("user_email").notNull(), // Store email directly for easier querying
   tableNumber: integer("table_number").notNull(),
   items: jsonb("items").$type<{
     menuItemId: number;
@@ -69,7 +67,7 @@ export type InsertMenuItem = z.infer<typeof insertMenuItemSchema>;
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = z.infer<typeof insertOrderSchema>;
 
-// Keep the mock data as is
+// Keep the mock data
 export const MOCK_MENU_ITEMS: MenuItem[] = [
   {
     id: 1,

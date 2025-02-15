@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Pencil, ChefHat, Clock, Calendar, FilterX, Loader2 } from "lucide-react";
+import { Pencil, ChefHat, Clock, Calendar, FilterX } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { format, startOfDay, endOfDay } from "date-fns";
+import { format, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import cn from 'classnames';
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import {
@@ -31,15 +31,12 @@ export default function Kitchen() {
 
   const [availabilityMap, setAvailabilityMap] = useState<Record<number, boolean>>({});
   const [updatingOrders, setUpdatingOrders] = useState<Record<number, string>>({});
-  const [updatingMenuItems, setUpdatingMenuItems] = useState<Record<number, boolean>>({});
 
   const handleAvailabilityToggle = async (itemId: number) => {
     const menuItem = menuItems?.find(item => item.id === itemId);
     const newStatus = !menuItem?.isAvailable;
 
     try {
-      setUpdatingMenuItems(prev => ({ ...prev, [itemId]: true }));
-
       await apiRequest(
         `/api/menu/${itemId}/availability`,
         'POST',
@@ -59,12 +56,6 @@ export default function Kitchen() {
         title: 'Error',
         description: 'Failed to update menu item availability',
         variant: 'destructive',
-      });
-    } finally {
-      setUpdatingMenuItems(prev => {
-        const newState = { ...prev };
-        delete newState[itemId];
-        return newState;
       });
     }
   };
@@ -135,26 +126,6 @@ export default function Kitchen() {
     return filteredOrders;
   };
 
-  const renderItemButton = (item: MenuItem) => {
-    const isUpdating = updatingMenuItems[item.id];
-
-    return (
-      <Switch
-        checked={item.isAvailable ?? true}
-        onCheckedChange={() => handleAvailabilityToggle(item.id)}
-        className={cn(
-          "data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500",
-          "focus-visible:ring-green-500"
-        )}
-        disabled={isUpdating}
-      >
-        {isUpdating && (
-          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-        )}
-      </Switch>
-    );
-  };
-
   const { data: menuItems, isLoading: menuLoading } = useQuery<MenuItem[]>({
     queryKey: ["/api/menu"],
   });
@@ -170,23 +141,14 @@ export default function Kitchen() {
   ) || [];
 
   if (menuLoading || ordersLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Loading kitchen dashboard...</p>
-        </div>
-      </div>
-    );
+    return <div className="p-4">Loading kitchen dashboard...</div>;
   }
 
   const OrderCard = ({ order }: { order: Order }) => {
     const currentStatus = getOrderStatus(order);
-    const isUpdating = updatingOrders[order.id];
     const orderDate = new Date(order.createdAt);
-
     return (
-      <Card key={order.id} className={`mb-4 border-2 ${isUpdating ? 'opacity-70' : ''}`}>
+      <Card key={order.id} className="mb-4 border-2">
         <CardHeader className="bg-muted/50">
           <div className="flex flex-col items-center gap-4">
             <div className="flex w-full justify-between items-center">
@@ -196,14 +158,7 @@ export default function Kitchen() {
               <Badge
                 className={`text-base px-3 py-1 ${getStatusBadgeStyle(currentStatus)}`}
               >
-                {isUpdating ? (
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Updating...</span>
-                  </div>
-                ) : (
-                  currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1)
-                )}
+                {currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1)}
               </Badge>
             </div>
             <div className="flex flex-col items-center gap-1 w-full">
@@ -255,11 +210,7 @@ export default function Kitchen() {
                 variant="destructive"
                 size="lg"
                 className="w-full"
-                disabled={isUpdating}
               >
-                {isUpdating === 'cancelled' && (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                )}
                 Can't serve
               </Button>
               <Button
@@ -267,11 +218,7 @@ export default function Kitchen() {
                 variant="default"
                 size="lg"
                 className="w-full bg-green-600 hover:bg-green-700"
-                disabled={isUpdating}
               >
-                {isUpdating === 'completed' && (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                )}
                 Served
               </Button>
             </div>
@@ -415,7 +362,14 @@ export default function Kitchen() {
                         <p className="text-sm text-gray-600">₹{item.price}</p>
                       </div>
                     </div>
-                    {renderItemButton(item)}
+                    <Switch
+                      checked={item.isAvailable ?? true}
+                      onCheckedChange={() => handleAvailabilityToggle(item.id)}
+                      className={cn(
+                        "data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500",
+                        "focus-visible:ring-green-500"
+                      )}
+                    />
                   </CardContent>
                 </Card>
               ))}
