@@ -8,7 +8,6 @@ import {
 import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
-  // Existing methods
   getMenuItems(): Promise<MenuItem[]>;
   getMenuItem(id: number): Promise<MenuItem | undefined>;
   createOrder(order: InsertOrder): Promise<Order>;
@@ -18,19 +17,37 @@ export interface IStorage {
   getUserOrders(email: string): Promise<Order[]>;
   getAllOrders(): Promise<Order[]>;
   updateOrderStatus(orderId: number, status: 'pending' | 'completed' | 'cancelled'): Promise<Order>;
-  // New method for menu item availability
   updateMenuItemAvailability(itemId: number, isAvailable: boolean): Promise<MenuItem>;
 }
 
 export class DatabaseStorage implements IStorage {
   async getMenuItems(): Promise<MenuItem[]> {
-    const items = await db.select().from(menuItems);
-    return items.length > 0 ? items : MOCK_MENU_ITEMS;
+    try {
+      const items = await db.select().from(menuItems);
+      // If no items in database, return mock data
+      if (items.length === 0) {
+        // Initialize database with mock data
+        const insertedItems = await db.insert(menuItems)
+          .values(MOCK_MENU_ITEMS)
+          .returning();
+        return insertedItems;
+      }
+      return items;
+    } catch (error) {
+      console.error("Error fetching menu items:", error);
+      // Fallback to mock data if database operation fails
+      return MOCK_MENU_ITEMS;
+    }
   }
 
   async getMenuItem(id: number): Promise<MenuItem | undefined> {
-    const [item] = await db.select().from(menuItems).where(eq(menuItems.id, id));
-    return item;
+    try {
+      const [item] = await db.select().from(menuItems).where(eq(menuItems.id, id));
+      return item;
+    } catch (error) {
+      console.error("Error fetching menu item:", error);
+      return MOCK_MENU_ITEMS.find(item => item.id === id);
+    }
   }
 
   async getUser(email: string): Promise<User | undefined> {
@@ -49,14 +66,8 @@ export class DatabaseStorage implements IStorage {
       user = await this.createUser({ email: orderData.userEmail });
     }
 
-    const [order] = await db.insert(orders)
-      .values({
-        ...orderData,
-        userId: user.id
-      })
-      .returning();
-
-    return order;
+    const order = await db.insert(orders).values(orderData).returning();
+    return order[0];
   }
 
   async getOrder(id: number): Promise<Order | undefined> {
@@ -92,17 +103,34 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateMenuItemAvailability(itemId: number, isAvailable: boolean): Promise<MenuItem> {
-    const [updatedItem] = await db
-      .update(menuItems)
-      .set({ isAvailable })
-      .where(eq(menuItems.id, itemId))
-      .returning();
+    try {
+      const [updatedItem] = await db
+        .update(menuItems)
+        .set({ isAvailable })
+        .where(eq(menuItems.id, itemId))
+        .returning();
 
-    if (!updatedItem) {
-      throw new Error(`Menu item with ID ${itemId} not found`);
+      if (!updatedItem) {
+        // If item not in database, try to find it in mock data and insert
+        const mockItem = MOCK_MENU_ITEMS.find(item => item.id === itemId);
+        if (!mockItem) {
+          throw new Error(`Menu item with ID ${itemId} not found`);
+        }
+
+        // Insert the mock item with updated availability
+        const [insertedItem] = await db
+          .insert(menuItems)
+          .values({ ...mockItem, isAvailable })
+          .returning();
+
+        return insertedItem;
+      }
+
+      return updatedItem;
+    } catch (error) {
+      console.error("Error updating menu item availability:", error);
+      throw new Error(`Failed to update availability for item ${itemId}`);
     }
-
-    return updatedItem;
   }
 }
 
