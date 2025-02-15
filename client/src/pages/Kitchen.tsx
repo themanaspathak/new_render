@@ -28,10 +28,20 @@ export default function Kitchen() {
   const [updatingOrders, setUpdatingOrders] = useState<Record<number, string>>({});
 
   const handleAvailabilityToggle = async (itemId: number) => {
+    const menuItem = menuItems?.find(item => item.id === itemId);
+    const newStatus = !availabilityMap[itemId];
+
     setAvailabilityMap(prev => ({
       ...prev,
-      [itemId]: !prev[itemId]
+      [itemId]: newStatus
     }));
+
+    // Show toast notification
+    toast({
+      title: `Menu Item ${newStatus ? 'Available' : 'Unavailable'}`,
+      description: `${menuItem?.name} is now ${newStatus ? 'available' : 'unavailable'} for ordering`,
+      variant: newStatus ? 'default' : 'destructive',
+    });
   };
 
   const handleStatusUpdate = async (orderId: number, newStatus: 'completed' | 'cancelled') => {
