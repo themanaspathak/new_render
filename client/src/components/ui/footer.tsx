@@ -8,7 +8,9 @@ export function Footer() {
           <div>
             <h3 className="font-semibold text-lg mb-4">About Us</h3>
             <p className="text-gray-600">
-              Zinglebell is your premier destination for delightful dining experiences. 
+              <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">Zingle</span>
+              <span className="bg-gradient-to-r from-orange-500 to-yellow-500 bg-clip-text text-transparent">Bell</span>
+              {" "}is your premier destination for delightful dining experiences. 
               We pride ourselves on offering exceptional service and mouthwatering cuisine.
             </p>
           </div>
@@ -22,7 +24,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-8 pt-8 border-t text-center text-gray-600">
-          <p>© {new Date().getFullYear()} Zinglebell. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">Zingle</span><span className="bg-gradient-to-r from-orange-500 to-yellow-500 bg-clip-text text-transparent">Bell</span>. All rights reserved.</p>
         </div>
       </div>
     </footer>
