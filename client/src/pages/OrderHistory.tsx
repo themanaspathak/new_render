@@ -46,6 +46,17 @@ export default function OrderHistory() {
     }
   };
 
+  const getPaymentStatusBadgeStyle = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "paid":
+        return "bg-emerald-600 hover:bg-emerald-700 text-white";
+      case "failed":
+        return "bg-rose-600 hover:bg-rose-700 text-white";
+      default:
+        return "bg-amber-600 hover:bg-amber-700 text-white";
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       <div className="container mx-auto px-4 py-8 max-w-2xl">
@@ -98,11 +109,18 @@ export default function OrderHistory() {
                         })}
                       </div>
                     </div>
-                    <Badge 
-                      className={`${getStatusBadgeStyle(order.status)} px-3 py-1 text-sm font-medium shadow-sm`}
-                    >
-                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                    </Badge>
+                    <div className="flex flex-col gap-2 items-end">
+                      <Badge 
+                        className={`${getStatusBadgeStyle(order.status)} px-3 py-1 text-sm font-medium shadow-sm`}
+                      >
+                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                      </Badge>
+                      <Badge
+                        className={`${getPaymentStatusBadgeStyle(order.paymentStatus)} px-3 py-1 text-sm font-medium shadow-sm`}
+                      >
+                        {order.paymentStatus ? (order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)) : 'Pending'}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
               </CardHeader>
@@ -166,7 +184,6 @@ export default function OrderHistory() {
                         <CreditCard className="h-4 w-4" />
                         <span>
                           {order.paymentMethod?.toUpperCase() || 'Not specified'}
-                          {' '}({order.paymentStatus})
                         </span>
                       </div>
                     </div>
