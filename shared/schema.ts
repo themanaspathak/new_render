@@ -38,6 +38,8 @@ export const orders = pgTable("orders", {
     customizations: Record<string, string[]>;
   }[]>().notNull(),
   status: text("status").notNull().default('pending'),
+  paymentStatus: text("payment_status").notNull().default('pending').$type<'pending' | 'paid' | 'failed'>(),
+  paymentMethod: text("payment_method").$type<'cash' | 'upi'>(),
   cookingInstructions: text("cooking_instructions"),
   total: real("total").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -587,6 +589,8 @@ export const MOCK_ORDERS: Order[] = [
       }
     ],
     status: "pending",
+    paymentStatus: 'pending',
+    paymentMethod: 'cash',
     cookingInstructions: "Extra spicy please, no onion",
     total: 698.00,
     createdAt: new Date(),
