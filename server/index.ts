@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import authRouter from "./routes/auth";
+import paymentRouter from "./routes/payments";
 import { ensureAdminUser } from "./services/auth";
 
 const app = express();
@@ -10,6 +11,8 @@ app.use(express.urlencoded({ extended: false }));
 
 // Register auth routes
 app.use("/api", authRouter);
+// Register payment routes
+app.use("/api/payments", paymentRouter);
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -64,7 +67,7 @@ app.use((req, res, next) => {
 
     const PORT = process.env.PORT || 5000;
     const startServer = () => {
-      server.listen(PORT, "0.0.0.0", () => {
+      server.listen(PORT, () => {
         log(`Server running in ${app.get("env")} mode on port ${PORT}`);
       });
 

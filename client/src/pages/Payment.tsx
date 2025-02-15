@@ -18,10 +18,12 @@ export default function Payment() {
   const [selectedApp, setSelectedApp] = useState<string | null>(null);
   const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
 
-  const total = state.items.reduce(
+  const subtotal = state.items.reduce(
     (sum, item) => sum + item.menuItem.price * item.quantity,
     0
   );
+  const gst = subtotal * 0.05; // 5% GST
+  const total = subtotal + gst;
 
   // Simulated UPI ID - In production, this would be your restaurant's actual UPI ID
   const upiId = "restaurant@upi";
