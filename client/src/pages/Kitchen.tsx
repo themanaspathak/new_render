@@ -203,14 +203,22 @@ export default function Kitchen() {
           <ScrollArea className="h-[70vh]">
             <div className="space-y-4">
               {menuItems?.map((item) => (
-                <Card key={item.id}>
+                <Card 
+                  key={item.id}
+                  className={`transition-all duration-300 ${!availabilityMap[item.id] ? 'bg-gray-100' : ''}`}
+                >
                   <CardContent className="flex items-center justify-between p-4">
-                    <div className="flex items-center gap-3">
+                    <div className={`flex items-center gap-3 ${!availabilityMap[item.id] ? 'opacity-50' : ''}`}>
                       <div className={`w-3 h-3 rounded-full ${item.isVegetarian ? 'bg-green-500' : 'bg-red-500'}`} />
                       <div>
                         <p className="font-medium">{item.name}</p>
                         <p className="text-sm text-gray-600">₹{item.price}</p>
                       </div>
+                      {!availabilityMap[item.id] && (
+                        <Badge variant="secondary" className="ml-2">
+                          Unavailable
+                        </Badge>
+                      )}
                     </div>
                     <Switch
                       checked={availabilityMap[item.id] ?? true}
