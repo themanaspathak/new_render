@@ -76,14 +76,15 @@ export default function MobileVerification() {
     try {
       await apiRequest("/api/orders", "POST", {
         tableNumber: state.tableNumber || 1,
-        userMobile: mobileNumber,
+        userEmail: `${mobileNumber}@guest.restaurant.com`, // Create a guest email since we only have mobile
         items: state.items.map(item => ({
           menuItemId: item.menuItem.id,
           quantity: item.quantity,
-          customizations: item.customizations
+          customizations: item.customizations || {}
         })),
         status: "pending",
-        cookingInstructions: state.cookingInstructions,
+        paymentStatus: "pending",
+        cookingInstructions: state.cookingInstructions || "",
         total: state.items.reduce(
           (sum, item) => sum + item.menuItem.price * item.quantity,
           0
@@ -189,7 +190,7 @@ export default function MobileVerification() {
                   We'll send you a one-time password (OTP)
                 </p>
               </div>
-              <Button 
+              <Button
                 className="w-full bg-green-600 hover:bg-green-700 text-white"
                 onClick={handleSendOtp}
                 disabled={mobileNumber.length !== 10 || isLoading}
