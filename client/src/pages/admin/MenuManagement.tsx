@@ -225,6 +225,11 @@ export default function MenuManagement() {
                           <Switch
                             checked={field.value}
                             onCheckedChange={field.onChange}
+                            className={`${
+                              field.value
+                                ? "bg-green-500 hover:bg-green-600"
+                                : "bg-red-500 hover:bg-red-600"
+                            } transition-colors`}
                           />
                         </FormControl>
                       </FormItem>
