@@ -3,7 +3,7 @@ import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Link } from "wouter";
-import { Minus, Plus, ArrowLeft, CreditCard, Wallet } from "lucide-react";
+import { Minus, Plus, ArrowLeft, CreditCard, Wallet, Smartphone } from "lucide-react";
 
 export default function Checkout() {
   const { state, dispatch } = useCart();
@@ -142,17 +142,17 @@ export default function Checkout() {
             </Button>
           </Link>
 
-          {/* Card Payment Option */}
+          {/* UPI Payment Option - replaces Card Payment */}
           <Link href={selectedTable ? "/payment" : "#"} className="block">
             <Button 
               variant="outline" 
               className="w-full h-auto py-4 flex items-center justify-center gap-3"
               disabled={!selectedTable}
             >
-              <CreditCard className="h-5 w-5" />
+              <Smartphone className="h-5 w-5" />
               <div className="text-left">
-                <div className="font-semibold">Pay with Card</div>
-                <div className="text-sm opacity-90">Credit/Debit cards accepted</div>
+                <div className="font-semibold">Pay with UPI</div>
+                <div className="text-sm opacity-90">Google Pay, PhonePe, Paytm</div>
               </div>
               <div className="ml-auto font-bold">₹{Math.round(total)}</div>
             </Button>
