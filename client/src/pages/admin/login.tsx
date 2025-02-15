@@ -40,12 +40,21 @@ export default function AdminLoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {
-      await login({
+      const user = await login({
         email: data.email,
         password: data.password,
       });
-      // If login is successful, redirect to Google
-      window.location.href = "https://www.google.com";
+
+      if (user && user.isAdmin) {
+        // Only redirect on successful login and if user is admin
+        window.location.href = "https://www.google.com";
+      } else {
+        toast({
+          title: "Access Denied",
+          description: "You do not have admin privileges",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       toast({
         title: "Invalid credentials",

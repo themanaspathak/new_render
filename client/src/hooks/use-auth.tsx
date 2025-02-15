@@ -26,7 +26,8 @@ export function useAuth() {
         throw new Error(error || "Login failed");
       }
 
-      return response.json();
+      const data = await response.json();
+      return data as User;
     },
     onSuccess: (data) => {
       queryClient.setQueryData(["/api/admin/user"], data);
