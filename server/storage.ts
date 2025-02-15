@@ -16,7 +16,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   getUserOrders(email: string): Promise<Order[]>;
   getAllOrders(): Promise<Order[]>;
-  updateOrderStatus(orderId: number, status: 'pending' | 'completed' | 'cancelled'): Promise<Order>;
+  updateOrderStatus(orderId: number, status: 'pending' | 'completed' | 'cancelled' | 'in progress'): Promise<Order>;
   updateMenuItemAvailability(itemId: number, isAvailable: boolean): Promise<MenuItem>;
   getUserOrdersByMobile(mobileNumber: string): Promise<Order[]>;
 }
@@ -72,7 +72,7 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("Creating order with data:", orderData);
 
-      // Create the order without requiring a user
+      // Create the order with "in progress" status instead of "pending"
       const [order] = await db.insert(orders)
         .values({
           userEmail: orderData.userEmail,
@@ -80,7 +80,7 @@ export class DatabaseStorage implements IStorage {
           customerName: orderData.customerName,
           tableNumber: orderData.tableNumber,
           items: orderData.items,
-          status: 'pending',
+          status: 'in progress', // Changed from 'pending' to 'in progress'
           paymentStatus: 'pending',
           paymentMethod: orderData.paymentMethod,
           cookingInstructions: orderData.cookingInstructions,
@@ -130,7 +130,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateOrderStatus(orderId: number, status: 'pending' | 'completed' | 'cancelled'): Promise<Order> {
+  async updateOrderStatus(orderId: number, status: 'pending' | 'completed' | 'cancelled' | 'in progress'): Promise<Order> {
     try {
       const [updatedOrder] = await db
         .update(orders)

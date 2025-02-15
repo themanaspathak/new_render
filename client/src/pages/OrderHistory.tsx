@@ -37,7 +37,7 @@ export default function OrderHistory() {
     switch (status.toLowerCase()) {
       case "completed":
         return "bg-green-600 hover:bg-green-700 text-white";
-      case "pending":
+      case "in progress":
         return "bg-yellow-600 hover:bg-yellow-700 text-white";
       case "cancelled":
         return "bg-red-600 hover:bg-red-700 text-white";
@@ -125,7 +125,7 @@ export default function OrderHistory() {
                     <p className="text-sm text-gray-600">Table #{order.tableNumber}</p>
                     <p className="text-sm text-gray-600">
                       Payment: {order.paymentMethod?.toUpperCase() || 'Not specified'}
-                      {' '}({order.paymentStatus})
+                       ({order.paymentStatus})
                     </p>
                   </div>
                   <div className="text-right">

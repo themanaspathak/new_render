@@ -95,10 +95,10 @@ export default function Kitchen() {
   };
 
   const getStatusBadgeStyle = (status: string) => {
-    switch (status) {
+    switch (status.toLowerCase()) {
       case "completed":
         return "bg-green-600 hover:bg-green-700 text-white";
-      case "pending":
+      case "in progress":
         return "bg-yellow-600 hover:bg-yellow-700 text-white";
       case "cancelled":
         return "bg-red-600 hover:bg-red-700 text-white";
@@ -121,7 +121,7 @@ export default function Kitchen() {
     return orderDate >= dateRange.from && orderDate <= dateRange.to;
   }) || [];
 
-  const activeOrders = filteredOrders.filter(order => getOrderStatus(order) === 'pending') || [];
+  const activeOrders = filteredOrders.filter(order => getOrderStatus(order) === 'in progress') || [];
   const completedOrders = filteredOrders.filter(order => getOrderStatus(order) === 'completed') || [];
   const cancelledOrders = filteredOrders.filter(order => getOrderStatus(order) === 'cancelled') || [];
 
@@ -184,7 +184,7 @@ export default function Kitchen() {
               </div>
             )}
           </div>
-          {currentStatus === "pending" && (
+          {currentStatus === "in progress" && (
             <div className="mt-4 flex gap-2">
               <Button
                 onClick={() => handleStatusUpdate(order.id, 'cancelled')}
