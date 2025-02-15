@@ -3,7 +3,7 @@ import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Link } from "wouter";
-import { Minus, Plus, ArrowLeft, CreditCard, Wallet, Smartphone } from "lucide-react";
+import { Minus, Plus, ArrowLeft, Wallet } from "lucide-react";
 
 export default function Checkout() {
   const { state, dispatch } = useCart();
@@ -125,7 +125,7 @@ export default function Checkout() {
 
         {/* Payment Method Selection */}
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Select Payment Method</h2>
+          <h2 className="text-lg font-semibold">Payment Method</h2>
 
           {/* Cash Payment Option */}
           <Link href={selectedTable ? "/email-verification" : "#"} className="block">
@@ -137,22 +137,6 @@ export default function Checkout() {
               <div className="text-left">
                 <div className="font-semibold">Pay with Cash</div>
                 <div className="text-sm opacity-90">Pay at the restaurant</div>
-              </div>
-              <div className="ml-auto font-bold">₹{Math.round(total)}</div>
-            </Button>
-          </Link>
-
-          {/* UPI Payment Option - replaces Card Payment */}
-          <Link href={selectedTable ? "/payment" : "#"} className="block">
-            <Button 
-              variant="outline" 
-              className="w-full h-auto py-4 flex items-center justify-center gap-3"
-              disabled={!selectedTable}
-            >
-              <Smartphone className="h-5 w-5" />
-              <div className="text-left">
-                <div className="font-semibold">Pay with UPI</div>
-                <div className="text-sm opacity-90">Google Pay, PhonePe, Paytm</div>
               </div>
               <div className="ml-auto font-bold">₹{Math.round(total)}</div>
             </Button>
