@@ -1,3 +1,7 @@
+` tags in the original code are erroneous and need to be removed. The integration will involve replacing the old `renderItemButton` with the new one and appending `handleAddDessert` to the end of the file.
+
+
+<replit_final_file>
 import { useState, useMemo } from "react";
 import { MenuItem } from "@shared/schema";
 import { Card, CardContent } from "@/components/ui/card";
@@ -136,6 +140,7 @@ export default function Menu() {
   const currentPrice = customizations.portionSize === 'full' ? Math.round(basePrice * 1.5) : basePrice;
   const totalPrice = currentPrice * quantity;
 
+  // Update the renderItemButton function to include better mobile sizing
   const renderItemButton = (item: MenuItem) => {
     const quantity = getItemQuantity(item.id);
 
@@ -143,7 +148,7 @@ export default function Menu() {
       return (
         <Button 
           onClick={() => handleItemClick(item)}
-          className="bg-green-600 hover:bg-green-700 text-white min-w-[80px]"
+          className="bg-green-600 hover:bg-green-700 text-white min-w-[80px] h-9"
         >
           ADD
         </Button>
@@ -155,19 +160,68 @@ export default function Menu() {
         <Button
           variant="outline"
           size="icon"
-          className="h-8 w-8"
+          className="h-9 w-9 md:h-8 md:w-8"
           onClick={() => updateQuantity(item, Math.max(0, quantity - 1))}
         >
-          <Minus className="h-4 w-4" />
+          <Minus className="h-5 w-5 md:h-4 md:w-4" />
         </Button>
         <span className="w-8 text-center">{quantity}</span>
         <Button
           variant="outline"
           size="icon"
-          className="h-8 w-8"
+          className="h-9 w-9 md:h-8 md:w-8"
           onClick={() => updateQuantity(item, quantity + 1)}
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="h-5 w-5 md:h-4 md:w-4" />
+        </Button>
+      </div>
+    );
+  };
+
+  // Update the renderDessertButton function for consistent styling
+  const renderDessertButton = (dessert: MenuItem) => {
+    const quantity = getItemQuantity(dessert.id);
+
+    if (quantity === 0) {
+      return (
+        <Button
+          onClick={() => handleAddDessert(dessert)}
+          size="sm"
+          className="h-8 bg-green-600 hover:bg-green-700 text-white"
+        >
+          Add
+        </Button>
+      );
+    }
+
+    return (
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-8 w-8 md:h-7 md:w-7"
+          onClick={() => {
+            const existingItem = state.items.find(item => item.menuItem.id === dessert.id);
+            if (existingItem) {
+              updateQuantity(existingItem, Math.max(0, quantity - 1));
+            }
+          }}
+        >
+          <Minus className="h-4 w-4 md:h-3 md:w-3" />
+        </Button>
+        <span className="w-6 text-center text-sm">{quantity}</span>
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-8 w-8 md:h-7 md:w-7"
+          onClick={() => {
+            const existingItem = state.items.find(item => item.menuItem.id === dessert.id);
+            if (existingItem) {
+              updateQuantity(existingItem, quantity + 1);
+            }
+          }}
+        >
+          <Plus className="h-4 w-4 md:h-3 md:w-3" />
         </Button>
       </div>
     );
@@ -475,4 +529,23 @@ export default function Menu() {
       </Dialog>
     </div>
   );
+}
+
+function handleAddDessert(dessert: MenuItem) {
+  const { dispatch } = useCart();
+  const { toast } = useToast();
+
+  dispatch({
+    type: "ADD_ITEM",
+    item: {
+      menuItem: dessert,
+      quantity: 1,
+      customizations: {}
+    }
+  });
+
+  toast({
+    title: "Added to Cart",
+    description: `${dessert.name} added to cart`
+  });
 }
