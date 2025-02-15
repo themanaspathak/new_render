@@ -18,6 +18,7 @@ export interface IStorage {
   getAllOrders(): Promise<Order[]>;
   updateOrderStatus(orderId: number, status: 'pending' | 'completed' | 'cancelled'): Promise<Order>;
   updateMenuItemAvailability(itemId: number, isAvailable: boolean): Promise<MenuItem>;
+  getUserOrdersByMobile(mobileNumber: string): Promise<Order[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -178,6 +179,17 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error updating menu item availability:", error);
       throw new Error(`Failed to update availability for item ${itemId}`);
+    }
+  }
+  async getUserOrdersByMobile(mobileNumber: string): Promise<Order[]> {
+    try {
+      return await db.select()
+        .from(orders)
+        .where(eq(orders.mobileNumber, mobileNumber))
+        .orderBy(desc(orders.createdAt));
+    } catch (error) {
+      console.error("Error fetching user orders by mobile:", error);
+      return [];
     }
   }
 }
