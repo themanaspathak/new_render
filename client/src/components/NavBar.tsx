@@ -8,6 +8,9 @@ export default function NavBar() {
   const [location] = useLocation();
   const { state } = useCart();
 
+  // Calculate total quantity across all items
+  const totalQuantity = state.items.reduce((sum, item) => sum + item.quantity, 0);
+
   // Hide navigation on kitchen page
   if (location === "/kitchen") {
     return null;
@@ -24,11 +27,15 @@ export default function NavBar() {
       )}
 
       <Link href="/cart">
-        <Button variant="outline" size="icon" className="rounded-full bg-white shadow-sm relative">
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="rounded-full bg-white shadow-sm relative"
+        >
           <ShoppingCart className="h-5 w-5" />
-          {state.items.length > 0 && (
-            <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center">
-              {state.items.length}
+          {totalQuantity > 0 && (
+            <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center animate-in fade-in duration-300">
+              {totalQuantity}
             </span>
           )}
         </Button>
