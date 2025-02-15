@@ -72,23 +72,19 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("Creating order with data:", orderData);
 
-      // Handle user creation if needed
-      let user = await this.getUser(orderData.userEmail);
-      if (!user) {
-        user = await this.createUser({
-          email: orderData.userEmail,
-          password: 'guest', // Since this is a guest user
-          isAdmin: false
-        });
-      }
-
-      // Create the order
+      // Create the order without requiring a user
       const [order] = await db.insert(orders)
         .values({
-          ...orderData,
-          userId: user.id,
+          userEmail: orderData.userEmail,
+          mobileNumber: orderData.mobileNumber,
+          customerName: orderData.customerName,
+          tableNumber: orderData.tableNumber,
+          items: orderData.items,
           status: 'pending',
           paymentStatus: 'pending',
+          paymentMethod: orderData.paymentMethod,
+          cookingInstructions: orderData.cookingInstructions,
+          total: orderData.total,
           createdAt: new Date()
         })
         .returning();

@@ -12,6 +12,7 @@ export default function MobileVerification() {
   const { toast } = useToast();
   const { state, dispatch } = useCart();
   const [mobileNumber, setMobileNumber] = useState("");
+  const [customerName, setCustomerName] = useState("");
   const [otp, setOtp] = useState("");
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -34,6 +35,15 @@ export default function MobileVerification() {
       toast({
         title: "Invalid mobile number",
         description: "Please enter a valid 10-digit mobile number",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!customerName.trim()) {
+      toast({
+        title: "Name required",
+        description: "Please enter your name",
         variant: "destructive",
       });
       return;
@@ -77,7 +87,8 @@ export default function MobileVerification() {
       const orderData = {
         tableNumber: state.tableNumber || 1,
         userEmail: `${mobileNumber}@guest.restaurant.com`,
-        mobileNumber: mobileNumber, // Add mobile number to order data
+        mobileNumber: mobileNumber,
+        customerName: customerName,
         items: state.items.map(item => ({
           menuItemId: item.menuItem.id,
           quantity: item.quantity,
@@ -106,6 +117,7 @@ export default function MobileVerification() {
 
       // Store verified mobile for future reference
       localStorage.setItem("verifiedMobile", mobileNumber);
+      localStorage.setItem("customerName", customerName);
 
       navigate("/order-confirmed");
     } catch (error) {
@@ -163,10 +175,7 @@ export default function MobileVerification() {
   };
 
   const formatPhoneNumber = (value: string) => {
-    // Remove all non-digits
     const digits = value.replace(/\D/g, "").slice(0, 10);
-
-    // Format as XXXXX XXXXX
     if (digits.length >= 5) {
       return `${digits.slice(0, 5)} ${digits.slice(5)}`;
     }
@@ -182,28 +191,40 @@ export default function MobileVerification() {
         <CardContent className="space-y-6">
           {!showOtpInput ? (
             <>
-              <div className="space-y-2">
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                    +91
-                  </span>
+              <div className="space-y-4">
+                <div className="space-y-2">
                   <Input
-                    type="tel"
-                    placeholder="Enter mobile number"
-                    value={formatPhoneNumber(mobileNumber)}
-                    onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                    className="pl-12 text-lg tracking-wide"
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    className="text-lg"
                     disabled={isLoading}
                   />
                 </div>
-                <p className="text-sm text-gray-500">
-                  We'll send you a one-time password (OTP)
-                </p>
+                <div className="space-y-2">
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                      +91
+                    </span>
+                    <Input
+                      type="tel"
+                      placeholder="Enter mobile number"
+                      value={formatPhoneNumber(mobileNumber)}
+                      onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                      className="pl-12 text-lg tracking-wide"
+                      disabled={isLoading}
+                    />
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    We'll send you a one-time password (OTP)
+                  </p>
+                </div>
               </div>
               <Button
                 className="w-full bg-green-600 hover:bg-green-700 text-white"
                 onClick={handleSendOtp}
-                disabled={mobileNumber.length !== 10 || isLoading}
+                disabled={mobileNumber.length !== 10 || !customerName.trim() || isLoading}
               >
                 {isLoading ? "Sending..." : "Send OTP"}
               </Button>
@@ -245,10 +266,12 @@ export default function MobileVerification() {
                       onClick={() => {
                         setShowOtpInput(false);
                         setOtp("");
+                        setCustomerName("");
+                        setMobileNumber("");
                       }}
                       disabled={isLoading}
                     >
-                      Change Number
+                      Change Details
                     </Button>
                     <Button
                       variant="outline"

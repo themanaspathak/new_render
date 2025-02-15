@@ -8,6 +8,7 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
   mobileNumber: text("mobile_number").unique(),
+  fullName: text("full_name"),
   password: text("password").notNull(),
   isAdmin: boolean("is_admin").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -33,6 +34,7 @@ export const orders = pgTable("orders", {
   userId: integer("user_id").references(() => users.id),
   userEmail: text("user_email").notNull(),
   mobileNumber: text("mobile_number").notNull(),
+  customerName: text("customer_name").notNull(),
   tableNumber: integer("table_number").notNull(),
   items: jsonb("items").$type<{
     menuItemId: number;
@@ -600,6 +602,7 @@ export const MOCK_ORDERS: Order[] = [
     createdAt: new Date(),
     userId: 1,
     userEmail: "test@example.com",
-    mobileNumber: "1234567890" // Added mobile number for consistency, though it's not in original mock data.
+    mobileNumber: "1234567890",
+    customerName: "Test Customer" // Added customer name for consistency
   }
 ];

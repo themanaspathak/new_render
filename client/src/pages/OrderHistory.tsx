@@ -64,15 +64,20 @@ export default function OrderHistory() {
               <div className="flex justify-between items-center">
                 <div className="space-y-1">
                   <CardTitle>Order #{order.id}</CardTitle>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4 mr-1" />
-                    {new Date(order.createdAt).toLocaleDateString('en-IN', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
+                  <div className="flex flex-col space-y-1">
+                    <div className="text-sm text-muted-foreground">
+                      {order.customerName}
+                    </div>
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <Clock className="h-4 w-4 mr-1" />
+                      {new Date(order.createdAt).toLocaleDateString('en-IN', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </div>
                   </div>
                 </div>
                 <Badge className={getStatusBadgeStyle(order.status)}>
