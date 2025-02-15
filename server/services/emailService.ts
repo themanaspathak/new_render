@@ -1,50 +1,10 @@
-import nodemailer from "nodemailer";
+import sgMail from '@sendgrid/mail';
 
-// Create reusable transporter with secure configuration
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-  connectionTimeout: 5000, // 5 seconds timeout
-  greetingTimeout: 5000,
-  socketTimeout: 5000,
-  debug: true,
-  logger: true
-});
-
-// Enhanced connection verification with detailed logging
-async function verifyEmailConfiguration() {
-  try {
-    console.log("🔍 Verifying email configuration...");
-    console.log("📧 Using email:", process.env.EMAIL_USER);
-    console.log("🔑 Password configured:", !!process.env.EMAIL_PASSWORD);
-
-    const verified = await transporter.verify();
-    if (verified) {
-      console.log("✅ SMTP server connection successful");
-      return true;
-    }
-  } catch (error: any) {
-    console.error("❌ SMTP connection failed:");
-    console.error("Configuration state:", {
-      EMAIL_USER_SET: !!process.env.EMAIL_USER,
-      EMAIL_PASSWORD_SET: !!process.env.EMAIL_PASSWORD,
-      ERROR_DETAILS: {
-        message: error.message,
-        code: error.code,
-        command: error.command,
-        response: error.response,
-        responseCode: error.responseCode,
-        timestamp: new Date().toISOString()
-      }
-    });
-    return false;
-  }
+if (!process.env.SENDGRID_API_KEY) {
+  throw new Error("SENDGRID_API_KEY environment variable must be set");
 }
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // Store OTPs temporarily (in production, use Redis or similar)
 const otpStore = new Map<string, { otp: string; expires: Date }>();
@@ -54,12 +14,6 @@ export async function sendOTP(email: string): Promise<{
   message: string;
 }> {
   try {
-    // Verify configuration first
-    const isConfigValid = await verifyEmailConfiguration();
-    if (!isConfigValid) {
-      throw new Error("Email configuration verification failed");
-    }
-
     // Generate a 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     console.log(`📤 Attempting to send OTP to ${email}`);
@@ -70,14 +24,14 @@ export async function sendOTP(email: string): Promise<{
       expires: new Date(Date.now() + 5 * 60 * 1000),
     });
 
-    // Enhanced email options with better formatting
-    const mailOptions = {
-      from: {
-        name: "Restaurant Management",
-        address: process.env.EMAIL_USER as string
-      },
+    // Prepare email message
+    const msg = {
       to: email,
-      subject: "Your OTP for Restaurant Order",
+      from: {
+        email: 'themanaspathak@gmail.com',
+        name: 'Restaurant Management'
+      },
+      subject: 'Your OTP for Restaurant Order',
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #333;">Your One-Time Password</h2>
@@ -91,20 +45,15 @@ export async function sendOTP(email: string): Promise<{
       `,
     };
 
-    console.log('📧 Sending email with configuration:', {
-      from: mailOptions.from,
-      to: mailOptions.to,
-      subject: mailOptions.subject,
+    console.log('📧 Sending email via SendGrid:', {
+      to: msg.to,
+      from: msg.from.email,
+      subject: msg.subject,
       timestamp: new Date().toISOString()
     });
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Email sent successfully:', {
-      messageId: info.messageId,
-      response: info.response,
-      envelope: info.envelope,
-      timestamp: new Date().toISOString()
-    });
+    await sgMail.send(msg);
+    console.log('✅ Email sent successfully');
 
     return {
       success: true,
@@ -116,19 +65,16 @@ export async function sendOTP(email: string): Promise<{
         message: error.message,
         name: error.name,
         code: error.code,
-        command: error.command,
-        response: error.response,
+        response: error.response?.body,
         timestamp: new Date().toISOString()
       }
     });
 
     let errorMessage = "Failed to send OTP";
-    if (error.message.includes("535-5.7.8") || error.message.includes("535-5.7.9")) {
-      errorMessage = "Gmail authentication failed. Please ensure you're using a valid Gmail App Password.";
-    } else if (error.message.includes("getaddrinfo")) {
-      errorMessage = "Network connection error. Please check your internet connection.";
-    } else if (error.responseCode === 550) {
-      errorMessage = "Email sending failed due to Gmail's security settings. Please check your Gmail account settings.";
+    if (error.code === 401) {
+      errorMessage = "SendGrid authentication failed. Please check the API key.";
+    } else if (error.code === 403) {
+      errorMessage = "SendGrid authorization failed. Please verify sender verification status.";
     }
 
     return {
