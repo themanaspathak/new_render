@@ -15,6 +15,14 @@ export default function NavBar() {
 
   return (
     <nav className="fixed top-0 right-0 p-4 flex gap-2 z-50">
+      {verifiedEmail && (
+        <Link href={`/orders/${encodeURIComponent(verifiedEmail)}`}>
+          <Button variant="outline" size="icon" className="rounded-full bg-white shadow-sm">
+            <ClipboardList className="h-5 w-5" />
+          </Button>
+        </Link>
+      )}
+
       <Link href="/cart">
         <Button variant="outline" size="icon" className="rounded-full bg-white shadow-sm relative">
           <ShoppingCart className="h-5 w-5" />
@@ -25,14 +33,6 @@ export default function NavBar() {
           )}
         </Button>
       </Link>
-
-      {verifiedEmail && (
-        <Link href={`/orders/${encodeURIComponent(verifiedEmail)}`}>
-          <Button variant="outline" size="icon" className="rounded-full bg-white shadow-sm">
-            <ClipboardList className="h-5 w-5" />
-          </Button>
-        </Link>
-      )}
     </nav>
   );
 }
