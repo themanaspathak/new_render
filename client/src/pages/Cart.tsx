@@ -20,12 +20,35 @@ export default function Cart() {
   const gst = subtotal * 0.05; // 5% GST
   const total = subtotal + gst;
 
+  // Function to update quantity
+  const updateQuantity = (item: MenuItem, newQuantity: number) => {
+    if (newQuantity === 0) {
+      dispatch({
+        type: "REMOVE_ITEM",
+        menuItemId: item.id,
+      });
+      toast({
+        title: "Removed from cart",
+        description: `${item.name} has been removed from your cart.`,
+      });
+    } else {
+      dispatch({
+        type: "UPDATE_QUANTITY",
+        menuItemId: item.id,
+        quantity: newQuantity,
+      });
+      toast({
+        title: "Quantity Updated",
+        description: `Quantity of ${item.name} updated to ${newQuantity}.`,
+      });
+    }
+  };
+
   // Fetch menu items for recommendations
   const { data: menuItems } = useQuery<MenuItem[]>({
     queryKey: ["/api/menu"],
   });
 
-  // Update the dessert filtering logic
   const desserts = menuItems?.filter(item =>
     item.category === "Desserts" ||
     item.name.toLowerCase().includes('jamun') ||
@@ -44,7 +67,6 @@ export default function Cart() {
       },
     });
 
-    // Add toast notification
     toast({
       title: "Added to cart",
       description: `${dessert.name} has been added to your cart.`,
@@ -123,13 +145,7 @@ export default function Cart() {
                         variant="outline"
                         size="icon"
                         className="h-8 w-8"
-                        onClick={() =>
-                          dispatch({
-                            type: "UPDATE_QUANTITY",
-                            menuItemId: item.menuItem.id,
-                            quantity: Math.max(1, item.quantity - 1),
-                          })
-                        }
+                        onClick={() => updateQuantity(item.menuItem, Math.max(0, item.quantity - 1))}
                       >
                         <Minus className="h-4 w-4" />
                       </Button>
@@ -138,13 +154,7 @@ export default function Cart() {
                         variant="outline"
                         size="icon"
                         className="h-8 w-8"
-                        onClick={() =>
-                          dispatch({
-                            type: "UPDATE_QUANTITY",
-                            menuItemId: item.menuItem.id,
-                            quantity: item.quantity + 1,
-                          })
-                        }
+                        onClick={() => updateQuantity(item.menuItem, item.quantity + 1)}
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
@@ -168,7 +178,13 @@ export default function Cart() {
                   className="w-full min-h-[100px] p-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent"
                   placeholder="Add any special cooking instructions or dietary requirements..."
                   value={cookingRequest}
-                  onChange={(e) => setCookingRequest(e.target.value)}
+                  onChange={(e) => {
+                    setCookingRequest(e.target.value);
+                    dispatch({
+                      type: "SET_COOKING_INSTRUCTIONS",
+                      instructions: e.target.value,
+                    });
+                  }}
                 />
               </CardContent>
             </Card>
