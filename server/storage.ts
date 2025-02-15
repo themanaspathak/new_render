@@ -17,11 +17,20 @@ const hashPassword = async (password: string): Promise<string> => {
   return `${derivedKey.toString('hex')}.${salt}`;
 };
 
-const verifyPassword = async (password: string, hash: string): Promise<boolean> => {
-  const [hashedPassword, salt] = hash.split('.');
-  const derivedKey = await scryptAsync(password, salt, 64) as Buffer;
-  const hashBuffer = Buffer.from(hashedPassword, 'hex');
-  return timingSafeEqual(derivedKey, hashBuffer);
+const verifyPassword = async (password: string, storedHash: string): Promise<boolean> => {
+  try {
+    const [hash, salt] = storedHash.split('.');
+    if (!hash || !salt) {
+      console.error("Invalid password hash format");
+      return false;
+    }
+    const derivedKey = await scryptAsync(password, salt, 64) as Buffer;
+    const storedKey = Buffer.from(hash, 'hex');
+    return timingSafeEqual(derivedKey, storedKey);
+  } catch (error) {
+    console.error("Password verification error:", error);
+    return false;
+  }
 };
 
 export interface IStorage {
@@ -78,8 +87,14 @@ export class DatabaseStorage implements IStorage {
   async verifyUserPassword(email: string, password: string): Promise<boolean> {
     try {
       const user = await this.getUser(email);
-      if (!user) return false;
-      return await verifyPassword(password, user.password);
+      if (!user) {
+        console.log("User not found:", email);
+        return false;
+      }
+
+      const isValid = await verifyPassword(password, user.password);
+      console.log("Password verification result:", isValid);
+      return isValid;
     } catch (error) {
       console.error("Error verifying password:", error);
       return false;
@@ -89,6 +104,7 @@ export class DatabaseStorage implements IStorage {
   async createUser(userData: InsertUser): Promise<User> {
     try {
       const hashedPassword = await hashPassword(userData.password);
+      console.log("Creating user with hashed password:", hashedPassword);
       const [user] = await db.insert(users)
         .values({
           ...userData,
