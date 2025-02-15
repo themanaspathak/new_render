@@ -8,7 +8,7 @@ import Cart from "@/pages/Cart";
 import Checkout from "@/pages/Checkout";
 import AdminLogin from "@/pages/admin/login";
 import AdminDashboard from "@/pages/admin/Dashboard";
-import Kitchen from "@/pages/Kitchen";
+import Kitchen from "@/pages/admin/Kitchen";
 import OrderConfirmed from "@/pages/OrderConfirmed";
 import EmailVerification from "@/pages/EmailVerification";
 import OrderHistory from "@/pages/OrderHistory";
@@ -42,7 +42,11 @@ function Router() {
         />
         <ProtectedAdminRoute 
           path="/kitchen" 
-          component={Kitchen} 
+          component={() => (
+            <AdminLayout>
+              <Kitchen />
+            </AdminLayout>
+          )} 
         />
 
         {/* 404 Route */}
