@@ -67,17 +67,7 @@ export default function Kitchen() {
         [orderId]: newStatus
       }));
 
-      const response = await fetch(`/api/orders/${orderId}/status`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update order status');
-      }
+      await apiRequest(`/api/orders/${orderId}/status`, 'POST', { status: newStatus });
 
       await queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
 
@@ -126,10 +116,10 @@ export default function Kitchen() {
     if (dateRange.from && dateRange.to) {
       filteredOrders = filteredOrders.filter(order => {
         const orderDate = new Date(order.createdAt);
-        return isWithinInterval(orderDate, {
-          start: startOfDay(dateRange.from),
-          end: endOfDay(dateRange.to)
-        });
+        const startDate = startOfDay(dateRange.from);
+        const endDate = endOfDay(dateRange.to);
+
+        return orderDate >= startDate && orderDate <= endDate;
       });
     }
 
