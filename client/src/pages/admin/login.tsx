@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Shield } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -25,6 +26,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function AdminLoginPage() {
   const { toast } = useToast();
+  const { login, isLoggingIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<LoginFormData>({
@@ -47,10 +49,15 @@ export default function AdminLoginPage() {
       });
 
       if (!response.ok) {
+        toast({
+          title: "Invalid credentials",
+          description: "Please check your email and password",
+          variant: "destructive",
+        });
         throw new Error("Invalid credentials");
       }
 
-      // Redirect to google.com on successful login
+      // Only redirect on successful login
       window.location.href = "https://www.google.com";
     } catch (error) {
       toast({
