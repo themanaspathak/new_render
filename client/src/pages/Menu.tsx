@@ -18,17 +18,24 @@ import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 
 export default function Menu() {
-  const { data: menuItems, isLoading } = useQuery<MenuItem[]>({
-    queryKey: ["/api/menu"],
-  });
   const { state, dispatch } = useCart();
   const { toast } = useToast();
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+  const [quantity, setQuantity] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState({
     vegOnly: false,
     nonVegOnly: false,
     bestSeller: false
+  });
+  const [customizations, setCustomizations] = useState<{
+    portionSize: 'medium' | 'full';
+    isJain: boolean;
+    taste: string;
+  }>({
+    portionSize: 'medium',
+    isJain: false,
+    taste: 'regular'
   });
 
   // Function to get quantity of item in cart
@@ -37,20 +44,34 @@ export default function Menu() {
     return cartItem?.quantity || 0;
   };
 
-  // Function to handle adding item to cart
-  const handleAddToCart = (item: MenuItem) => {
+  // Function to handle adding item to cart from customization dialog
+  const handleCustomizedAddToCart = () => {
+    if (!selectedItem) return;
+
     dispatch({
       type: "ADD_ITEM",
       item: {
-        menuItem: item,
-        quantity: 1,
-        customizations: {},
+        menuItem: selectedItem,
+        quantity,
+        customizations: {
+          "Portion Size": [customizations.portionSize],
+          "Preparation": [customizations.isJain ? "Jain" : "Regular"],
+          "Taste": [customizations.taste],
+        },
       },
     });
 
     toast({
       title: "Added to cart",
-      description: `${item.name} has been added to your cart.`,
+      description: `${selectedItem.name} has been added to your cart.`,
+    });
+
+    setSelectedItem(null);
+    setQuantity(1);
+    setCustomizations({
+      portionSize: 'medium',
+      isJain: false,
+      taste: 'regular'
     });
   };
 
@@ -74,16 +95,8 @@ export default function Menu() {
     }
   };
 
-  const [quantity, setQuantity] = useState(1);
-  const [showQuantityControl, setShowQuantityControl] = useState(false);
-  const [customizations, setCustomizations] = useState<{
-    portionSize: 'medium' | 'full';
-    isJain: boolean;
-    taste: string;
-  }>({
-    portionSize: 'medium',
-    isJain: false,
-    taste: 'regular'
+  const { data: menuItems, isLoading } = useQuery<MenuItem[]>({
+    queryKey: ["/api/menu"],
   });
 
   const categorizedItems = useMemo(() => {
@@ -112,7 +125,6 @@ export default function Menu() {
   const handleItemClick = (item: MenuItem) => {
     setSelectedItem(item);
     setQuantity(1);
-    setShowQuantityControl(true);
     setCustomizations({
       portionSize: 'medium',
       isJain: false,
@@ -130,7 +142,7 @@ export default function Menu() {
     if (quantity === 0) {
       return (
         <Button 
-          onClick={() => handleAddToCart(item)}
+          onClick={() => handleItemClick(item)}
           className="bg-green-600 hover:bg-green-700 text-white min-w-[80px]"
         >
           ADD
@@ -144,7 +156,7 @@ export default function Menu() {
           variant="outline"
           size="icon"
           className="h-8 w-8"
-          onClick={() => updateQuantity(item, quantity - 1)}
+          onClick={() => updateQuantity(item, Math.max(0, quantity - 1))}
         >
           <Minus className="h-4 w-4" />
         </Button>
@@ -352,7 +364,6 @@ export default function Menu() {
         if (!open) {
           setSelectedItem(null);
           setQuantity(1);
-          setShowQuantityControl(false);
           setCustomizations({
             portionSize: 'medium',
             isJain: false,
@@ -451,7 +462,10 @@ export default function Menu() {
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
-                <Button onClick={handleAddToCart} className="bg-green-600 hover:bg-green-700 text-white">
+                <Button 
+                  onClick={handleCustomizedAddToCart} 
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
                   Add Item | ₹{totalPrice}
                 </Button>
               </div>
