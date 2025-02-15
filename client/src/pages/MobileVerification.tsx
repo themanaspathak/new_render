@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/contexts/CartContext";
 import { apiRequest } from "@/lib/queryClient";
+import { Phone, MessageCircle, ChevronLeft, Send } from "lucide-react";
 
 export default function MobileVerification() {
   const [, navigate] = useLocation();
@@ -183,86 +184,114 @@ export default function MobileVerification() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-md">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Verify Mobile Number</CardTitle>
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md shadow-lg border-0 bg-card/95 backdrop-blur-sm">
+        <CardHeader className="space-y-1">
+          <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-primary/10 rounded-full">
+            <Phone className="w-8 h-8 text-primary" />
+          </div>
+          <CardTitle className="text-2xl font-bold text-center">Verify Your Number</CardTitle>
+          <CardDescription className="text-center text-muted-foreground">
+            {!showOtpInput 
+              ? "We'll send you a one-time password to verify your number"
+              : "Enter the verification code we sent you"}
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 pt-4">
           {!showOtpInput ? (
             <>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Input
-                    type="text"
-                    placeholder="Enter your full name"
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    className="text-lg"
-                    disabled={isLoading}
-                  />
+                  <div className="relative">
+                    <Input
+                      type="text"
+                      placeholder="Full Name"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      className="h-12 pl-10 text-lg bg-muted/50 border-2 border-muted-foreground/20 rounded-xl shadow-sm transition-all duration-200 focus:border-primary/50 focus:bg-background hover:bg-muted/70"
+                      disabled={isLoading}
+                    />
+                    <MessageCircle className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5" />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">
                       +91
                     </span>
                     <Input
                       type="tel"
-                      placeholder="Enter mobile number"
+                      placeholder="Mobile Number"
                       value={formatPhoneNumber(mobileNumber)}
                       onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                      className="pl-12 text-lg tracking-wide"
+                      className="h-12 pl-12 text-lg tracking-wide bg-muted/50 border-2 border-muted-foreground/20 rounded-xl shadow-sm transition-all duration-200 focus:border-primary/50 focus:bg-background hover:bg-muted/70"
                       disabled={isLoading}
                     />
                   </div>
-                  <p className="text-sm text-gray-500">
-                    We'll send you a one-time password (OTP)
-                  </p>
                 </div>
               </div>
               <Button
-                className="w-full bg-green-600 hover:bg-green-700 text-white"
+                className="w-full h-12 text-lg font-medium bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 rounded-xl"
                 onClick={handleSendOtp}
                 disabled={mobileNumber.length !== 10 || !customerName.trim() || isLoading}
               >
-                {isLoading ? "Sending..." : "Send OTP"}
+                {isLoading ? (
+                  <span className="flex items-center gap-2">
+                    <div className="w-5 h-5 border-2 border-current border-t-transparent animate-spin rounded-full" />
+                    Sending...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <Send className="w-5 h-5" />
+                    Send OTP
+                  </span>
+                )}
               </Button>
             </>
           ) : (
             <>
-              <div className="space-y-4">
-                <div className="flex flex-col items-center gap-2">
-                  <Input
-                    type="text"
-                    maxLength={4}
-                    className="text-center text-2xl tracking-[1em] h-16 font-mono"
-                    value={otp}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/[^0-9]/g, '');
-                      if (value.length <= 4) {
-                        setOtp(value);
-                      }
-                    }}
-                    placeholder="••••"
-                    disabled={isLoading}
-                  />
-                  <p className="text-sm text-gray-500">
-                    Enter the 4-digit code sent to +91 {formatPhoneNumber(mobileNumber)}
+              <div className="space-y-6">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="w-full space-y-2">
+                    <Input
+                      type="text"
+                      maxLength={4}
+                      className="text-center text-3xl tracking-[1em] h-16 font-mono bg-muted/50 border-2 border-muted-foreground/20 rounded-xl shadow-sm transition-all duration-200 focus:border-primary/50 focus:bg-background hover:bg-muted/70"
+                      value={otp}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^0-9]/g, '');
+                        if (value.length <= 4) {
+                          setOtp(value);
+                        }
+                      }}
+                      placeholder="••••"
+                      disabled={isLoading}
+                    />
+                  </div>
+                  <p className="text-sm text-muted-foreground text-center">
+                    Enter the 4-digit code sent to<br />
+                    <span className="font-medium text-foreground">+91 {formatPhoneNumber(mobileNumber)}</span>
                   </p>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-4">
                   <Button
-                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                    className="w-full h-12 text-lg font-medium bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200 rounded-xl"
                     onClick={handleVerifyOtp}
                     disabled={otp.length !== 4 || isLoading}
                   >
-                    {isLoading ? "Verifying..." : "Verify OTP"}
+                    {isLoading ? (
+                      <span className="flex items-center gap-2">
+                        <div className="w-5 h-5 border-2 border-current border-t-transparent animate-spin rounded-full" />
+                        Verifying...
+                      </span>
+                    ) : (
+                      "Verify OTP"
+                    )}
                   </Button>
                   <div className="flex gap-2">
                     <Button
-                      variant="ghost"
-                      className="flex-1"
+                      variant="outline"
+                      className="flex-1 h-11 border-2 hover:bg-muted/50 transition-all duration-200 rounded-xl"
                       onClick={() => {
                         setShowOtpInput(false);
                         setOtp("");
@@ -271,11 +300,12 @@ export default function MobileVerification() {
                       }}
                       disabled={isLoading}
                     >
+                      <ChevronLeft className="w-4 h-4 mr-1" />
                       Change Details
                     </Button>
                     <Button
                       variant="outline"
-                      className="flex-1"
+                      className="flex-1 h-11 border-2 hover:bg-muted/50 transition-all duration-200 rounded-xl"
                       onClick={handleSendOtp}
                       disabled={isLoading || resendTimer > 0}
                     >
