@@ -59,6 +59,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add endpoint to update order status
+  app.post("/api/orders/:id/status", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      const order = await storage.updateOrderStatus(parseInt(id), status);
+      res.json(order);
+    } catch (error) {
+      console.error("Failed to update order status:", error);
+      res.status(500).json({ message: "Failed to update order status" });
+    }
+  });
+
   // Add endpoint to get orders by mobile number
   app.get("/api/orders/mobile/:mobileNumber", async (req, res) => {
     try {

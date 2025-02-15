@@ -72,15 +72,14 @@ export class DatabaseStorage implements IStorage {
     try {
       console.log("Creating order with data:", orderData);
 
-      // Create the order with "in progress" status instead of "pending"
+      // Create the order with "in progress" status
       const [order] = await db.insert(orders)
         .values({
-          userEmail: orderData.userEmail,
           mobileNumber: orderData.mobileNumber,
           customerName: orderData.customerName,
           tableNumber: orderData.tableNumber,
           items: orderData.items,
-          status: 'in progress', // Changed from 'pending' to 'in progress'
+          status: 'in progress',
           paymentStatus: 'pending',
           paymentMethod: orderData.paymentMethod,
           cookingInstructions: orderData.cookingInstructions,
