@@ -1,6 +1,4 @@
-import { Route, Redirect } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
-import { Loader2 } from "lucide-react";
+import { Route } from "wouter";
 
 interface ProtectedAdminRouteProps {
   path: string;
@@ -8,20 +6,5 @@ interface ProtectedAdminRouteProps {
 }
 
 export function ProtectedAdminRoute({ path, component: Component }: ProtectedAdminRouteProps) {
-  const { isAuthenticated, isLoading, user } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
-  // If not authenticated or not admin, redirect to login
-  if (!isAuthenticated || !user?.isAdmin) {
-    return <Redirect to="/admin/login" />;
-  }
-
   return <Route path={path} component={Component} />;
 }

@@ -10,7 +10,6 @@ import Kitchen from "@/pages/admin/Kitchen";
 import OrderConfirmed from "@/pages/OrderConfirmed";
 import EmailVerification from "@/pages/EmailVerification";
 import OrderHistory from "@/pages/OrderHistory";
-import AdminLogin from "@/pages/admin/login";
 import { CartProvider } from "@/contexts/CartContext";
 import NavBar from "@/components/NavBar";
 import { ProtectedAdminRoute } from "@/lib/protected-admin-route";
@@ -27,7 +26,6 @@ function Router() {
         <Route path="/email-verification" component={EmailVerification} />
         <Route path="/order-confirmed" component={OrderConfirmed} />
         <Route path="/orders/:email" component={OrderHistory} />
-        <Route path="/admin/login" component={AdminLogin} />
         <Route component={NotFound} />
       </Switch>
     </>
