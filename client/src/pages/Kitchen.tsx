@@ -28,19 +28,12 @@ export default function Kitchen() {
 
   const handleAvailabilityToggle = async (itemId: number) => {
     const menuItem = menuItems?.find(item => item.id === itemId);
-    const newStatus = !availabilityMap[itemId];
+    const newStatus = !menuItem?.isAvailable;
 
     try {
-      // Update local state optimistically
-      setAvailabilityMap(prev => ({
-        ...prev,
-        [itemId]: newStatus
-      }));
-
       // Make API call to update availability
-      await apiRequest(`/api/menu/${itemId}/availability`, {
-        method: 'POST',
-        body: { isAvailable: newStatus },
+      await apiRequest(`/api/menu/${itemId}/availability`, 'POST', {
+        isAvailable: newStatus,
       });
 
       // Invalidate menu queries to refresh data
@@ -53,12 +46,6 @@ export default function Kitchen() {
         variant: newStatus ? 'default' : 'destructive',
       });
     } catch (error) {
-      // Revert optimistic update on error
-      setAvailabilityMap(prev => ({
-        ...prev,
-        [itemId]: !newStatus
-      }));
-
       toast({
         title: 'Error',
         description: 'Failed to update menu item availability',

@@ -17,8 +17,9 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   getUserOrders(email: string): Promise<Order[]>;
   getAllOrders(): Promise<Order[]>;
-  // New method
   updateOrderStatus(orderId: number, status: 'pending' | 'completed' | 'cancelled'): Promise<Order>;
+  // New method for menu item availability
+  updateMenuItemAvailability(itemId: number, isAvailable: boolean): Promise<MenuItem>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -43,13 +44,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createOrder(orderData: InsertOrder): Promise<Order> {
-    // Create user if doesn't exist
     let user = await this.getUser(orderData.userEmail);
     if (!user) {
       user = await this.createUser({ email: orderData.userEmail });
     }
 
-    // Create order with user reference
     const [order] = await db.insert(orders)
       .values({
         ...orderData,
@@ -78,7 +77,6 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(orders.createdAt));
   }
 
-  // New method implementation
   async updateOrderStatus(orderId: number, status: 'pending' | 'completed' | 'cancelled'): Promise<Order> {
     const [updatedOrder] = await db
       .update(orders)
@@ -91,6 +89,20 @@ export class DatabaseStorage implements IStorage {
     }
 
     return updatedOrder;
+  }
+
+  async updateMenuItemAvailability(itemId: number, isAvailable: boolean): Promise<MenuItem> {
+    const [updatedItem] = await db
+      .update(menuItems)
+      .set({ isAvailable })
+      .where(eq(menuItems.id, itemId))
+      .returning();
+
+    if (!updatedItem) {
+      throw new Error(`Menu item with ID ${itemId} not found`);
+    }
+
+    return updatedItem;
   }
 }
 

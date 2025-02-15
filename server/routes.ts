@@ -2,21 +2,11 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertOrderSchema } from "@shared/schema";
+import { menuRouter } from "./routes/menu";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  app.get("/api/menu", async (req, res) => {
-    const items = await storage.getMenuItems();
-    res.json(items);
-  });
-
-  app.get("/api/menu/:id", async (req, res) => {
-    const item = await storage.getMenuItem(parseInt(req.params.id));
-    if (!item) {
-      res.status(404).json({ message: "Item not found" });
-      return;
-    }
-    res.json(item);
-  });
+  // Register menu routes
+  app.use("/api/menu", menuRouter);
 
   // Add endpoint to get all orders
   app.get("/api/orders", async (req, res) => {
