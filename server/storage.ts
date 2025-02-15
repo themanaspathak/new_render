@@ -13,8 +13,20 @@ const scryptAsync = promisify(scrypt);
 
 async function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
-  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-  return `${buf.toString("hex")}.${salt}`;
+  const derivedKey = await scryptAsync(password, salt, 64) as Buffer;
+  return `${derivedKey.toString("hex")}.${salt}`;
+}
+
+async function comparePasswords(supplied: string, stored: string): Promise<boolean> {
+  try {
+    const [hashedPassword, salt] = stored.split(".");
+    const suppliedBuf = await scryptAsync(supplied, salt, 64) as Buffer;
+    const storedBuf = Buffer.from(hashedPassword, "hex");
+    return timingSafeEqual(suppliedBuf, storedBuf);
+  } catch (error) {
+    console.error("Password comparison error:", error);
+    return false;
+  }
 }
 
 export interface IStorage {
@@ -28,6 +40,7 @@ export interface IStorage {
   getAllOrders(): Promise<Order[]>;
   updateOrderStatus(orderId: number, status: 'pending' | 'completed' | 'cancelled'): Promise<Order>;
   updateMenuItemAvailability(itemId: number, isAvailable: boolean): Promise<MenuItem>;
+  verifyUserPassword(email: string, password: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -64,6 +77,17 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error fetching user:", error);
       return undefined;
+    }
+  }
+
+  async verifyUserPassword(email: string, password: string): Promise<boolean> {
+    try {
+      const user = await this.getUser(email);
+      if (!user) return false;
+      return comparePasswords(password, user.password);
+    } catch (error) {
+      console.error("Error verifying password:", error);
+      return false;
     }
   }
 

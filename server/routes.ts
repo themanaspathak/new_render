@@ -3,22 +3,6 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertOrderSchema, insertUserSchema } from "@shared/schema";
 import { menuRouter } from "./routes/menu";
-import { scrypt, timingSafeEqual } from "crypto";
-import { promisify } from "util";
-
-const scryptAsync = promisify(scrypt);
-
-async function comparePasswords(supplied: string, stored: string) {
-  try {
-    const [hashed, salt] = stored.split(".");
-    const hashedBuf = Buffer.from(hashed, "hex");
-    const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-    return timingSafeEqual(hashedBuf, suppliedBuf);
-  } catch (error) {
-    console.error("Password comparison error:", error);
-    return false;
-  }
-}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/menu", menuRouter);
@@ -35,7 +19,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "User not found" });
       }
 
-      res.json(user);
+      const { password: _, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Internal server error" });
@@ -47,20 +32,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { email, password } = req.body;
       console.log("Login attempt for email:", email);
 
-      const user = await storage.getUser(email);
-      if (!user) {
-        console.log("User not found:", email);
+      const isValid = await storage.verifyUserPassword(email, password);
+      if (!isValid) {
+        console.log("Invalid credentials for user:", email);
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      const isValidPassword = await comparePasswords(password, user.password);
-      if (!isValidPassword) {
-        console.log("Invalid password for user:", email);
-        return res.status(401).json({ message: "Invalid credentials" });
+      const user = await storage.getUser(email);
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
       }
 
       console.log("Login successful for user:", email);
-      // Don't send the password in the response
       const { password: _, ...userWithoutPassword } = user;
       return res.status(200).json(userWithoutPassword);
     } catch (error) {
@@ -107,12 +90,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/orders/:id", async (req, res) => {
-    const order = await storage.getOrder(parseInt(req.params.id));
-    if (!order) {
-      res.status(404).json({ message: "Order not found" });
-      return;
+    try {
+      const order = await storage.getOrder(parseInt(req.params.id));
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      res.json(order);
+    } catch (error) {
+      console.error("Failed to fetch order:", error);
+      res.status(500).json({ message: "Failed to fetch order" });
     }
-    res.json(order);
   });
 
   app.get("/api/users/:email/orders", async (req, res) => {

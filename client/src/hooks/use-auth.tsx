@@ -29,7 +29,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading,
   } = useQuery<SelectUser | null>({
     queryKey: ["/api/user"],
-    queryFn: getQueryFn({ on401: "returnNull" }),
+    queryFn: async ({ signal }) => {
+      const userEmail = localStorage.getItem("userEmail");
+      if (!userEmail) return null;
+
+      const res = await fetch("/api/user", {
+        headers: {
+          "X-User-Email": userEmail,
+        },
+        signal,
+      });
+
+      if (!res.ok) {
+        if (res.status === 401) return null;
+        throw new Error("Failed to fetch user");
+      }
+
+      return res.json();
+    },
   });
 
   const loginMutation = useMutation({
@@ -39,7 +56,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const error = await res.json();
         throw new Error(error.message || "Invalid credentials");
       }
-      return res.json();
+      const userData = await res.json();
+      localStorage.setItem("userEmail", userData.email);
+      return userData;
     },
     onSuccess: (user: SelectUser) => {
       queryClient.setQueryData(["/api/user"], user);
@@ -57,33 +76,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
-  const registerMutation = useMutation({
-    mutationFn: async (credentials: InsertUser) => {
-      const res = await apiRequest("/api/register", "POST", credentials);
-      return await res.json();
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      localStorage.removeItem("userEmail");
+      queryClient.setQueryData(["/api/user"], null);
     },
-    onSuccess: (user: SelectUser) => {
-      queryClient.setQueryData(["/api/user"], user);
+    onSuccess: () => {
+      toast({
+        title: "Logged out",
+        description: "You have been logged out successfully",
+      });
     },
     onError: (error: Error) => {
       toast({
-        title: "Registration failed",
+        title: "Logout failed",
         description: error.message,
         variant: "destructive",
       });
     },
   });
 
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      await apiRequest("/api/logout", "POST");
+  const registerMutation = useMutation({
+    mutationFn: async (credentials: InsertUser) => {
+      const res = await apiRequest("/api/register", "POST", credentials);
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Registration failed");
+      }
+      const userData = await res.json();
+      localStorage.setItem("userEmail", userData.email);
+      return userData;
     },
-    onSuccess: () => {
-      queryClient.setQueryData(["/api/user"], null);
+    onSuccess: (user: SelectUser) => {
+      queryClient.setQueryData(["/api/user"], user);
+      toast({
+        title: "Registration successful",
+        description: "Welcome!",
+      });
     },
     onError: (error: Error) => {
       toast({
-        title: "Logout failed",
+        title: "Registration failed",
         description: error.message,
         variant: "destructive",
       });
