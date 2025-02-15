@@ -6,7 +6,9 @@ import NotFound from "@/pages/not-found";
 import Menu from "@/pages/Menu";
 import Cart from "@/pages/Cart";
 import Checkout from "@/pages/Checkout";
-import Kitchen from "@/pages/admin/Kitchen";
+import AdminLogin from "@/pages/admin/login";
+import AdminDashboard from "@/pages/admin/Dashboard";
+import Kitchen from "@/pages/Kitchen";
 import OrderConfirmed from "@/pages/OrderConfirmed";
 import EmailVerification from "@/pages/EmailVerification";
 import OrderHistory from "@/pages/OrderHistory";
@@ -22,6 +24,8 @@ function Router() {
         <Route path="/" component={Menu} />
         <Route path="/cart" component={Cart} />
         <Route path="/checkout" component={Checkout} />
+        <Route path="/admin/login" component={AdminLogin} />
+        <ProtectedAdminRoute path="/admin" component={AdminDashboard} />
         <ProtectedAdminRoute path="/kitchen" component={Kitchen} />
         <Route path="/email-verification" component={EmailVerification} />
         <Route path="/order-confirmed" component={OrderConfirmed} />
