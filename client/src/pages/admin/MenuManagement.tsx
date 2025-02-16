@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { MenuItem } from "@shared/schema";
 import { useForm } from "react-hook-form";
@@ -33,6 +33,13 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AdminLayout } from "@/components/layouts/AdminLayout";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { ChevronDown, ChevronRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const customizationOptionSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -65,6 +72,9 @@ export default function MenuManagement() {
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newChoice, setNewChoice] = useState("");
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+  const [editingCategory, setEditingCategory] = useState<string | null>(null);
+  const [newCategoryName, setNewCategoryName] = useState("");
 
   const form = useForm<MenuItemFormData>({
     resolver: zodResolver(menuItemSchema),
@@ -213,6 +223,66 @@ export default function MenuManagement() {
       (_, i) => i !== choiceIndex
     );
     form.setValue("customizations.options", updatedOptions);
+  };
+
+  // Group menu items by category
+  const categorizedItems = useMemo(() => {
+    if (!menuItems) return {};
+    return menuItems.reduce<Record<string, MenuItem[]>>((acc, item) => {
+      if (!acc[item.category]) {
+        acc[item.category] = [];
+      }
+      acc[item.category].push(item);
+      return acc;
+    }, {});
+  }, [menuItems]);
+
+  const handleCategoryEdit = async (oldCategory: string, newCategory: string) => {
+    if (!oldCategory || !newCategory || oldCategory === newCategory) return;
+
+    try {
+      setIsSubmitting(true);
+      const itemsInCategory = menuItems?.filter(item => item.category === oldCategory) || [];
+
+      // Update all items in the category
+      for (const item of itemsInCategory) {
+        await apiRequest(`/api/menu/${item.id}`, "PATCH", {
+          ...item,
+          category: newCategory
+        });
+      }
+
+      await refetch();
+      await queryClient.invalidateQueries({
+        queryKey: ["/api/menu"],
+        exact: true,
+        refetchType: 'all'
+      });
+
+      toast({
+        title: "Category Updated",
+        description: `Successfully updated category from "${oldCategory}" to "${newCategory}"`,
+      });
+
+      setEditingCategory(null);
+      setNewCategoryName("");
+    } catch (error) {
+      console.error("Error updating category:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update category name. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const toggleCategory = (category: string) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [category]: !prev[category]
+    }));
   };
 
   if (error) {
@@ -495,7 +565,7 @@ export default function MenuManagement() {
         </div>
 
         <ScrollArea className="h-[calc(100vh-200px)]">
-          <div className="grid gap-4">
+          <div className="space-y-6">
             {isLoading ? (
               <Card>
                 <CardContent className="p-4">
@@ -515,64 +585,135 @@ export default function MenuManagement() {
                 </CardContent>
               </Card>
             ) : (
-              menuItems?.map((item) => (
-                <Card key={item.id}>
-                  <CardContent className="flex items-center justify-between p-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`w-3 h-3 rounded-full ${
-                            item.isVegetarian ? "bg-green-500" : "bg-red-500"
-                          }`}
-                          title={item.isVegetarian ? "Vegetarian" : "Non-vegetarian"}
-                        />
-                        <h3 className="font-medium">{item.name}</h3>
-                        {!item.isAvailable && (
-                          <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded">
-                            Unavailable
-                          </span>
+              Object.entries(categorizedItems).map(([category, items]) => (
+                <Collapsible
+                  key={category}
+                  defaultOpen={true}
+                  open={expandedCategories[category]}
+                  onOpenChange={() => toggleCategory(category)}
+                >
+                  <div className="bg-muted/40 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <CollapsibleTrigger className="flex items-center gap-2 hover:text-primary transition-colors">
+                        {expandedCategories[category] ? (
+                          <ChevronDown className="h-5 w-5" />
+                        ) : (
+                          <ChevronRight className="h-5 w-5" />
                         )}
-                        {item.isBestSeller && (
-                          <span className="text-xs bg-yellow-100 text-yellow-600 px-2 py-0.5 rounded">
-                            Best Seller
-                          </span>
+                        {editingCategory === category ? (
+                          <div className="flex items-center gap-2">
+                            <Input
+                              value={newCategoryName}
+                              onChange={(e) => setNewCategoryName(e.target.value)}
+                              className="h-8 w-[200px]"
+                              placeholder="Enter new category name"
+                            />
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleCategoryEdit(category, newCategoryName)}
+                              disabled={isSubmitting}
+                            >
+                              Save
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                setEditingCategory(null);
+                                setNewCategoryName("");
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <h2 className="text-xl font-semibold">{category}</h2>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingCategory(category);
+                                setNewCategoryName(category);
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </div>
                         )}
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {item.description}
-                      </p>
-                      <div className="flex items-center gap-4 mt-2">
-                        <span className="text-sm font-medium">₹{item.price}</span>
-                        <span className="text-sm text-gray-500">
-                          {item.category}
-                        </span>
-                      </div>
-                      {item.customizations?.options?.length > 0 && (
-                        <div className="mt-2">
-                          <p className="text-sm text-gray-500">
-                            Customization Options: {item.customizations.options.map(opt => opt.name).join(", ")}
-                          </p>
-                        </div>
-                      )}
+                      </CollapsibleTrigger>
+                      <Badge variant="secondary" className="text-sm px-2.5">
+                        {items.length} items
+                      </Badge>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEdit(item)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(item.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
+                  </div>
+
+                  <CollapsibleContent>
+                    <div className="space-y-4 mt-4">
+                      {items.map((item) => (
+                        <Card key={item.id}>
+                          <CardContent className="flex items-center justify-between p-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className={`w-3 h-3 rounded-full ${
+                                    item.isVegetarian ? "bg-green-500" : "bg-red-500"
+                                  }`}
+                                  title={item.isVegetarian ? "Vegetarian" : "Non-vegetarian"}
+                                />
+                                <h3 className="font-medium">{item.name}</h3>
+                                {!item.isAvailable && (
+                                  <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded">
+                                    Unavailable
+                                  </span>
+                                )}
+                                {item.isBestSeller && (
+                                  <span className="text-xs bg-yellow-100 text-yellow-600 px-2 py-0.5 rounded">
+                                    Best Seller
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-600 mt-1">
+                                {item.description}
+                              </p>
+                              <div className="flex items-center gap-4 mt-2">
+                                <span className="text-sm font-medium">₹{item.price}</span>
+                                <span className="text-sm text-gray-500">
+                                  {item.category}
+                                </span>
+                              </div>
+                              {item.customizations?.options?.length > 0 && (
+                                <div className="mt-2">
+                                  <p className="text-sm text-gray-500">
+                                    Customization Options: {item.customizations.options.map(opt => opt.name).join(", ")}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleEdit(item)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDelete(item.id)}
+                              >
+                                <Trash2 className="h-4 w-4 text-red-500" />
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
                     </div>
-                  </CardContent>
-                </Card>
+                  </CollapsibleContent>
+                </Collapsible>
               ))
             )}
           </div>
