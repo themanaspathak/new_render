@@ -23,7 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Trash2, Plus, Pencil } from "lucide-react";
+import { Trash2, Plus, Pencil, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -42,7 +42,7 @@ const menuItemSchema = z.object({
   }),
   isVegetarian: z.boolean().default(false),
   category: z.string().min(1, "Category is required"),
-  imageUrl: z.string().min(1, "Image URL is required"),
+  imageUrl: z.string().min(1, "Image URL is required").url("Must be a valid URL"),
   isBestSeller: z.boolean().default(false),
   isAvailable: z.boolean().default(true),
 });
@@ -54,6 +54,7 @@ export default function MenuManagement() {
   const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<MenuItemFormData>({
     resolver: zodResolver(menuItemSchema),
@@ -69,12 +70,13 @@ export default function MenuManagement() {
     },
   });
 
-  const { data: menuItems, isLoading } = useQuery<MenuItem[]>({
+  const { data: menuItems, isLoading, error } = useQuery<MenuItem[]>({
     queryKey: ["/api/menu"],
   });
 
   const handleSubmit = async (data: MenuItemFormData) => {
     try {
+      setIsSubmitting(true);
       const payload = {
         ...data,
         price: Number(data.price),
@@ -84,8 +86,6 @@ export default function MenuManagement() {
       const method = editingItem ? "PATCH" : "POST";
 
       await apiRequest(endpoint, method, payload);
-
-      // Immediately invalidate and refetch menu items
       await queryClient.invalidateQueries({ queryKey: ["/api/menu"] });
 
       toast({
@@ -100,14 +100,16 @@ export default function MenuManagement() {
       console.error("Error submitting menu item:", error);
       toast({
         title: "Error",
-        description: `Failed to ${editingItem ? "update" : "add"} menu item`,
+        description: `Failed to ${editingItem ? "update" : "add"} menu item. Please try again.`,
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this item?")) return;
+    if (!confirm("Are you sure you want to delete this item? This action cannot be undone.")) return;
 
     try {
       await apiRequest(`/api/menu/${id}`, "DELETE");
@@ -118,9 +120,10 @@ export default function MenuManagement() {
         description: "Successfully deleted the menu item",
       });
     } catch (error) {
+      console.error("Error deleting menu item:", error);
       toast({
         title: "Error",
-        description: "Failed to delete menu item",
+        description: "Failed to delete menu item. Please try again.",
         variant: "destructive",
       });
     }
@@ -141,8 +144,8 @@ export default function MenuManagement() {
     setIsAddDialogOpen(true);
   };
 
-  if (isLoading) {
-    return <div>Loading menu items...</div>;
+  if (error) {
+    return <div className="p-4 text-red-500">Error loading menu items. Please try again.</div>;
   }
 
   return (
@@ -180,7 +183,7 @@ export default function MenuManagement() {
                       <FormItem>
                         <FormLabel>Name</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} placeholder="Enter item name" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -193,7 +196,7 @@ export default function MenuManagement() {
                       <FormItem>
                         <FormLabel>Description</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} placeholder="Enter item description" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -206,7 +209,7 @@ export default function MenuManagement() {
                       <FormItem>
                         <FormLabel>Price (₹)</FormLabel>
                         <FormControl>
-                          <Input {...field} type="number" step="0.01" min="0" />
+                          <Input {...field} type="number" step="0.01" min="0" placeholder="Enter price" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -219,7 +222,20 @@ export default function MenuManagement() {
                       <FormItem>
                         <FormLabel>Category</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input {...field} placeholder="Enter category" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="imageUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Image URL</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Enter image URL" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -235,22 +251,9 @@ export default function MenuManagement() {
                           <Switch
                             checked={field.value}
                             onCheckedChange={field.onChange}
-                            className="data-[state=checked]:!bg-green-500 data-[state=unchecked]:!bg-red-500 dark:data-[state=checked]:!bg-green-500 dark:data-[state=unchecked]:!bg-red-500"
+                            className="data-[state=checked]:!bg-green-500 data-[state=unchecked]:!bg-red-500"
                           />
                         </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="imageUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Image URL</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -296,7 +299,10 @@ export default function MenuManagement() {
                     >
                       Cancel
                     </Button>
-                    <Button type="submit">
+                    <Button type="submit" disabled={isSubmitting}>
+                      {isSubmitting && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      )}
                       {editingItem ? "Update" : "Add"} Item
                     </Button>
                   </div>
@@ -308,47 +314,78 @@ export default function MenuManagement() {
 
         <ScrollArea className="h-[calc(100vh-200px)]">
           <div className="grid gap-4">
-            {menuItems?.map((item) => (
-              <Card key={item.id}>
-                <CardContent className="flex items-center justify-between p-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`w-3 h-3 rounded-full ${
-                          item.isVegetarian ? "bg-green-500" : "bg-red-500"
-                        }`}
-                      />
-                      <h3 className="font-medium">{item.name}</h3>
+            {isLoading ? (
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-4">
+                    <div className="h-12 w-12 rounded-full bg-gray-200 animate-pulse" />
+                    <div className="space-y-2 flex-1">
+                      <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                      <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {item.description}
-                    </p>
-                    <div className="flex items-center gap-4 mt-2">
-                      <span className="text-sm font-medium">₹{item.price}</span>
-                      <span className="text-sm text-gray-500">
-                        {item.category}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEdit(item)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(item.id)}
-                    >
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            ) : menuItems?.length === 0 ? (
+              <Card>
+                <CardContent className="p-8 text-center text-muted-foreground">
+                  No menu items found. Add some items to get started.
+                </CardContent>
+              </Card>
+            ) : (
+              menuItems?.map((item) => (
+                <Card key={item.id}>
+                  <CardContent className="flex items-center justify-between p-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`w-3 h-3 rounded-full ${
+                            item.isVegetarian ? "bg-green-500" : "bg-red-500"
+                          }`}
+                          title={item.isVegetarian ? "Vegetarian" : "Non-vegetarian"}
+                        />
+                        <h3 className="font-medium">{item.name}</h3>
+                        {!item.isAvailable && (
+                          <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded">
+                            Unavailable
+                          </span>
+                        )}
+                        {item.isBestSeller && (
+                          <span className="text-xs bg-yellow-100 text-yellow-600 px-2 py-0.5 rounded">
+                            Best Seller
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {item.description}
+                      </p>
+                      <div className="flex items-center gap-4 mt-2">
+                        <span className="text-sm font-medium">₹{item.price}</span>
+                        <span className="text-sm text-gray-500">
+                          {item.category}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEdit(item)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(item.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </ScrollArea>
       </div>
