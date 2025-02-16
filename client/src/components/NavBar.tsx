@@ -17,7 +17,7 @@ export default function NavBar() {
   }
 
   return (
-    <nav className="fixed top-0 right-0 p-4 flex gap-2 z-50">
+    <nav className="fixed top-0 right-0 p-4 flex gap-2 z-50 md:hidden">
       {verifiedEmail && (
         <Link href={`/orders/${encodeURIComponent(verifiedEmail)}`}>
           <Button variant="outline" size="icon" className="rounded-full bg-white shadow-sm">
