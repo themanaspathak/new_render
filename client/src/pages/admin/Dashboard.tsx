@@ -8,21 +8,23 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 
 export default function AdminDashboard() {
-  // Fetch orders with more frequent refetch
-  const { data: orders } = useQuery<Order[]>({
+  // Fetch orders with more frequent refetch and proper cache invalidation
+  const { data: orders, isLoading } = useQuery<Order[]>({
     queryKey: ["/api/orders"],
-    refetchInterval: 5000, // Refetch every 5 seconds
+    refetchInterval: 2000, // Refetch every 2 seconds for more real-time updates
+    staleTime: 0, // Consider data always stale to ensure fresh fetches
+    cacheTime: 0, // Don't cache the data
   });
 
-  // Calculate statistics
-  const activeOrders = orders?.filter(order => order.status === 'pending') || [];
-  const completedOrders = orders?.filter(order => order.status === 'completed') || [];
+  // Calculate statistics with null checks
+  const activeOrders = orders?.filter(order => order.status === 'pending') ?? [];
+  const completedOrders = orders?.filter(order => order.status === 'completed') ?? [];
 
   const todayOrders = orders?.filter(order => {
     const orderDate = new Date(order.createdAt);
     const today = new Date();
     return orderDate.toDateString() === today.toDateString();
-  }) || [];
+  }) ?? [];
 
   const todayRevenue = todayOrders.reduce((sum, order) => sum + order.total, 0);
 
@@ -31,7 +33,7 @@ export default function AdminDashboard() {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     return orderDate.toDateString() === yesterday.toDateString();
-  }) || [];
+  }) ?? [];
 
   const yesterdayRevenue = yesterdayOrders.reduce((sum, order) => sum + order.total, 0);
   const revenueChange = yesterdayRevenue === 0 ? 0 : ((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100;
@@ -103,7 +105,7 @@ export default function AdminDashboard() {
           <h2 className="text-2xl font-bold">Active Orders</h2>
           <div className="grid gap-4">
             {activeOrders.map((order) => (
-              <Card key={order.id}>
+              <Card key={order.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-4">
                   <div className="flex justify-between items-start">
                     <div>
@@ -111,7 +113,7 @@ export default function AdminDashboard() {
                       <p className="text-sm text-muted-foreground">
                         Table {order.tableNumber}
                       </p>
-                      <div className="mt-2">
+                      <div className="mt-2 space-y-1">
                         {order.items.map((item, index) => (
                           <p key={index} className="text-sm">
                             {item.quantity}x {item.menuItemId}
@@ -129,9 +131,14 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
             ))}
-            {activeOrders.length === 0 && (
+            {!isLoading && activeOrders.length === 0 && (
               <p className="text-center text-muted-foreground py-8">
                 No active orders at the moment
+              </p>
+            )}
+            {isLoading && (
+              <p className="text-center text-muted-foreground py-8">
+                Loading orders...
               </p>
             )}
           </div>
