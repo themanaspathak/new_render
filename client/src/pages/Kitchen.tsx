@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChefHat, Clock, Calendar, FilterX, Pencil, MenuSquare, ClipboardList } from "lucide-react";
+import { ChefHat, Clock, Calendar, FilterX, Pencil, MenuSquare, ClipboardList, Check, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -17,14 +17,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Check, AlertCircle } from "lucide-react";
 
-type View = 'menu' | 'orders';
+type View = 'menu' | 'active' | 'completed' | 'cancelled';
 
 export default function Kitchen() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [currentView, setCurrentView] = useState<View>('orders');
+  const [currentView, setCurrentView] = useState<View>('active');
   const [dateRange, setDateRange] = useState<{
     from: Date | undefined;
     to: Date | undefined;
@@ -255,9 +254,16 @@ export default function Kitchen() {
     );
   };
 
-  const OrdersView = () => (
+  const OrdersView = ({ orders, title }: { orders: Order[], title: string }) => (
     <div className="space-y-6">
       <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <h2 className="text-2xl font-semibold">{title}</h2>
+          <Badge variant="secondary" className="text-sm px-2.5">
+            {orders.length}
+          </Badge>
+        </div>
+
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-muted-foreground" />
@@ -327,96 +333,35 @@ export default function Kitchen() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CardTitle>Active Orders</CardTitle>
-                  <Badge variant="secondary" className="text-sm px-2.5">
-                    {activeOrders.length}
-                  </Badge>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[calc(100vh-340px)]">
-                <div className="space-y-4">
-                  {activeOrders.map((order) => (
-                    <OrderCard key={order.id} order={order} />
-                  ))}
-                  {activeOrders.length === 0 && (
-                    <div className="text-center py-12 text-muted-foreground">
-                      No active orders at the moment
-                    </div>
-                  )}
-                </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
+      <ScrollArea className="h-[calc(100vh-200px)]">
+        <div className="space-y-4 pr-4">
+          {orders.map((order) => (
+            <OrderCard key={order.id} order={order} />
+          ))}
+          {orders.length === 0 && (
+            <div className="text-center py-12 text-muted-foreground">
+              No {title.toLowerCase()} at the moment
+            </div>
+          )}
         </div>
-
-        <div className="lg:col-span-6">
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <CardTitle>Completed Orders</CardTitle>
-                    <Badge variant="secondary" className="text-sm px-2.5">
-                      {completedOrders.length}
-                    </Badge>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[calc(100vh-700px)]">
-                  <div className="space-y-4">
-                    {completedOrders.map((order) => (
-                      <OrderCard key={order.id} order={order} />
-                    ))}
-                    {completedOrders.length === 0 && (
-                      <div className="text-center py-12 text-muted-foreground">
-                        No completed orders
-                      </div>
-                    )}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <CardTitle>Cancelled Orders</CardTitle>
-                    <Badge variant="secondary" className="text-sm px-2.5">
-                      {cancelledOrders.length}
-                    </Badge>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[calc(100vh-700px)]">
-                  <div className="space-y-4">
-                    {cancelledOrders.map((order) => (
-                      <OrderCard key={order.id} order={order} />
-                    ))}
-                    {cancelledOrders.length === 0 && (
-                      <div className="text-center py-12 text-muted-foreground">
-                        No cancelled orders
-                      </div>
-                    )}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
+      </ScrollArea>
     </div>
   );
+
+  const MainContent = () => {
+    switch (currentView) {
+      case 'menu':
+        return <MenuView />;
+      case 'active':
+        return <OrdersView orders={activeOrders} title="Active Orders" />;
+      case 'completed':
+        return <OrdersView orders={completedOrders} title="Completed Orders" />;
+      case 'cancelled':
+        return <OrdersView orders={cancelledOrders} title="Cancelled Orders" />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -437,15 +382,41 @@ export default function Kitchen() {
               Menu Availability
             </Button>
             <Button
-              variant={currentView === 'orders' ? 'default' : 'ghost'}
+              variant={currentView === 'active' ? 'default' : 'ghost'}
               className="w-full justify-start"
-              onClick={() => setCurrentView('orders')}
+              onClick={() => setCurrentView('active')}
             >
               <ClipboardList className="mr-2 h-4 w-4" />
-              Orders
+              Active Orders
               {activeOrders.length > 0 && (
                 <Badge variant="secondary" className="ml-auto">
                   {activeOrders.length}
+                </Badge>
+              )}
+            </Button>
+            <Button
+              variant={currentView === 'completed' ? 'default' : 'ghost'}
+              className="w-full justify-start"
+              onClick={() => setCurrentView('completed')}
+            >
+              <Check className="mr-2 h-4 w-4" />
+              Completed Orders
+              {completedOrders.length > 0 && (
+                <Badge variant="secondary" className="ml-auto">
+                  {completedOrders.length}
+                </Badge>
+              )}
+            </Button>
+            <Button
+              variant={currentView === 'cancelled' ? 'default' : 'ghost'}
+              className="w-full justify-start"
+              onClick={() => setCurrentView('cancelled')}
+            >
+              <AlertCircle className="mr-2 h-4 w-4" />
+              Cancelled Orders
+              {cancelledOrders.length > 0 && (
+                <Badge variant="secondary" className="ml-auto">
+                  {cancelledOrders.length}
                 </Badge>
               )}
             </Button>
@@ -454,7 +425,7 @@ export default function Kitchen() {
 
         {/* Main Content */}
         <div className="flex-1 p-6 overflow-auto">
-          {currentView === 'menu' ? <MenuView /> : <OrdersView />}
+          <MainContent />
         </div>
       </div>
     </div>
