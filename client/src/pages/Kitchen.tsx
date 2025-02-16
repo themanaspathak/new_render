@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ChefHat, Clock, Calendar, FilterX, Pencil, MenuSquare, ClipboardList, Check, AlertCircle } from "lucide-react";
+import { ChefHat, Clock, Calendar, FilterX, Pencil, MenuSquare, ClipboardList, Check, AlertCircle, Menu } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -17,6 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 type View = 'menu' | 'active' | 'completed' | 'cancelled';
 
@@ -24,6 +25,7 @@ export default function Kitchen() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [currentView, setCurrentView] = useState<View>('active');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [dateRange, setDateRange] = useState<{
     from: Date | undefined;
     to: Date | undefined;
@@ -255,18 +257,18 @@ export default function Kitchen() {
   };
 
   const OrdersView = ({ orders, title }: { orders: Order[], title: string }) => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-2">
-          <h2 className="text-2xl font-semibold">{title}</h2>
+          <h2 className="text-xl md:text-2xl font-semibold">{title}</h2>
           <Badge variant="secondary" className="text-sm px-2.5">
             {orders.length}
           </Badge>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-muted-foreground" />
+        <div className="flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm font-medium">Date Filter:</span>
           </div>
           <Popover>
@@ -274,7 +276,7 @@ export default function Kitchen() {
               <Button
                 variant={dateRange.from ? "default" : "outline"}
                 className={cn(
-                  "justify-start text-left font-normal",
+                  "justify-start text-left font-normal text-sm h-9",
                   !dateRange.from && "text-muted-foreground"
                 )}
               >
@@ -294,8 +296,8 @@ export default function Kitchen() {
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
               <div className="p-3 border-b">
-                <h3 className="font-medium">Filter Orders by Date</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="font-medium text-sm">Filter Orders by Date</h3>
+                <p className="text-xs text-muted-foreground mt-1">
                   Select a date range to view orders
                 </p>
               </div>
@@ -313,7 +315,7 @@ export default function Kitchen() {
                     to: range?.to,
                   });
                 }}
-                numberOfMonths={2}
+                numberOfMonths={1}
                 className="p-3"
               />
             </PopoverContent>
@@ -324,7 +326,7 @@ export default function Kitchen() {
               variant="ghost"
               size="icon"
               onClick={() => setDateRange({ from: undefined, to: undefined })}
-              className="h-10 w-10 rounded-full"
+              className="h-9 w-9"
               title="Clear date filter"
             >
               <FilterX className="h-4 w-4" />
@@ -333,7 +335,7 @@ export default function Kitchen() {
         </div>
       </div>
 
-      <ScrollArea className="h-[calc(100vh-200px)]">
+      <ScrollArea className="h-[calc(100vh-180px)]">
         <div className="space-y-4 pr-4">
           {orders.map((order) => (
             <OrderCard key={order.id} order={order} />
@@ -363,68 +365,100 @@ export default function Kitchen() {
     }
   };
 
+  const NavContent = () => (
+    <>
+      <div className="flex items-center gap-3 mb-8">
+        <ChefHat className="h-7 w-7" />
+        <h1 className="text-xl font-bold">Kitchen</h1>
+      </div>
+      <nav className="space-y-1.5">
+        <Button
+          variant={currentView === 'menu' ? 'default' : 'ghost'}
+          className="w-full justify-start text-sm"
+          onClick={() => {
+            setCurrentView('menu');
+            setIsMobileMenuOpen(false);
+          }}
+        >
+          <MenuSquare className="mr-2 h-4 w-4" />
+          Menu Availability
+        </Button>
+        <Button
+          variant={currentView === 'active' ? 'default' : 'ghost'}
+          className="w-full justify-start text-sm"
+          onClick={() => {
+            setCurrentView('active');
+            setIsMobileMenuOpen(false);
+          }}
+        >
+          <ClipboardList className="mr-2 h-4 w-4" />
+          Active Orders
+          {activeOrders.length > 0 && (
+            <Badge variant="secondary" className="ml-auto text-xs px-1.5">
+              {activeOrders.length}
+            </Badge>
+          )}
+        </Button>
+        <Button
+          variant={currentView === 'completed' ? 'default' : 'ghost'}
+          className="w-full justify-start text-sm"
+          onClick={() => {
+            setCurrentView('completed');
+            setIsMobileMenuOpen(false);
+          }}
+        >
+          <Check className="mr-2 h-4 w-4" />
+          Completed Orders
+          {completedOrders.length > 0 && (
+            <Badge variant="secondary" className="ml-auto text-xs px-1.5">
+              {completedOrders.length}
+            </Badge>
+          )}
+        </Button>
+        <Button
+          variant={currentView === 'cancelled' ? 'default' : 'ghost'}
+          className="w-full justify-start text-sm"
+          onClick={() => {
+            setCurrentView('cancelled');
+            setIsMobileMenuOpen(false);
+          }}
+        >
+          <AlertCircle className="mr-2 h-4 w-4" />
+          Cancelled Orders
+          {cancelledOrders.length > 0 && (
+            <Badge variant="secondary" className="ml-auto text-xs px-1.5">
+              {cancelledOrders.length}
+            </Badge>
+          )}
+        </Button>
+      </nav>
+    </>
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <div className="flex h-screen">
-        {/* Sidebar */}
-        <div className="w-64 border-r bg-card p-4">
-          <div className="flex items-center gap-3 mb-8">
-            <ChefHat className="h-8 w-8" />
-            <h1 className="text-2xl font-bold">Kitchen</h1>
-          </div>
-          <nav className="space-y-2">
-            <Button
-              variant={currentView === 'menu' ? 'default' : 'ghost'}
-              className="w-full justify-start"
-              onClick={() => setCurrentView('menu')}
-            >
-              <MenuSquare className="mr-2 h-4 w-4" />
-              Menu Availability
-            </Button>
-            <Button
-              variant={currentView === 'active' ? 'default' : 'ghost'}
-              className="w-full justify-start"
-              onClick={() => setCurrentView('active')}
-            >
-              <ClipboardList className="mr-2 h-4 w-4" />
-              Active Orders
-              {activeOrders.length > 0 && (
-                <Badge variant="secondary" className="ml-auto">
-                  {activeOrders.length}
-                </Badge>
-              )}
-            </Button>
-            <Button
-              variant={currentView === 'completed' ? 'default' : 'ghost'}
-              className="w-full justify-start"
-              onClick={() => setCurrentView('completed')}
-            >
-              <Check className="mr-2 h-4 w-4" />
-              Completed Orders
-              {completedOrders.length > 0 && (
-                <Badge variant="secondary" className="ml-auto">
-                  {completedOrders.length}
-                </Badge>
-              )}
-            </Button>
-            <Button
-              variant={currentView === 'cancelled' ? 'default' : 'ghost'}
-              className="w-full justify-start"
-              onClick={() => setCurrentView('cancelled')}
-            >
-              <AlertCircle className="mr-2 h-4 w-4" />
-              Cancelled Orders
-              {cancelledOrders.length > 0 && (
-                <Badge variant="secondary" className="ml-auto">
-                  {cancelledOrders.length}
-                </Badge>
-              )}
-            </Button>
-          </nav>
+        {/* Mobile Menu Button */}
+        <div className="md:hidden fixed top-4 left-4 z-50">
+          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon" className="h-10 w-10">
+                <Menu className="h-4 w-4" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[240px] p-4">
+              <NavContent />
+            </SheetContent>
+          </Sheet>
+        </div>
+
+        {/* Desktop Sidebar */}
+        <div className="hidden md:block w-[240px] border-r bg-card p-4">
+          <NavContent />
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-6 overflow-auto">
+        <div className="flex-1 p-4 md:p-6 overflow-auto w-full">
           <MainContent />
         </div>
       </div>
