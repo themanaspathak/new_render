@@ -30,15 +30,7 @@ export default function Menu() {
     nonVegOnly: false,
     bestSeller: false
   });
-  const [customizations, setCustomizations] = useState<{
-    portionSize: 'medium' | 'full';
-    isJain: boolean;
-    taste: string;
-  }>({
-    portionSize: 'medium',
-    isJain: false,
-    taste: 'regular'
-  });
+  const [selectedCustomizations, setSelectedCustomizations] = useState<Record<string, string[]>>({});
 
   // Function to get quantity of item in cart
   const getItemQuantity = (itemId: number) => {
@@ -55,11 +47,7 @@ export default function Menu() {
       item: {
         menuItem: selectedItem,
         quantity,
-        customizations: {
-          "Portion Size": [customizations.portionSize],
-          "Preparation": [customizations.isJain ? "Jain" : "Regular"],
-          "Taste": [customizations.taste],
-        },
+        customizations: selectedCustomizations,
       },
     });
 
@@ -70,11 +58,7 @@ export default function Menu() {
 
     setSelectedItem(null);
     setQuantity(1);
-    setCustomizations({
-      portionSize: 'medium',
-      isJain: false,
-      taste: 'regular'
-    });
+    setSelectedCustomizations({});
   };
 
   // Function to update quantity
@@ -127,16 +111,8 @@ export default function Menu() {
   const handleItemClick = (item: MenuItem) => {
     setSelectedItem(item);
     setQuantity(1);
-    setCustomizations({
-      portionSize: 'medium',
-      isJain: false,
-      taste: 'regular'
-    });
+    setSelectedCustomizations({});
   };
-
-  const basePrice = selectedItem ? Math.round(selectedItem.price) : 0;
-  const currentPrice = customizations.portionSize === 'full' ? Math.round(basePrice * 1.5) : basePrice;
-  const totalPrice = currentPrice * quantity;
 
   const renderItemButton = (item: MenuItem) => {
     const quantity = getItemQuantity(item.id);
@@ -397,11 +373,7 @@ export default function Menu() {
           if (!open) {
             setSelectedItem(null);
             setQuantity(1);
-            setCustomizations({
-              portionSize: 'medium',
-              isJain: false,
-              taste: 'regular'
-            });
+            setSelectedCustomizations({});
           }
         }}>
           <DialogContent className="sm:max-w-md">
@@ -410,69 +382,30 @@ export default function Menu() {
             </DialogHeader>
 
             <div className="space-y-6 py-4">
-              <div className="space-y-3">
-                <h3 className="font-medium">Portion Size</h3>
-                <p className="text-sm text-gray-500">Select any 1</p>
-                <RadioGroup
-                  value={customizations.portionSize}
-                  onValueChange={(value) => setCustomizations(prev => ({
-                    ...prev,
-                    portionSize: value as 'medium' | 'full'
-                  }))}
-                >
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="medium" id="medium" />
-                      <Label htmlFor="medium">Medium-300ML Aprox.</Label>
-                    </div>
-                    <span>₹{basePrice}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="full" id="full" />
-                      <Label htmlFor="full">Full-500ML Aprox.</Label>
-                    </div>
-                    <span>₹{Math.round(basePrice * 1.5)}</span>
-                  </div>
-                </RadioGroup>
-              </div>
-
-              <div className="space-y-3">
-                <h3 className="font-medium">Select For Jain Prepration</h3>
-                <RadioGroup
-                  value={customizations.isJain ? "jain" : "regular"}
-                  onValueChange={(value) => setCustomizations(prev => ({
-                    ...prev,
-                    isJain: value === "jain"
-                  }))}
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="jain" id="jain" />
-                    <Label htmlFor="jain">Jain</Label>
-                  </div>
-                </RadioGroup>
-              </div>
-
-              <div className="space-y-3">
-                <h3 className="font-medium">Choice Of Taste</h3>
-                <p className="text-sm text-gray-500">Select upto 1</p>
-                <RadioGroup
-                  value={customizations.taste}
-                  onValueChange={(value) => setCustomizations(prev => ({
-                    ...prev,
-                    taste: value
-                  }))}
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="regular" id="regular" />
-                    <Label htmlFor="regular">Regular (little Sweet)</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="spicy" id="spicy" />
-                    <Label htmlFor="spicy">Spicy (punjabi Gravy)</Label>
-                  </div>
-                </RadioGroup>
-              </div>
+              {selectedItem?.customizations?.options.map((option, index) => (
+                <div key={index} className="space-y-3">
+                  <h3 className="font-medium">{option.name}</h3>
+                  <p className="text-sm text-gray-500">
+                    Select {option.maxChoices === 1 ? 'one option' : `up to ${option.maxChoices} options`}
+                  </p>
+                  <RadioGroup
+                    value={selectedCustomizations[option.name]?.[0] || ''}
+                    onValueChange={(value) => {
+                      setSelectedCustomizations(prev => ({
+                        ...prev,
+                        [option.name]: [value]
+                      }));
+                    }}
+                  >
+                    {option.choices.map((choice, choiceIndex) => (
+                      <div key={choiceIndex} className="flex items-center space-x-2">
+                        <RadioGroupItem value={choice} id={`${option.name}-${choice}`} />
+                        <Label htmlFor={`${option.name}-${choice}`}>{choice}</Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                </div>
+              ))}
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -499,7 +432,7 @@ export default function Menu() {
                     onClick={handleCustomizedAddToCart}
                     className="bg-green-600 hover:bg-green-700 text-white"
                   >
-                    Add Item | ₹{totalPrice}
+                    Add Item | ₹{Math.round(selectedItem?.price || 0) * quantity}
                   </Button>
                 </div>
               </div>
