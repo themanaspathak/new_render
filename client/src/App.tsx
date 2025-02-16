@@ -17,19 +17,21 @@ import OrderHistory from "@/pages/OrderHistory";
 import { CartProvider } from "@/contexts/CartContext";
 import NavBar from "@/components/NavBar";
 import { ProtectedAdminRoute } from "@/lib/protected-admin-route";
+import { ProtectedCustomerRoute } from "@/lib/protected-customer-route";
 
 function Router() {
   return (
     <>
-      <NavBar />
       <Switch>
         {/* Customer Routes */}
         <Route path="/" component={Menu} />
-        <Route path="/cart" component={Cart} />
-        <Route path="/checkout" component={Checkout} />
+        <ProtectedCustomerRoute path="/cart" component={Cart} />
+        <ProtectedCustomerRoute path="/checkout" component={Checkout} />
         <Route path="/mobile-verification" component={MobileVerification} />
         <Route path="/order-confirmed" component={OrderConfirmed} />
-        <Route path="/orders/:mobile" component={OrderHistory} />
+        <ProtectedCustomerRoute path="/orders/:mobile" component={OrderHistory} />
+
+        {/* Kitchen Route */}
         <Route path="/kitchen" component={Kitchen} />
 
         {/* Admin Routes */}
@@ -41,6 +43,8 @@ function Router() {
         {/* 404 Route */}
         <Route component={NotFound} />
       </Switch>
+      <NavBar />
+      <Toaster />
     </>
   );
 }
@@ -50,7 +54,6 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <CartProvider>
         <Router />
-        <Toaster />
       </CartProvider>
     </QueryClientProvider>
   );
