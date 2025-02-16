@@ -15,11 +15,6 @@ interface AdminLayoutProps {
 
 const sidebarItems = [
   {
-    icon: LayoutDashboard,
-    label: "Dashboard",
-    href: "/admin",
-  },
-  {
     icon: MenuIcon,
     label: "Menu Management",
     href: "/admin/menu",
