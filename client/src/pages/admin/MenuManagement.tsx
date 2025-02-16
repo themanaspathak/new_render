@@ -70,8 +70,10 @@ export default function MenuManagement() {
     },
   });
 
-  const { data: menuItems, isLoading, error } = useQuery<MenuItem[]>({
+  const { data: menuItems, isLoading, error, refetch } = useQuery<MenuItem[]>({
     queryKey: ["/api/menu"],
+    refetchOnWindowFocus: false,
+    staleTime: 0,
   });
 
   const handleSubmit = async (data: MenuItemFormData) => {
@@ -86,7 +88,16 @@ export default function MenuManagement() {
       const method = editingItem ? "PATCH" : "POST";
 
       await apiRequest(endpoint, method, payload);
-      await queryClient.invalidateQueries({ queryKey: ["/api/menu"] });
+
+      // Force a refetch to get fresh data
+      await refetch();
+
+      // Also invalidate the query to ensure cache is cleared
+      await queryClient.invalidateQueries({ 
+        queryKey: ["/api/menu"],
+        exact: true,
+        refetchType: 'all'
+      });
 
       toast({
         title: `Menu Item ${editingItem ? "Updated" : "Added"}`,
@@ -113,7 +124,16 @@ export default function MenuManagement() {
 
     try {
       await apiRequest(`/api/menu/${id}`, "DELETE");
-      await queryClient.invalidateQueries({ queryKey: ["/api/menu"] });
+
+      // Force a refetch after deletion
+      await refetch();
+
+      // Also invalidate the query
+      await queryClient.invalidateQueries({ 
+        queryKey: ["/api/menu"],
+        exact: true,
+        refetchType: 'all'
+      });
 
       toast({
         title: "Menu Item Deleted",
