@@ -17,6 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Check, AlertCircle } from "lucide-react";
 
 export default function Kitchen() {
   const { toast } = useToast();
@@ -128,6 +129,32 @@ export default function Kitchen() {
   if (menuLoading || ordersLoading) {
     return <div className="p-4">Loading kitchen dashboard...</div>;
   }
+
+  const MenuItemAvailability = ({ item }: { item: MenuItem }) => {
+    return (
+      <div className="flex items-center justify-between p-4 border-b last:border-b-0">
+        <div className="flex items-center gap-3">
+          <div className={`w-2 h-2 rounded-full ${item.isVegetarian ? 'bg-green-500' : 'bg-red-500'}`} />
+          <div>
+            <p className="font-medium">{item.name}</p>
+            <p className="text-sm text-muted-foreground">{item.category}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {item.isAvailable ? (
+            <Check className="h-4 w-4 text-green-500" />
+          ) : (
+            <AlertCircle className="h-4 w-4 text-gray-400" />
+          )}
+          <Switch
+            checked={item.isAvailable}
+            onCheckedChange={() => handleAvailabilityToggle(item.id)}
+            className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-gray-200"
+          />
+        </div>
+      </div>
+    );
+  };
 
   const OrderCard = ({ order }: { order: Order }) => {
     const currentStatus = getOrderStatus(order);
@@ -301,6 +328,26 @@ export default function Kitchen() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8">
+          <div className="lg:col-span-12 mb-8">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Menu Items Availability</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Toggle availability for menu items
+                  </p>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="divide-y">
+                  {menuItems?.map((item) => (
+                    <MenuItemAvailability key={item.id} item={item} />
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           <div className="lg:col-span-6">
             <div className="flex items-center gap-3 mb-4">
               <h2 className="text-xl lg:text-2xl font-semibold">Active Orders</h2>
