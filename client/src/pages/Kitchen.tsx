@@ -82,7 +82,6 @@ export default function Kitchen() {
         return newState;
       });
 
-      // Show more specific error message
       toast({
         title: 'Cannot Update Order',
         description: error instanceof Error ? error.message : 'Failed to update order status',
@@ -116,8 +115,6 @@ export default function Kitchen() {
     queryKey: ["/api/orders"],
   });
 
-  console.log("Fetched orders:", orders); // Debug log
-
   const filteredOrders = orders?.filter(order => {
     if (!dateRange.from || !dateRange.to) return true;
     const orderDate = new Date(order.createdAt);
@@ -127,8 +124,6 @@ export default function Kitchen() {
   const activeOrders = filteredOrders.filter(order => order.status === 'in progress') || [];
   const completedOrders = filteredOrders.filter(order => order.status === 'completed') || [];
   const cancelledOrders = filteredOrders.filter(order => order.status === 'cancelled') || [];
-
-  console.log("Active orders:", activeOrders); // Debug log
 
   if (menuLoading || ordersLoading) {
     return <div className="p-4">Loading kitchen dashboard...</div>;
@@ -140,16 +135,16 @@ export default function Kitchen() {
     const isActionable = currentStatus === "in progress";
 
     return (
-      <Card key={order.id} className="mb-4 shadow-sm border">
-        <CardHeader className="bg-muted/50 p-4">
+      <Card key={order.id} className="mb-4 shadow-md border-0 hover:shadow-lg transition-shadow duration-200">
+        <CardHeader className="bg-muted/50 p-4 lg:p-5">
           <div className="flex flex-col gap-3">
             <div className="flex justify-between items-center">
-              <Badge variant="default" className="text-sm px-2.5 py-1 bg-primary/90 hover:bg-primary">
+              <Badge variant="default" className="text-sm px-3 py-1 bg-primary/90 hover:bg-primary">
                 Order #{order.id}
               </Badge>
               <Badge
                 className={cn(
-                  "text-sm px-2.5 py-1",
+                  "text-sm px-3 py-1",
                   getStatusBadgeStyle(currentStatus)
                 )}
               >
@@ -157,17 +152,17 @@ export default function Kitchen() {
               </Badge>
             </div>
             <div className="flex flex-col gap-2">
-              <CardTitle className="text-2xl font-bold">
+              <CardTitle className="text-2xl lg:text-3xl font-bold">
                 Table #{order.tableNumber}
               </CardTitle>
-              <div className="text-sm text-muted-foreground space-y-1">
-                <div className="font-medium text-foreground">
+              <div className="text-sm text-muted-foreground space-y-1.5">
+                <div className="font-medium text-base text-foreground">
                   {order.customerName}
                 </div>
                 <div>+91 {order.mobileNumber}</div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  <span title={format(orderDate, 'PPpp')}>
+                  <span className="text-sm" title={format(orderDate, 'PPpp')}>
                     {format(orderDate, 'hh:mm aa')} - {format(orderDate, 'dd/MM/yyyy')}
                   </span>
                 </div>
@@ -175,14 +170,14 @@ export default function Kitchen() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-4">
+        <CardContent className="p-4 lg:p-5">
           <div className="space-y-4">
             {order.items.map((item, index) => {
               const menuItem = menuItems?.find(m => m.id === item.menuItemId);
               return (
                 <div key={index} className="flex justify-between items-start py-2 border-b last:border-0">
                   <div className="space-y-2">
-                    <p className="font-medium">{menuItem?.name} × {item.quantity}</p>
+                    <p className="font-medium text-base">{menuItem?.name} × {item.quantity}</p>
                     <div className="text-sm text-gray-600">
                       {Object.entries(item.customizations).map(([category, choices]) => (
                         <div key={category} className="ml-4">
@@ -195,12 +190,12 @@ export default function Kitchen() {
               );
             })}
             {order.cookingInstructions && (
-              <div className="mt-4 p-4 bg-muted/50 rounded-md">
+              <div className="mt-4 p-4 bg-muted/50 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <Pencil className="h-4 w-4 text-gray-600" />
                   <span className="font-medium">Special Instructions:</span>
                 </div>
-                <p className="text-sm text-gray-600">{order.cookingInstructions}</p>
+                <p className="text-sm text-gray-600 leading-relaxed">{order.cookingInstructions}</p>
               </div>
             )}
           </div>
@@ -209,14 +204,14 @@ export default function Kitchen() {
               <Button
                 onClick={() => handleStatusUpdate(order.id, 'cancelled')}
                 variant="destructive"
-                className="w-full py-2"
+                className="w-full py-2.5 text-sm font-medium"
               >
                 Can't serve
               </Button>
               <Button
                 onClick={() => handleStatusUpdate(order.id, 'completed')}
                 variant="default"
-                className="w-full bg-green-600 hover:bg-green-700 py-2"
+                className="w-full bg-green-600 hover:bg-green-700 py-2.5 text-sm font-medium"
               >
                 Served
               </Button>
@@ -228,138 +223,146 @@ export default function Kitchen() {
   };
 
   return (
-    <div className="container mx-auto max-w-[1800px] space-y-6 p-4 md:p-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6">
-        <div className="flex items-center gap-3">
-          <ChefHat className="h-8 w-8" />
-          <h1 className="text-2xl md:text-3xl font-bold">Kitchen Dashboard</h1>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-muted-foreground hidden md:block" />
-            <span className="text-sm font-medium">Date Filter:</span>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto max-w-[1800px] px-4 py-6 lg:px-8 lg:py-8">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-8 mb-6 lg:mb-8">
+          <div className="flex items-center gap-3">
+            <ChefHat className="h-8 w-8 lg:h-10 lg:w-10" />
+            <h1 className="text-2xl lg:text-4xl font-bold">Kitchen Dashboard</h1>
           </div>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={dateRange.from ? "default" : "outline"}
-                className={cn(
-                  "justify-start text-left font-normal min-w-[200px] md:min-w-[240px]",
-                  !dateRange.from && "text-muted-foreground"
-                )}
-              >
-                {dateRange.from ? (
-                  dateRange.to ? (
-                    <>
-                      {format(dateRange.from, "dd/MM/yyyy")} -{" "}
-                      {format(dateRange.to, "dd/MM/yyyy")}
-                    </>
+
+          <div className="flex items-center gap-4">
+            <div className="hidden lg:flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-muted-foreground" />
+              <span className="text-sm font-medium">Date Filter:</span>
+            </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={dateRange.from ? "default" : "outline"}
+                  className={cn(
+                    "justify-start text-left font-normal min-w-[200px] lg:min-w-[280px]",
+                    !dateRange.from && "text-muted-foreground"
+                  )}
+                >
+                  {dateRange.from ? (
+                    dateRange.to ? (
+                      <>
+                        {format(dateRange.from, "dd/MM/yyyy")} -{" "}
+                        {format(dateRange.to, "dd/MM/yyyy")}
+                      </>
+                    ) : (
+                      format(dateRange.from, "dd/MM/yyyy")
+                    )
                   ) : (
-                    format(dateRange.from, "dd/MM/yyyy")
-                  )
-                ) : (
-                  "Select date range"
-                )}
+                    "Select date range"
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <div className="p-3 border-b">
+                  <h3 className="font-medium">Filter Orders by Date</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Select a date range to view orders
+                  </p>
+                </div>
+                <CalendarComponent
+                  initialFocus
+                  mode="range"
+                  defaultMonth={dateRange.from}
+                  selected={{
+                    from: dateRange.from,
+                    to: dateRange.to,
+                  }}
+                  onSelect={(range) => {
+                    setDateRange({
+                      from: range?.from,
+                      to: range?.to,
+                    });
+                  }}
+                  numberOfMonths={2}
+                  className="p-3"
+                />
+              </PopoverContent>
+            </Popover>
+
+            {(dateRange.from || dateRange.to) && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setDateRange({ from: undefined, to: undefined })}
+                className="h-10 w-10 rounded-full"
+                title="Clear date filter"
+              >
+                <FilterX className="h-4 w-4" />
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <CalendarComponent
-                initialFocus
-                mode="range"
-                defaultMonth={dateRange.from}
-                selected={{
-                  from: dateRange.from,
-                  to: dateRange.to,
-                }}
-                onSelect={(range) => {
-                  setDateRange({
-                    from: range?.from,
-                    to: range?.to,
-                  });
-                }}
-                numberOfMonths={1}
-                className="p-3"
-              />
-            </PopoverContent>
-          </Popover>
-
-          {(dateRange.from || dateRange.to) && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setDateRange({ from: undefined, to: undefined })}
-              className="h-9 w-9 rounded-full"
-              title="Clear date filter"
-            >
-              <FilterX className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-10 gap-4 md:gap-6">
-        <div className="lg:col-span-5">
-          <div className="flex items-center gap-2 mb-4">
-            <h2 className="text-xl md:text-2xl font-semibold">Active Orders</h2>
-            <Badge variant="secondary" className="text-sm">
-              {activeOrders.length}
-            </Badge>
+            )}
           </div>
-          <ScrollArea className="h-[calc(100vh-220px)]">
-            <div className="space-y-4 pr-4">
-              {activeOrders.map((order) => (
-                <OrderCard key={order.id} order={order} />
-              ))}
-              {activeOrders.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  No active orders at the moment
-                </div>
-              )}
-            </div>
-          </ScrollArea>
         </div>
 
-        <div className="lg:col-span-3">
-          <div className="flex items-center gap-2 mb-4">
-            <h2 className="text-xl md:text-2xl font-semibold">Completed</h2>
-            <Badge variant="secondary" className="text-sm">
-              {completedOrders.length}
-            </Badge>
-          </div>
-          <ScrollArea className="h-[calc(100vh-220px)]">
-            <div className="space-y-4 pr-4">
-              {completedOrders.map((order) => (
-                <OrderCard key={order.id} order={order} />
-              ))}
-              {completedOrders.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  No completed orders
-                </div>
-              )}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8">
+          <div className="lg:col-span-6">
+            <div className="flex items-center gap-3 mb-4">
+              <h2 className="text-xl lg:text-2xl font-semibold">Active Orders</h2>
+              <Badge variant="secondary" className="text-sm px-2.5">
+                {activeOrders.length}
+              </Badge>
             </div>
-          </ScrollArea>
-        </div>
+            <ScrollArea className="h-[calc(100vh-200px)] lg:h-[calc(100vh-180px)] rounded-lg border bg-card">
+              <div className="space-y-4 p-4">
+                {activeOrders.map((order) => (
+                  <OrderCard key={order.id} order={order} />
+                ))}
+                {activeOrders.length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground">
+                    No active orders at the moment
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
 
-        <div className="lg:col-span-2">
-          <div className="flex items-center gap-2 mb-4">
-            <h2 className="text-xl md:text-2xl font-semibold">Cancelled</h2>
-            <Badge variant="secondary" className="text-sm">
-              {cancelledOrders.length}
-            </Badge>
-          </div>
-          <ScrollArea className="h-[calc(100vh-220px)]">
-            <div className="space-y-4 pr-4">
-              {cancelledOrders.map((order) => (
-                <OrderCard key={order.id} order={order} />
-              ))}
-              {cancelledOrders.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  No cancelled orders
-                </div>
-              )}
+          <div className="lg:col-span-4">
+            <div className="flex items-center gap-3 mb-4">
+              <h2 className="text-xl lg:text-2xl font-semibold">Completed</h2>
+              <Badge variant="secondary" className="text-sm px-2.5">
+                {completedOrders.length}
+              </Badge>
             </div>
-          </ScrollArea>
+            <ScrollArea className="h-[calc(100vh-200px)] lg:h-[calc(100vh-180px)] rounded-lg border bg-card">
+              <div className="space-y-4 p-4">
+                {completedOrders.map((order) => (
+                  <OrderCard key={order.id} order={order} />
+                ))}
+                {completedOrders.length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground">
+                    No completed orders
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+
+          <div className="lg:col-span-2">
+            <div className="flex items-center gap-3 mb-4">
+              <h2 className="text-xl lg:text-2xl font-semibold">Cancelled</h2>
+              <Badge variant="secondary" className="text-sm px-2.5">
+                {cancelledOrders.length}
+              </Badge>
+            </div>
+            <ScrollArea className="h-[calc(100vh-200px)] lg:h-[calc(100vh-180px)] rounded-lg border bg-card">
+              <div className="space-y-4 p-4">
+                {cancelledOrders.map((order) => (
+                  <OrderCard key={order.id} order={order} />
+                ))}
+                {cancelledOrders.length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground">
+                    No cancelled orders
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
         </div>
       </div>
     </div>
