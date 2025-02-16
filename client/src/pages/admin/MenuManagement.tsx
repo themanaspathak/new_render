@@ -23,7 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Trash2, Plus, Pencil, Loader2 } from "lucide-react";
+import { Trash2, Plus, Pencil, Loader2, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -33,6 +33,12 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AdminLayout } from "@/components/layouts/AdminLayout";
+
+const customizationOptionSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  choices: z.array(z.string()).min(1, "At least one choice is required"),
+  maxChoices: z.number().min(1, "Max choices must be at least 1")
+});
 
 const menuItemSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -45,6 +51,9 @@ const menuItemSchema = z.object({
   imageUrl: z.string().min(1, "Image URL is required").url("Must be a valid URL"),
   isBestSeller: z.boolean().default(false),
   isAvailable: z.boolean().default(true),
+  customizations: z.object({
+    options: z.array(customizationOptionSchema)
+  }).default({ options: [] })
 });
 
 type MenuItemFormData = z.infer<typeof menuItemSchema>;
@@ -55,6 +64,7 @@ export default function MenuManagement() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newChoice, setNewChoice] = useState("");
 
   const form = useForm<MenuItemFormData>({
     resolver: zodResolver(menuItemSchema),
@@ -67,6 +77,9 @@ export default function MenuManagement() {
       imageUrl: "",
       isBestSeller: false,
       isAvailable: true,
+      customizations: {
+        options: []
+      }
     },
   });
 
@@ -92,10 +105,7 @@ export default function MenuManagement() {
       const response = await apiRequest(endpoint, method, payload);
       console.log("Submit response:", response);
 
-      // Force a refetch to get fresh data
       await refetch();
-
-      // Also invalidate the query cache
       await queryClient.invalidateQueries({
         queryKey: ["/api/menu"],
         exact: true,
@@ -132,10 +142,7 @@ export default function MenuManagement() {
       const response = await apiRequest(`/api/menu/${id}`, "DELETE");
       console.log("Delete response:", response);
 
-      // Force a refetch to get fresh data
       await refetch();
-
-      // Also invalidate the query cache
       await queryClient.invalidateQueries({
         queryKey: ["/api/menu"],
         exact: true,
@@ -144,7 +151,7 @@ export default function MenuManagement() {
 
       toast({
         title: "Menu Item Deleted",
-        description: "Successfully deleted the menu item",
+        description: "Successfully deleted menu item",
       });
     } catch (error) {
       console.error("Error deleting menu item:", error);
@@ -169,8 +176,43 @@ export default function MenuManagement() {
       imageUrl: item.imageUrl,
       isBestSeller: item.isBestSeller,
       isAvailable: item.isAvailable,
+      customizations: item.customizations || { options: [] }
     });
     setIsAddDialogOpen(true);
+  };
+
+  const addCustomizationOption = () => {
+    const currentOptions = form.getValues("customizations.options") || [];
+    form.setValue("customizations.options", [
+      ...currentOptions,
+      { name: "", choices: [], maxChoices: 1 }
+    ]);
+  };
+
+  const removeCustomizationOption = (index: number) => {
+    const currentOptions = form.getValues("customizations.options");
+    form.setValue(
+      "customizations.options",
+      currentOptions.filter((_, i) => i !== index)
+    );
+  };
+
+  const addChoice = (optionIndex: number) => {
+    if (!newChoice.trim()) return;
+    const currentOptions = form.getValues("customizations.options");
+    const updatedOptions = [...currentOptions];
+    updatedOptions[optionIndex].choices = [...updatedOptions[optionIndex].choices, newChoice.trim()];
+    form.setValue("customizations.options", updatedOptions);
+    setNewChoice("");
+  };
+
+  const removeChoice = (optionIndex: number, choiceIndex: number) => {
+    const currentOptions = form.getValues("customizations.options");
+    const updatedOptions = [...currentOptions];
+    updatedOptions[optionIndex].choices = updatedOptions[optionIndex].choices.filter(
+      (_, i) => i !== choiceIndex
+    );
+    form.setValue("customizations.options", updatedOptions);
   };
 
   if (error) {
@@ -317,6 +359,111 @@ export default function MenuManagement() {
                         </FormItem>
                       )}
                     />
+
+                    {/* Customization Options Section */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold">Customization Options</h3>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={addCustomizationOption}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Option
+                        </Button>
+                      </div>
+
+                      {form.watch("customizations.options")?.map((option, optionIndex) => (
+                        <div key={optionIndex} className="space-y-4 p-4 border rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <FormField
+                              control={form.control}
+                              name={`customizations.options.${optionIndex}.name`}
+                              render={({ field }) => (
+                                <FormItem className="flex-1 mr-4">
+                                  <FormLabel>Option Name</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} placeholder="e.g., Spice Level" />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeCustomizationOption(optionIndex)}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+
+                          <FormField
+                            control={form.control}
+                            name={`customizations.options.${optionIndex}.maxChoices`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Max Choices</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    min="1"
+                                    {...field}
+                                    onChange={(e) => field.onChange(parseInt(e.target.value))}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <div className="space-y-2">
+                            <FormLabel>Choices</FormLabel>
+                            <div className="flex flex-wrap gap-2">
+                              {option.choices.map((choice, choiceIndex) => (
+                                <div
+                                  key={choiceIndex}
+                                  className="flex items-center bg-secondary text-secondary-foreground px-2 py-1 rounded-md"
+                                >
+                                  <span>{choice}</span>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-4 w-4 ml-2"
+                                    onClick={() => removeChoice(optionIndex, choiceIndex)}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                            <div className="flex gap-2">
+                              <Input
+                                value={newChoice}
+                                onChange={(e) => setNewChoice(e.target.value)}
+                                placeholder="Add new choice"
+                                onKeyPress={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    addChoice(optionIndex);
+                                  }
+                                }}
+                              />
+                              <Button
+                                type="button"
+                                onClick={() => addChoice(optionIndex)}
+                              >
+                                Add
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </form>
                 </ScrollArea>
                 <div className="flex justify-end gap-2 pt-4 px-3 border-t mt-4">
@@ -399,6 +546,13 @@ export default function MenuManagement() {
                           {item.category}
                         </span>
                       </div>
+                      {item.customizations?.options?.length > 0 && (
+                        <div className="mt-2">
+                          <p className="text-sm text-gray-500">
+                            Customization Options: {item.customizations.options.map(opt => opt.name).join(", ")}
+                          </p>
+                        </div>
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       <Button
