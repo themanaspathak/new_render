@@ -196,38 +196,73 @@ export class DatabaseStorage implements IStorage {
   }
   async updateMenuItem(id: number, menuItem: Partial<MenuItem>): Promise<MenuItem> {
     try {
-      console.log("Updating menu item:", id, menuItem);
+      console.log("Starting update of menu item:", id, "with data:", menuItem);
+
+      // First verify the item exists
+      const [existingItem] = await db
+        .select()
+        .from(menuItems)
+        .where(eq(menuItems.id, id));
+
+      if (!existingItem) {
+        console.error(`Menu item with ID ${id} not found for update`);
+        throw new Error(`Menu item with ID ${id} not found`);
+      }
+
+      console.log("Found item to update:", existingItem);
+
       const [updatedItem] = await db
         .update(menuItems)
         .set(menuItem)
         .where(eq(menuItems.id, id))
         .returning();
 
+      console.log("Update result:", updatedItem);
+
       if (!updatedItem) {
-        throw new Error(`Menu item with ID ${id} not found`);
+        throw new Error(`Failed to update menu item ${id}`);
       }
 
+      console.log(`Successfully updated menu item ${id}`);
       return updatedItem;
     } catch (error) {
-      console.error("Error updating menu item:", error);
-      throw new Error(`Failed to update menu item ${id}`);
+      console.error("Error in updateMenuItem:", error);
+      throw error;
     }
   }
 
   async deleteMenuItem(id: number): Promise<void> {
     try {
-      console.log("Deleting menu item:", id);
+      console.log("Starting deletion of menu item:", id);
+
+      // First verify the item exists
+      const [existingItem] = await db
+        .select()
+        .from(menuItems)
+        .where(eq(menuItems.id, id));
+
+      if (!existingItem) {
+        console.error(`Menu item with ID ${id} not found for deletion`);
+        throw new Error(`Menu item with ID ${id} not found`);
+      }
+
+      console.log("Found item to delete:", existingItem);
+
       const result = await db
         .delete(menuItems)
         .where(eq(menuItems.id, id))
         .returning();
 
+      console.log("Deletion result:", result);
+
       if (result.length === 0) {
-        throw new Error(`Menu item with ID ${id} not found`);
+        throw new Error(`Failed to delete menu item ${id}`);
       }
+
+      console.log(`Successfully deleted menu item ${id}`);
     } catch (error) {
-      console.error("Error deleting menu item:", error);
-      throw new Error(`Failed to delete menu item ${id}`);
+      console.error("Error in deleteMenuItem:", error);
+      throw error;
     }
   }
   async getUserOrdersByMobile(mobileNumber: string): Promise<Order[]> {

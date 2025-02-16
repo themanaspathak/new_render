@@ -79,6 +79,8 @@ export default function MenuManagement() {
   const handleSubmit = async (data: MenuItemFormData) => {
     try {
       setIsSubmitting(true);
+      console.log("Submitting menu item:", data);
+
       const payload = {
         ...data,
         price: Number(data.price),
@@ -87,12 +89,13 @@ export default function MenuManagement() {
       const endpoint = editingItem ? `/api/menu/${editingItem.id}` : "/api/menu";
       const method = editingItem ? "PATCH" : "POST";
 
-      await apiRequest(endpoint, method, payload);
+      const response = await apiRequest(endpoint, method, payload);
+      console.log("Submit response:", response);
 
       // Force a refetch to get fresh data
       await refetch();
 
-      // Also invalidate the query to ensure cache is cleared
+      // Also invalidate the query cache
       await queryClient.invalidateQueries({ 
         queryKey: ["/api/menu"],
         exact: true,
@@ -123,12 +126,16 @@ export default function MenuManagement() {
     if (!confirm("Are you sure you want to delete this item? This action cannot be undone.")) return;
 
     try {
-      await apiRequest(`/api/menu/${id}`, "DELETE");
+      setIsSubmitting(true);
+      console.log("Deleting menu item:", id);
 
-      // Force a refetch after deletion
+      const response = await apiRequest(`/api/menu/${id}`, "DELETE");
+      console.log("Delete response:", response);
+
+      // Force a refetch to get fresh data
       await refetch();
 
-      // Also invalidate the query
+      // Also invalidate the query cache
       await queryClient.invalidateQueries({ 
         queryKey: ["/api/menu"],
         exact: true,
@@ -146,6 +153,8 @@ export default function MenuManagement() {
         description: "Failed to delete menu item. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
