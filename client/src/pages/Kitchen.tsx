@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { MenuItem, Order } from "@shared/schema";
@@ -28,7 +28,6 @@ export default function Kitchen() {
     to: undefined,
   });
 
-  const [availabilityMap, setAvailabilityMap] = useState<Record<number, boolean>>({});
   const [updatingOrders, setUpdatingOrders] = useState<Record<number, string>>({});
 
   const handleStatusUpdate = async (orderId: number, newStatus: 'completed' | 'cancelled') => {
@@ -260,7 +259,7 @@ export default function Kitchen() {
               variant="ghost"
               size="icon"
               onClick={() => setDateRange({ from: undefined, to: undefined })}
-              className="h-9 w-9"
+              className="h-9 w-9 rounded-full"
               title="Clear date filter"
             >
               <FilterX className="h-4 w-4" />
