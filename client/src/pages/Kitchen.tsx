@@ -140,34 +140,34 @@ export default function Kitchen() {
     const isActionable = currentStatus === "in progress";
 
     return (
-      <Card key={order.id} className="mb-3 border shadow-sm">
-        <CardHeader className="bg-muted/50 p-3 sm:p-4">
-          <div className="flex flex-col gap-2">
+      <Card key={order.id} className="mb-4 shadow-sm border">
+        <CardHeader className="bg-muted/50 p-4">
+          <div className="flex flex-col gap-3">
             <div className="flex justify-between items-center">
-              <Badge variant="default" className="text-sm sm:text-base px-2 py-1 bg-primary/90 hover:bg-primary">
+              <Badge variant="default" className="text-sm px-2.5 py-1 bg-primary/90 hover:bg-primary">
                 Order #{order.id}
               </Badge>
               <Badge
                 className={cn(
-                  "text-sm sm:text-base px-2 py-1",
+                  "text-sm px-2.5 py-1",
                   getStatusBadgeStyle(currentStatus)
                 )}
               >
                 {currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1)}
               </Badge>
             </div>
-            <div className="flex flex-col items-start gap-1">
-              <CardTitle className="text-2xl sm:text-3xl font-bold">
+            <div className="flex flex-col gap-2">
+              <CardTitle className="text-2xl font-bold">
                 Table #{order.tableNumber}
               </CardTitle>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm text-muted-foreground space-y-1">
                 <div className="font-medium text-foreground">
                   {order.customerName}
                 </div>
                 <div>+91 {order.mobileNumber}</div>
-                <div className="flex items-center gap-1 mt-1">
-                  <Clock className="h-3 w-3" />
-                  <span className="text-xs" title={format(orderDate, 'PPpp')}>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  <span title={format(orderDate, 'PPpp')}>
                     {format(orderDate, 'hh:mm aa')} - {format(orderDate, 'dd/MM/yyyy')}
                   </span>
                 </div>
@@ -175,17 +175,17 @@ export default function Kitchen() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-3 sm:p-4">
-          <div className="space-y-3">
+        <CardContent className="p-4">
+          <div className="space-y-4">
             {order.items.map((item, index) => {
               const menuItem = menuItems?.find(m => m.id === item.menuItemId);
               return (
                 <div key={index} className="flex justify-between items-start py-2 border-b last:border-0">
-                  <div className="space-y-1">
-                    <p className="font-medium text-sm sm:text-base">{menuItem?.name} × {item.quantity}</p>
-                    <div className="text-xs sm:text-sm text-gray-600">
+                  <div className="space-y-2">
+                    <p className="font-medium">{menuItem?.name} × {item.quantity}</p>
+                    <div className="text-sm text-gray-600">
                       {Object.entries(item.customizations).map(([category, choices]) => (
-                        <div key={category} className="ml-3">
+                        <div key={category} className="ml-4">
                           • {category}: {choices.join(", ")}
                         </div>
                       ))}
@@ -195,30 +195,28 @@ export default function Kitchen() {
               );
             })}
             {order.cookingInstructions && (
-              <div className="mt-3 p-2 sm:p-3 bg-muted/50 rounded-md">
-                <div className="flex items-center gap-2 mb-1">
-                  <Pencil className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600" />
-                  <span className="font-medium text-sm">Special Instructions:</span>
+              <div className="mt-4 p-4 bg-muted/50 rounded-md">
+                <div className="flex items-center gap-2 mb-2">
+                  <Pencil className="h-4 w-4 text-gray-600" />
+                  <span className="font-medium">Special Instructions:</span>
                 </div>
-                <p className="text-xs sm:text-sm text-gray-600">{order.cookingInstructions}</p>
+                <p className="text-sm text-gray-600">{order.cookingInstructions}</p>
               </div>
             )}
           </div>
           {isActionable && (
-            <div className="mt-3 flex gap-2">
+            <div className="mt-4 flex gap-3">
               <Button
                 onClick={() => handleStatusUpdate(order.id, 'cancelled')}
                 variant="destructive"
-                size="sm"
-                className="w-full text-xs sm:text-sm py-2"
+                className="w-full py-2"
               >
                 Can't serve
               </Button>
               <Button
                 onClick={() => handleStatusUpdate(order.id, 'completed')}
                 variant="default"
-                size="sm"
-                className="w-full bg-green-600 hover:bg-green-700 text-xs sm:text-sm py-2"
+                className="w-full bg-green-600 hover:bg-green-700 py-2"
               >
                 Served
               </Button>
@@ -230,24 +228,24 @@ export default function Kitchen() {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6 p-2 sm:p-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <ChefHat className="h-6 w-6 sm:h-8 sm:w-8" />
-          <h1 className="text-2xl sm:text-3xl font-bold">Kitchen</h1>
+    <div className="container mx-auto max-w-[1800px] space-y-6 p-4 md:p-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6">
+        <div className="flex items-center gap-3">
+          <ChefHat className="h-8 w-8" />
+          <h1 className="text-2xl md:text-3xl font-bold">Kitchen Dashboard</h1>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1 sm:gap-2">
-            <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
-            <span className="text-xs sm:text-sm font-medium">Filter:</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-muted-foreground hidden md:block" />
+            <span className="text-sm font-medium">Date Filter:</span>
           </div>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant={dateRange.from ? "default" : "outline"}
                 className={cn(
-                  "h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm justify-start text-left font-normal",
+                  "justify-start text-left font-normal min-w-[200px] md:min-w-[240px]",
                   !dateRange.from && "text-muted-foreground"
                 )}
               >
@@ -261,7 +259,7 @@ export default function Kitchen() {
                     format(dateRange.from, "dd/MM/yyyy")
                   )
                 ) : (
-                  "Select dates"
+                  "Select date range"
                 )}
               </Button>
             </PopoverTrigger>
@@ -281,7 +279,7 @@ export default function Kitchen() {
                   });
                 }}
                 numberOfMonths={1}
-                className="p-2"
+                className="p-3"
               />
             </PopoverContent>
           </Popover>
@@ -291,30 +289,30 @@ export default function Kitchen() {
               variant="ghost"
               size="icon"
               onClick={() => setDateRange({ from: undefined, to: undefined })}
-              className="h-8 w-8 sm:h-9 sm:w-9 rounded-full"
-              title="Clear filter"
+              className="h-9 w-9 rounded-full"
+              title="Clear date filter"
             >
-              <FilterX className="h-3 w-3 sm:h-4 sm:w-4" />
+              <FilterX className="h-4 w-4" />
             </Button>
           )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-6">
-        <div className="lg:col-span-6">
-          <div className="flex items-center gap-2 mb-2 sm:mb-4">
-            <h2 className="text-lg sm:text-2xl font-semibold">Active Orders</h2>
-            <Badge variant="secondary" className="text-xs sm:text-sm">
+      <div className="grid grid-cols-1 lg:grid-cols-10 gap-4 md:gap-6">
+        <div className="lg:col-span-5">
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold">Active Orders</h2>
+            <Badge variant="secondary" className="text-sm">
               {activeOrders.length}
             </Badge>
           </div>
-          <ScrollArea className="h-[60vh] sm:h-[70vh]">
-            <div className="space-y-3 pr-2 sm:pr-4">
+          <ScrollArea className="h-[calc(100vh-220px)]">
+            <div className="space-y-4 pr-4">
               {activeOrders.map((order) => (
                 <OrderCard key={order.id} order={order} />
               ))}
               {activeOrders.length === 0 && (
-                <div className="text-center py-6 sm:py-8 text-gray-500 text-sm sm:text-base">
+                <div className="text-center py-8 text-gray-500">
                   No active orders at the moment
                 </div>
               )}
@@ -323,19 +321,19 @@ export default function Kitchen() {
         </div>
 
         <div className="lg:col-span-3">
-          <div className="flex items-center gap-2 mb-2 sm:mb-4">
-            <h2 className="text-lg sm:text-2xl font-semibold">Completed</h2>
-            <Badge variant="secondary" className="text-xs sm:text-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold">Completed</h2>
+            <Badge variant="secondary" className="text-sm">
               {completedOrders.length}
             </Badge>
           </div>
-          <ScrollArea className="h-[60vh] sm:h-[70vh]">
-            <div className="space-y-3 pr-2 sm:pr-4">
+          <ScrollArea className="h-[calc(100vh-220px)]">
+            <div className="space-y-4 pr-4">
               {completedOrders.map((order) => (
                 <OrderCard key={order.id} order={order} />
               ))}
               {completedOrders.length === 0 && (
-                <div className="text-center py-6 sm:py-8 text-gray-500 text-sm sm:text-base">
+                <div className="text-center py-8 text-gray-500">
                   No completed orders
                 </div>
               )}
@@ -343,20 +341,20 @@ export default function Kitchen() {
           </ScrollArea>
         </div>
 
-        <div className="lg:col-span-3">
-          <div className="flex items-center gap-2 mb-2 sm:mb-4">
-            <h2 className="text-lg sm:text-2xl font-semibold">Cancelled</h2>
-            <Badge variant="secondary" className="text-xs sm:text-sm">
+        <div className="lg:col-span-2">
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="text-xl md:text-2xl font-semibold">Cancelled</h2>
+            <Badge variant="secondary" className="text-sm">
               {cancelledOrders.length}
             </Badge>
           </div>
-          <ScrollArea className="h-[60vh] sm:h-[70vh]">
-            <div className="space-y-3 pr-2 sm:pr-4">
+          <ScrollArea className="h-[calc(100vh-220px)]">
+            <div className="space-y-4 pr-4">
               {cancelledOrders.map((order) => (
                 <OrderCard key={order.id} order={order} />
               ))}
               {cancelledOrders.length === 0 && (
-                <div className="text-center py-6 sm:py-8 text-gray-500 text-sm sm:text-base">
+                <div className="text-center py-8 text-gray-500">
                   No cancelled orders
                 </div>
               )}
