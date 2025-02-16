@@ -31,11 +31,16 @@ export default function Menu() {
     bestSeller: false
   });
   const [selectedCustomizations, setSelectedCustomizations] = useState<Record<string, string[]>>({});
+  const [isCustomizationDialogOpen, setIsCustomizationDialogOpen] = useState(false);
 
-  // Function to get quantity of item in cart
-  const getItemQuantity = (itemId: number) => {
-    const cartItem = state.items.find(item => item.menuItem.id === itemId);
-    return cartItem?.quantity || 0;
+  // Function to get quantity of item in cart with specific customizations
+  const getItemQuantity = (itemId: number, customizations:Record<string, string[]> = {}) => {
+    return state.items.reduce((total, item) => {
+      if (item.menuItem.id === itemId && JSON.stringify(item.customizations) === JSON.stringify(customizations)) {
+        return total + item.quantity;
+      }
+      return total;
+    }, 0);
   };
 
   // Function to handle adding item to cart from customization dialog
@@ -59,9 +64,18 @@ export default function Menu() {
     setSelectedItem(null);
     setQuantity(1);
     setSelectedCustomizations({});
+    setIsCustomizationDialogOpen(false);
   };
 
-  // Function to update quantity
+  // Function to check if an item with exact same customizations exists
+  const findMatchingCartItem = (item: MenuItem, customizations: Record<string, string[]>) => {
+    return state.items.find(cartItem => {
+      if (cartItem.menuItem.id !== item.id) return false;
+      return JSON.stringify(cartItem.customizations) === JSON.stringify(customizations);
+    });
+  };
+
+  // Function to update quantity or show customization dialog
   const updateQuantity = (item: MenuItem, newQuantity: number) => {
     if (newQuantity === 0) {
       dispatch({
@@ -73,11 +87,20 @@ export default function Menu() {
         description: `${item.name} has been removed from your cart.`,
       });
     } else {
-      dispatch({
-        type: "UPDATE_QUANTITY",
-        menuItemId: item.id,
-        quantity: newQuantity,
-      });
+      // If item has customization options, show dialog
+      if (item.customizations?.options?.length > 0) {
+        setSelectedItem(item);
+        setQuantity(newQuantity); // Preserve quantity for customization
+        setSelectedCustomizations({});
+        setIsCustomizationDialogOpen(true);
+      } else {
+        // For items without customization, update directly
+        dispatch({
+          type: "UPDATE_QUANTITY",
+          menuItemId: item.id,
+          quantity: newQuantity,
+        });
+      }
     }
   };
 
@@ -115,7 +138,7 @@ export default function Menu() {
   };
 
   const renderItemButton = (item: MenuItem) => {
-    const quantity = getItemQuantity(item.id);
+    const quantity = getItemQuantity(item.id, {});
 
     // If item is not available, show unavailable button
     if (!item.isAvailable) {
@@ -132,7 +155,16 @@ export default function Menu() {
     if (quantity === 0) {
       return (
         <Button
-          onClick={() => handleItemClick(item)}
+          onClick={() => {
+            if (item.customizations?.options?.length > 0) {
+              setSelectedItem(item);
+              setQuantity(1);
+              setSelectedCustomizations({});
+              setIsCustomizationDialogOpen(true);
+            } else {
+              updateQuantity(item, 1);
+            }
+          }}
           className="bg-green-600 hover:bg-green-700 text-white min-w-[80px]"
         >
           ADD
@@ -369,16 +401,17 @@ export default function Menu() {
           })}
         </div>
 
-        <Dialog open={!!selectedItem} onOpenChange={(open) => {
+        <Dialog open={isCustomizationDialogOpen} onOpenChange={(open) => {
           if (!open) {
             setSelectedItem(null);
             setQuantity(1);
             setSelectedCustomizations({});
+            setIsCustomizationDialogOpen(false);
           }
         }}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-xl">{selectedItem?.name}</DialogTitle>
+              <DialogTitle>{selectedItem?.name}</DialogTitle>
             </DialogHeader>
 
             <div className="space-y-6 py-4">
