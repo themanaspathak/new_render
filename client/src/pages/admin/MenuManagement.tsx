@@ -354,6 +354,7 @@ export default function MenuManagement() {
                             <Switch
                               checked={field.value}
                               onCheckedChange={field.onChange}
+                              className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-gray-200"
                             />
                           </FormControl>
                         </FormItem>
