@@ -47,3 +47,31 @@ menuRouter.post("/:id/availability", async (req, res) => {
     res.status(500).json({ error: "Failed to update menu item availability" });
   }
 });
+
+// Update menu item
+menuRouter.patch("/:id", async (req, res) => {
+  try {
+    const itemId = parseInt(req.params.id);
+    console.log("Updating menu item:", itemId, req.body);
+    const updatedItem = await storage.updateMenuItem(itemId, req.body);
+    console.log("Updated item:", updatedItem);
+    res.json(updatedItem);
+  } catch (error) {
+    console.error("Error updating menu item:", error);
+    res.status(500).json({ error: error instanceof Error ? error.message : "Failed to update menu item" });
+  }
+});
+
+// Delete menu item
+menuRouter.delete("/:id", async (req, res) => {
+  try {
+    const itemId = parseInt(req.params.id);
+    console.log("Deleting menu item:", itemId);
+    await storage.deleteMenuItem(itemId);
+    console.log("Successfully deleted menu item:", itemId);
+    res.json({ message: "Menu item deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting menu item:", error);
+    res.status(500).json({ error: error instanceof Error ? error.message : "Failed to delete menu item" });
+  }
+});

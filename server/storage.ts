@@ -248,14 +248,15 @@ export class DatabaseStorage implements IStorage {
 
       console.log("Found item to delete:", existingItem);
 
-      const result = await db
+      // Execute the delete operation
+      const deletedItems = await db
         .delete(menuItems)
         .where(eq(menuItems.id, id))
         .returning();
 
-      console.log("Deletion result:", result);
+      console.log("Deletion result:", deletedItems);
 
-      if (result.length === 0) {
+      if (deletedItems.length === 0) {
         throw new Error(`Failed to delete menu item ${id}`);
       }
 
