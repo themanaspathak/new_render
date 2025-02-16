@@ -8,14 +8,15 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 
 export default function AdminDashboard() {
-  // Fetch orders
+  // Fetch orders with more frequent refetch
   const { data: orders } = useQuery<Order[]>({
     queryKey: ["/api/orders"],
+    refetchInterval: 5000, // Refetch every 5 seconds
   });
 
   // Calculate statistics
-  const activeOrders = orders?.filter(order => order.status === "pending") || [];
-  const completedOrders = orders?.filter(order => order.status === "completed") || [];
+  const activeOrders = orders?.filter(order => order.status === 'pending') || [];
+  const completedOrders = orders?.filter(order => order.status === 'completed') || [];
 
   const todayOrders = orders?.filter(order => {
     const orderDate = new Date(order.createdAt);

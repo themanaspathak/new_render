@@ -109,7 +109,7 @@ export default function Kitchen() {
     return orderDate >= dateRange.from && orderDate <= dateRange.to;
   }) || [];
 
-  const activeOrders = filteredOrders.filter(order => order.status === 'in progress') || [];
+  const activeOrders = filteredOrders.filter(order => order.status === 'pending') || [];
   const completedOrders = filteredOrders.filter(order => order.status === 'completed') || [];
   const cancelledOrders = filteredOrders.filter(order => order.status === 'cancelled') || [];
 
