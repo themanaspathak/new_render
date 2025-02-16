@@ -23,7 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Trash2, Plus, Pencil, Loader2 } from "lucide-react";
+import { Trash2, Plus, Pencil, Loader2, Settings } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -33,6 +33,19 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AdminLayout } from "@/components/layouts/AdminLayout";
+
+// Define types for customization
+type CustomizationOption = {
+  name: string;
+  choices: string[];
+  maxChoices: number;
+};
+
+const customizationOptionSchema = z.object({
+  name: z.string().min(1, "Option name is required"),
+  choices: z.array(z.string()).min(1, "At least one choice is required"),
+  maxChoices: z.number().min(1, "Maximum choices must be at least 1"),
+});
 
 const menuItemSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -45,6 +58,9 @@ const menuItemSchema = z.object({
   imageUrl: z.string().min(1, "Image URL is required").url("Must be a valid URL"),
   isBestSeller: z.boolean().default(false),
   isAvailable: z.boolean().default(true),
+  customizations: z.object({
+    options: z.array(customizationOptionSchema),
+  }).default({ options: [] }),
 });
 
 type MenuItemFormData = z.infer<typeof menuItemSchema>;
@@ -55,6 +71,7 @@ export default function MenuManagement() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [customizationOptions, setCustomizationOptions] = useState<CustomizationOption[]>([]);
 
   const form = useForm<MenuItemFormData>({
     resolver: zodResolver(menuItemSchema),
@@ -67,6 +84,7 @@ export default function MenuManagement() {
       imageUrl: "",
       isBestSeller: false,
       isAvailable: true,
+      customizations: { options: [] },
     },
   });
 
@@ -84,6 +102,13 @@ export default function MenuManagement() {
       const payload = {
         ...data,
         price: Number(data.price),
+        customizations: {
+          options: customizationOptions.map(opt => ({
+            name: opt.name,
+            choices: opt.choices,
+            maxChoices: opt.maxChoices
+          }))
+        }
       };
 
       const endpoint = editingItem ? `/api/menu/${editingItem.id}` : "/api/menu";
@@ -92,10 +117,7 @@ export default function MenuManagement() {
       const response = await apiRequest(endpoint, method, payload);
       console.log("Submit response:", response);
 
-      // Force a refetch to get fresh data
       await refetch();
-
-      // Also invalidate the query cache
       await queryClient.invalidateQueries({ 
         queryKey: ["/api/menu"],
         exact: true,
@@ -110,6 +132,7 @@ export default function MenuManagement() {
       setIsAddDialogOpen(false);
       setEditingItem(null);
       form.reset();
+      setCustomizationOptions([]);
     } catch (error) {
       console.error("Error submitting menu item:", error);
       toast({
@@ -132,10 +155,7 @@ export default function MenuManagement() {
       const response = await apiRequest(`/api/menu/${id}`, "DELETE");
       console.log("Delete response:", response);
 
-      // Force a refetch to get fresh data
       await refetch();
-
-      // Also invalidate the query cache
       await queryClient.invalidateQueries({ 
         queryKey: ["/api/menu"],
         exact: true,
@@ -160,6 +180,7 @@ export default function MenuManagement() {
 
   const handleEdit = (item: MenuItem) => {
     setEditingItem(item);
+    setCustomizationOptions(item.customizations?.options || []);
     form.reset({
       name: item.name,
       description: item.description,
@@ -169,8 +190,31 @@ export default function MenuManagement() {
       imageUrl: item.imageUrl,
       isBestSeller: item.isBestSeller,
       isAvailable: item.isAvailable,
+      customizations: item.customizations || { options: [] },
     });
     setIsAddDialogOpen(true);
+  };
+
+  const addCustomizationOption = () => {
+    setCustomizationOptions([
+      ...customizationOptions,
+      { name: "", choices: [""], maxChoices: 1 }
+    ]);
+  };
+
+  const removeCustomizationOption = (index: number) => {
+    setCustomizationOptions(
+      customizationOptions.filter((_, i) => i !== index)
+    );
+  };
+
+  const updateCustomizationOption = (index: number, field: keyof CustomizationOption, value: any) => {
+    const updatedOptions = [...customizationOptions];
+    updatedOptions[index] = {
+      ...updatedOptions[index],
+      [field]: value
+    };
+    setCustomizationOptions(updatedOptions);
   };
 
   if (error) {
@@ -188,13 +232,14 @@ export default function MenuManagement() {
                 onClick={() => {
                   setEditingItem(null);
                   form.reset();
+                  setCustomizationOptions([]);
                 }}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add New Item
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="max-w-3xl">
               <DialogHeader>
                 <DialogTitle>
                   {editingItem ? "Edit Menu Item" : "Add New Menu Item"}
@@ -205,117 +250,220 @@ export default function MenuManagement() {
                   onSubmit={form.handleSubmit(handleSubmit)}
                   className="space-y-4"
                 >
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Enter item name" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Enter item description" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="price"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Price (₹)</FormLabel>
-                        <FormControl>
-                          <Input {...field} type="number" step="0.01" min="0" placeholder="Enter price" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="category"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Category</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Enter category" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="imageUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Image URL</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Enter image URL" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="isVegetarian"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center gap-2">
-                        <FormLabel>Vegetarian</FormLabel>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            className="data-[state=checked]:!bg-green-500 data-[state=unchecked]:!bg-red-500"
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="isBestSeller"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center gap-2">
-                        <FormLabel>Best Seller</FormLabel>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="isAvailable"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center gap-2">
-                        <FormLabel>Available</FormLabel>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter item name" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Description</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter item description" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="price"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Price (₹)</FormLabel>
+                          <FormControl>
+                            <Input {...field} type="number" step="0.01" min="0" placeholder="Enter price" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="category"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Category</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter category" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="imageUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Image URL</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter image URL" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="flex flex-wrap gap-4">
+                    <FormField
+                      control={form.control}
+                      name="isVegetarian"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center gap-2">
+                          <FormLabel>Vegetarian</FormLabel>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              className="data-[state=checked]:!bg-green-500 data-[state=unchecked]:!bg-red-500"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="isBestSeller"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center gap-2">
+                          <FormLabel>Best Seller</FormLabel>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="isAvailable"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center gap-2">
+                          <FormLabel>Available</FormLabel>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Customization Options Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">Customization Options</h3>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={addCustomizationOption}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Option
+                      </Button>
+                    </div>
+
+                    {customizationOptions.map((option, optionIndex) => (
+                      <Card key={optionIndex}>
+                        <CardContent className="p-4 space-y-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1 mr-4">
+                              <Input
+                                placeholder="Option name (e.g., Spice Level)"
+                                value={option.name}
+                                onChange={(e) =>
+                                  updateCustomizationOption(optionIndex, "name", e.target.value)
+                                }
+                              />
+                            </div>
+                            <Input
+                              type="number"
+                              min="1"
+                              className="w-24 mr-4"
+                              value={option.maxChoices}
+                              onChange={(e) =>
+                                updateCustomizationOption(
+                                  optionIndex,
+                                  "maxChoices",
+                                  parseInt(e.target.value)
+                                )
+                              }
+                              placeholder="Max choices"
+                            />
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeCustomizationOption(optionIndex)}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+
+                          <div className="space-y-2">
+                            {option.choices.map((choice, choiceIndex) => (
+                              <div key={choiceIndex} className="flex gap-2">
+                                <Input
+                                  placeholder={`Choice ${choiceIndex + 1}`}
+                                  value={choice}
+                                  onChange={(e) => {
+                                    const newChoices = [...option.choices];
+                                    newChoices[choiceIndex] = e.target.value;
+                                    updateCustomizationOption(optionIndex, "choices", newChoices);
+                                  }}
+                                />
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => {
+                                    const newChoices = option.choices.filter(
+                                      (_, i) => i !== choiceIndex
+                                    );
+                                    updateCustomizationOption(optionIndex, "choices", newChoices);
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ))}
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const newChoices = [...option.choices, ""];
+                                updateCustomizationOption(optionIndex, "choices", newChoices);
+                              }}
+                            >
+                              <Plus className="h-4 w-4 mr-2" />
+                              Add Choice
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+
                   <div className="flex justify-end gap-2">
                     <Button
                       type="button"
@@ -324,6 +472,7 @@ export default function MenuManagement() {
                         setIsAddDialogOpen(false);
                         setEditingItem(null);
                         form.reset();
+                        setCustomizationOptions([]);
                       }}
                     >
                       Cancel
@@ -393,6 +542,12 @@ export default function MenuManagement() {
                         <span className="text-sm text-gray-500">
                           {item.category}
                         </span>
+                        {item.customizations?.options && item.customizations.options.length > 0 && (
+                          <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded flex items-center gap-1">
+                            <Settings className="h-3 w-3" />
+                            {item.customizations.options.length} Customization{item.customizations.options.length !== 1 && 's'}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
