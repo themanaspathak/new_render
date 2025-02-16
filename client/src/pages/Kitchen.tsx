@@ -458,7 +458,7 @@ export default function Kitchen() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-4 md:p-6 overflow-auto w-full">
+        <div className="flex-1 p-4 pt-20 md:p-6 md:pt-6 overflow-auto w-full">
           <MainContent />
         </div>
       </div>
