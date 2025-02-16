@@ -19,16 +19,21 @@ export interface IStorage {
   updateOrderStatus(orderId: number, status: 'pending' | 'completed' | 'cancelled' | 'in progress'): Promise<Order>;
   updateMenuItemAvailability(itemId: number, isAvailable: boolean): Promise<MenuItem>;
   getUserOrdersByMobile(mobileNumber: string): Promise<Order[]>;
+  updateMenuItem(id: number, menuItem: Partial<MenuItem>): Promise<MenuItem>;
+  deleteMenuItem(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
   async getMenuItems(): Promise<MenuItem[]> {
     try {
+      console.log("Fetching all menu items");
       const items = await db.select().from(menuItems);
+      console.log("Fetched items:", items);
       if (items.length === 0) {
         const insertedItems = await db.insert(menuItems)
           .values(MOCK_MENU_ITEMS)
           .returning();
+        console.log("Inserted mock items:", insertedItems);
         return insertedItems;
       }
       return items;
@@ -140,7 +145,7 @@ export class DatabaseStorage implements IStorage {
       }
 
       // If the new status is cancelled, also update the payment status to failed
-      const updateData = status === 'cancelled' 
+      const updateData = status === 'cancelled'
         ? { status, paymentStatus: 'failed' as const }
         : { status };
 
@@ -187,6 +192,42 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error("Error updating menu item availability:", error);
       throw new Error(`Failed to update availability for item ${itemId}`);
+    }
+  }
+  async updateMenuItem(id: number, menuItem: Partial<MenuItem>): Promise<MenuItem> {
+    try {
+      console.log("Updating menu item:", id, menuItem);
+      const [updatedItem] = await db
+        .update(menuItems)
+        .set(menuItem)
+        .where(eq(menuItems.id, id))
+        .returning();
+
+      if (!updatedItem) {
+        throw new Error(`Menu item with ID ${id} not found`);
+      }
+
+      return updatedItem;
+    } catch (error) {
+      console.error("Error updating menu item:", error);
+      throw new Error(`Failed to update menu item ${id}`);
+    }
+  }
+
+  async deleteMenuItem(id: number): Promise<void> {
+    try {
+      console.log("Deleting menu item:", id);
+      const result = await db
+        .delete(menuItems)
+        .where(eq(menuItems.id, id))
+        .returning();
+
+      if (result.length === 0) {
+        throw new Error(`Menu item with ID ${id} not found`);
+      }
+    } catch (error) {
+      console.error("Error deleting menu item:", error);
+      throw new Error(`Failed to delete menu item ${id}`);
     }
   }
   async getUserOrdersByMobile(mobileNumber: string): Promise<Order[]> {
