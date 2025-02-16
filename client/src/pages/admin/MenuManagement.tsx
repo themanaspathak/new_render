@@ -96,7 +96,7 @@ export default function MenuManagement() {
       await refetch();
 
       // Also invalidate the query cache
-      await queryClient.invalidateQueries({ 
+      await queryClient.invalidateQueries({
         queryKey: ["/api/menu"],
         exact: true,
         refetchType: 'all'
@@ -136,7 +136,7 @@ export default function MenuManagement() {
       await refetch();
 
       // Also invalidate the query cache
-      await queryClient.invalidateQueries({ 
+      await queryClient.invalidateQueries({
         queryKey: ["/api/menu"],
         exact: true,
         refetchType: 'all'
@@ -194,148 +194,153 @@ export default function MenuManagement() {
                 Add New Item
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px] max-h-[90vh]">
               <DialogHeader>
                 <DialogTitle>
                   {editingItem ? "Edit Menu Item" : "Add New Menu Item"}
                 </DialogTitle>
               </DialogHeader>
               <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(handleSubmit)}
-                  className="space-y-4"
-                >
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Enter item name" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Enter item description" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="price"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Price (₹)</FormLabel>
-                        <FormControl>
-                          <Input {...field} type="number" step="0.01" min="0" placeholder="Enter price" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="category"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Category</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Enter category" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="imageUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Image URL</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Enter image URL" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="isVegetarian"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center gap-2">
-                        <FormLabel>Vegetarian</FormLabel>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            className="data-[state=checked]:!bg-green-500 data-[state=unchecked]:!bg-red-500"
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="isBestSeller"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center gap-2">
-                        <FormLabel>Best Seller</FormLabel>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="isAvailable"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center gap-2">
-                        <FormLabel>Available</FormLabel>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        setIsAddDialogOpen(false);
-                        setEditingItem(null);
-                        form.reset();
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button type="submit" disabled={isSubmitting}>
-                      {isSubmitting && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <ScrollArea className="max-h-[calc(90vh-120px)] px-1">
+                  <form
+                    onSubmit={form.handleSubmit(handleSubmit)}
+                    className="space-y-4 px-3 pb-4"
+                  >
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter item name" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
                       )}
-                      {editingItem ? "Update" : "Add"} Item
-                    </Button>
-                  </div>
-                </form>
+                    />
+                    <FormField
+                      control={form.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Description</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter item description" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="price"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Price (₹)</FormLabel>
+                          <FormControl>
+                            <Input {...field} type="number" step="0.01" min="0" placeholder="Enter price" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="category"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Category</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter category" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="imageUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Image URL</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter image URL" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="isVegetarian"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center gap-2">
+                          <FormLabel>Vegetarian</FormLabel>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              className="data-[state=checked]:!bg-green-500 data-[state=unchecked]:!bg-red-500"
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="isBestSeller"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center gap-2">
+                          <FormLabel>Best Seller</FormLabel>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="isAvailable"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center gap-2">
+                          <FormLabel>Available</FormLabel>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </form>
+                </ScrollArea>
+                <div className="flex justify-end gap-2 pt-4 px-3 border-t mt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setIsAddDialogOpen(false);
+                      setEditingItem(null);
+                      form.reset();
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={form.handleSubmit(handleSubmit)}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    {editingItem ? "Update" : "Add"} Item
+                  </Button>
+                </div>
               </Form>
             </DialogContent>
           </Dialog>
