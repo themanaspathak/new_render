@@ -55,6 +55,7 @@ const menuItemSchema = z.object({
   }),
   isVegetarian: z.boolean().default(false),
   category: z.string().min(1, "Category is required"),
+  subcategory: z.string().optional(), //Added subcategory field
   imageUrl: z.string().min(1, "Image URL is required").url("Must be a valid URL"),
   isBestSeller: z.boolean().default(false),
   isAvailable: z.boolean().default(true),
@@ -84,6 +85,7 @@ export default function MenuManagement() {
       price: "",
       isVegetarian: false,
       category: "",
+      subcategory: "",
       imageUrl: "",
       isBestSeller: false,
       isAvailable: true,
@@ -183,6 +185,7 @@ export default function MenuManagement() {
       price: item.price.toString(),
       isVegetarian: item.isVegetarian,
       category: item.category,
+      subcategory: item.subcategory, //Added subcategory
       imageUrl: item.imageUrl,
       isBestSeller: item.isBestSeller,
       isAvailable: item.isAvailable,
@@ -225,14 +228,17 @@ export default function MenuManagement() {
     form.setValue("customizations.options", updatedOptions);
   };
 
-  // Group menu items by category
   const categorizedItems = useMemo(() => {
     if (!menuItems) return {};
-    return menuItems.reduce<Record<string, MenuItem[]>>((acc, item) => {
+    return menuItems.reduce<Record<string, Record<string, MenuItem[]>>>((acc, item) => {
       if (!acc[item.category]) {
-        acc[item.category] = [];
+        acc[item.category] = {
+          'Vegetarian': [],
+          'Non-vegetarian': []
+        };
       }
-      acc[item.category].push(item);
+      const subcategory = item.isVegetarian ? 'Vegetarian' : 'Non-vegetarian';
+      acc[item.category][subcategory].push(item);
       return acc;
     }, {});
   }, [menuItems]);
@@ -244,7 +250,6 @@ export default function MenuManagement() {
       setIsSubmitting(true);
       const itemsInCategory = menuItems?.filter(item => item.category === oldCategory) || [];
 
-      // Update all items in the category
       for (const item of itemsInCategory) {
         await apiRequest(`/api/menu/${item.id}`, "PATCH", {
           ...item,
@@ -372,6 +377,19 @@ export default function MenuManagement() {
                     />
                     <FormField
                       control={form.control}
+                      name="subcategory" // Added subcategory field
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Subcategory</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Enter subcategory" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
                       name="imageUrl"
                       render={({ field }) => (
                         <FormItem>
@@ -431,7 +449,6 @@ export default function MenuManagement() {
                       )}
                     />
 
-                    {/* Customization Options Section */}
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <h3 className="text-lg font-semibold">Customization Options</h3>
@@ -549,7 +566,7 @@ export default function MenuManagement() {
                   >
                     Cancel
                   </Button>
-                  <Button 
+                  <Button
                     onClick={form.handleSubmit(handleSubmit)}
                     disabled={isSubmitting}
                   >
@@ -585,7 +602,7 @@ export default function MenuManagement() {
                 </CardContent>
               </Card>
             ) : (
-              Object.entries(categorizedItems).map(([category, items]) => (
+              Object.entries(categorizedItems).map(([category, subcategories]) => (
                 <Collapsible
                   key={category}
                   defaultOpen={true}
@@ -645,71 +662,85 @@ export default function MenuManagement() {
                         )}
                       </CollapsibleTrigger>
                       <Badge variant="secondary" className="text-sm px-2.5">
-                        {items.length} items
+                        {Object.values(subcategories).reduce((sum, items) => sum + items.length, 0)} items
                       </Badge>
                     </div>
                   </div>
 
                   <CollapsibleContent>
                     <div className="space-y-4 mt-4">
-                      {items.map((item) => (
-                        <Card key={item.id}>
-                          <CardContent className="flex items-center justify-between p-4">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <div
-                                  className={`w-3 h-3 rounded-full ${
-                                    item.isVegetarian ? "bg-green-500" : "bg-red-500"
-                                  }`}
-                                  title={item.isVegetarian ? "Vegetarian" : "Non-vegetarian"}
-                                />
-                                <h3 className="font-medium">{item.name}</h3>
-                                {!item.isAvailable && (
-                                  <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded">
-                                    Unavailable
-                                  </span>
-                                )}
-                                {item.isBestSeller && (
-                                  <span className="text-xs bg-yellow-100 text-yellow-600 px-2 py-0.5 rounded">
-                                    Best Seller
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-sm text-gray-600 mt-1">
-                                {item.description}
-                              </p>
-                              <div className="flex items-center gap-4 mt-2">
-                                <span className="text-sm font-medium">₹{item.price}</span>
-                                <span className="text-sm text-gray-500">
-                                  {item.category}
-                                </span>
-                              </div>
-                              {item.customizations?.options?.length > 0 && (
-                                <div className="mt-2">
-                                  <p className="text-sm text-gray-500">
-                                    Customization Options: {item.customizations.options.map(opt => opt.name).join(", ")}
-                                  </p>
-                                </div>
-                              )}
+                      {Object.entries(subcategories).map(([subcategory, items]) => (
+                        items.length > 0 && (
+                          <div key={`${category}-${subcategory}`} className="space-y-4">
+                            <div className="flex items-center gap-2 pl-4">
+                              <div className={`w-2 h-2 rounded-full ${
+                                subcategory === 'Vegetarian' ? 'bg-green-500' : 'bg-red-500'
+                              }`} />
+                              <h3 className="text-sm font-medium text-muted-foreground">
+                                {subcategory} ({items.length})
+                              </h3>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleEdit(item)}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleDelete(item.id)}
-                              >
-                                <Trash2 className="h-4 w-4 text-red-500" />
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
+                            {items.map((item) => (
+                              <Card key={item.id}>
+                                <CardContent className="flex items-center justify-between p-4">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2">
+                                      <div
+                                        className={`w-3 h-3 rounded-full ${
+                                          item.isVegetarian ? "bg-green-500" : "bg-red-500"
+                                        }`}
+                                        title={item.isVegetarian ? "Vegetarian" : "Non-vegetarian"}
+                                      />
+                                      <h3 className="font-medium">{item.name}</h3>
+                                      {!item.isAvailable && (
+                                        <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded">
+                                          Unavailable
+                                        </span>
+                                      )}
+                                      {item.isBestSeller && (
+                                        <span className="text-xs bg-yellow-100 text-yellow-600 px-2 py-0.5 rounded">
+                                          Best Seller
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-sm text-gray-600 mt-1">
+                                      {item.description}
+                                    </p>
+                                    <div className="flex items-center gap-4 mt-2">
+                                      <span className="text-sm font-medium">₹{item.price}</span>
+                                      <span className="text-sm text-gray-500">
+                                        {item.category}
+                                      </span>
+                                    </div>
+                                    {item.customizations?.options?.length > 0 && (
+                                      <div className="mt-2">
+                                        <p className="text-sm text-gray-500">
+                                          Customization Options: {item.customizations.options.map(opt => opt.name).join(", ")}
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleEdit(item)}
+                                    >
+                                      <Pencil className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleDelete(item.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-red-500" />
+                                    </Button>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        )
                       ))}
                     </div>
                   </CollapsibleContent>
