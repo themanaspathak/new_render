@@ -257,74 +257,6 @@ export default function Kitchen() {
             <ChefHat className="h-8 w-8 lg:h-10 lg:w-10" />
             <h1 className="text-2xl lg:text-4xl font-bold">Kitchen Dashboard</h1>
           </div>
-
-          <div className="flex items-center gap-4">
-            <div className="hidden lg:flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-muted-foreground" />
-              <span className="text-sm font-medium">Date Filter:</span>
-            </div>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={dateRange.from ? "default" : "outline"}
-                  className={cn(
-                    "justify-start text-left font-normal min-w-[200px] lg:min-w-[280px]",
-                    !dateRange.from && "text-muted-foreground"
-                  )}
-                >
-                  {dateRange.from ? (
-                    dateRange.to ? (
-                      <>
-                        {format(dateRange.from, "dd/MM/yyyy")} -{" "}
-                        {format(dateRange.to, "dd/MM/yyyy")}
-                      </>
-                    ) : (
-                      format(dateRange.from, "dd/MM/yyyy")
-                    )
-                  ) : (
-                    "Select date range"
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="end">
-                <div className="p-3 border-b">
-                  <h3 className="font-medium">Filter Orders by Date</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Select a date range to view orders
-                  </p>
-                </div>
-                <CalendarComponent
-                  initialFocus
-                  mode="range"
-                  defaultMonth={dateRange.from}
-                  selected={{
-                    from: dateRange.from,
-                    to: dateRange.to,
-                  }}
-                  onSelect={(range) => {
-                    setDateRange({
-                      from: range?.from,
-                      to: range?.to,
-                    });
-                  }}
-                  numberOfMonths={2}
-                  className="p-3"
-                />
-              </PopoverContent>
-            </Popover>
-
-            {(dateRange.from || dateRange.to) && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setDateRange({ from: undefined, to: undefined })}
-                className="h-10 w-10 rounded-full"
-                title="Clear date filter"
-              >
-                <FilterX className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8">
@@ -349,24 +281,97 @@ export default function Kitchen() {
           </div>
 
           <div className="lg:col-span-6">
-            <div className="flex items-center gap-3 mb-4">
-              <h2 className="text-xl lg:text-2xl font-semibold">Active Orders</h2>
-              <Badge variant="secondary" className="text-sm px-2.5">
-                {activeOrders.length}
-              </Badge>
-            </div>
-            <ScrollArea className="h-[calc(100vh-200px)] lg:h-[calc(100vh-180px)] rounded-lg border bg-card">
-              <div className="space-y-4 p-4">
-                {activeOrders.map((order) => (
-                  <OrderCard key={order.id} order={order} />
-                ))}
-                {activeOrders.length === 0 && (
-                  <div className="text-center py-12 text-muted-foreground">
-                    No active orders at the moment
+            <div className="flex flex-col gap-4 mb-6">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl lg:text-2xl font-semibold">Active Orders</h2>
+                  <Badge variant="secondary" className="text-sm px-2.5">
+                    {activeOrders.length}
+                  </Badge>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="hidden lg:flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-muted-foreground" />
+                    <span className="text-sm font-medium">Date Filter:</span>
                   </div>
-                )}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={dateRange.from ? "default" : "outline"}
+                        className={cn(
+                          "justify-start text-left font-normal min-w-[200px] lg:min-w-[280px]",
+                          !dateRange.from && "text-muted-foreground"
+                        )}
+                      >
+                        {dateRange.from ? (
+                          dateRange.to ? (
+                            <>
+                              {format(dateRange.from, "dd/MM/yyyy")} -{" "}
+                              {format(dateRange.to, "dd/MM/yyyy")}
+                            </>
+                          ) : (
+                            format(dateRange.from, "dd/MM/yyyy")
+                          )
+                        ) : (
+                          "Select date range"
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end">
+                      <div className="p-3 border-b">
+                        <h3 className="font-medium">Filter Orders by Date</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Select a date range to view orders
+                        </p>
+                      </div>
+                      <CalendarComponent
+                        initialFocus
+                        mode="range"
+                        defaultMonth={dateRange.from}
+                        selected={{
+                          from: dateRange.from,
+                          to: dateRange.to,
+                        }}
+                        onSelect={(range) => {
+                          setDateRange({
+                            from: range?.from,
+                            to: range?.to,
+                          });
+                        }}
+                        numberOfMonths={2}
+                        className="p-3"
+                      />
+                    </PopoverContent>
+                  </Popover>
+
+                  {(dateRange.from || dateRange.to) && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setDateRange({ from: undefined, to: undefined })}
+                      className="h-10 w-10 rounded-full"
+                      title="Clear date filter"
+                    >
+                      <FilterX className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
-            </ScrollArea>
+              <ScrollArea className="h-[calc(100vh-200px)] lg:h-[calc(100vh-180px)] rounded-lg border bg-card">
+                <div className="space-y-4 p-4">
+                  {activeOrders.map((order) => (
+                    <OrderCard key={order.id} order={order} />
+                  ))}
+                  {activeOrders.length === 0 && (
+                    <div className="text-center py-12 text-muted-foreground">
+                      No active orders at the moment
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+
           </div>
 
           <div className="lg:col-span-4">
