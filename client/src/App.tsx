@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -16,12 +16,14 @@ import MobileVerification from "@/pages/MobileVerification";
 import OrderHistory from "@/pages/OrderHistory";
 import { CartProvider } from "@/contexts/CartContext";
 import NavBar from "@/components/NavBar";
-import { ProtectedAdminRoute } from "@/lib/protected-admin-route";
 
 function Router() {
+  const [location] = useLocation();
+  const showNavBar = !['/kitchen'].includes(location);
+
   return (
     <>
-      <NavBar />
+      {showNavBar && <NavBar />}
       <Switch>
         {/* Customer Routes */}
         <Route path="/" component={Menu} />
@@ -34,9 +36,9 @@ function Router() {
 
         {/* Admin Routes */}
         <Route path="/admin/login" component={AdminLogin} />
-        <ProtectedAdminRoute path="/admin" component={AdminDashboard} />
-        <ProtectedAdminRoute path="/admin/menu" component={MenuManagement} />
-        <ProtectedAdminRoute path="/admin/order-payment" component={OrderPayment} />
+        <Route path="/admin" component={AdminDashboard} />
+        <Route path="/admin/menu" component={MenuManagement} />
+        <Route path="/admin/order-payment" component={OrderPayment} />
 
         {/* 404 Route */}
         <Route component={NotFound} />
