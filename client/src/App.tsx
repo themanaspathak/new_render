@@ -7,6 +7,7 @@ import Menu from "@/pages/Menu";
 import Cart from "@/pages/Cart";
 import Checkout from "@/pages/Checkout";
 import AdminLogin from "@/pages/admin/login";
+import AdminDashboard from "@/pages/admin/Dashboard";
 import Kitchen from "@/pages/Kitchen";
 import MenuManagement from "@/pages/admin/MenuManagement";
 import OrderPayment from "@/pages/admin/OrderPayment";
@@ -35,6 +36,7 @@ function Router() {
 
         {/* Admin Routes */}
         <Route path="/admin/login" component={AdminLogin} />
+        <Route path="/admin" component={AdminDashboard} />
         <Route path="/admin/menu" component={MenuManagement} />
         <Route path="/admin/order-payment" component={OrderPayment} />
 
