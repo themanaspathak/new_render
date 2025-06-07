@@ -1,8 +1,7 @@
 import request from 'request';
 
-if (!process.env.MESSAGE_CENTRAL_AUTH_TOKEN) {
-  throw new Error("MESSAGE_CENTRAL_AUTH_TOKEN environment variable must be set");
-}
+const AUTH_TOKEN = process.env.MESSAGE_CENTRAL_AUTH_TOKEN;
+const IS_DEVELOPMENT = !AUTH_TOKEN;
 
 // Store verification IDs temporarily (in production, use Redis or similar)
 const verificationStore = new Map<string, { verificationId: string; expires: Date }>();
@@ -14,11 +13,24 @@ export async function sendOTP(mobileNumber: string): Promise<{
   try {
     console.log(`📤 Attempting to send OTP to ${mobileNumber}`);
 
+    // In development mode without auth token, simulate successful OTP send
+    if (IS_DEVELOPMENT) {
+      console.log('🔧 Development mode: Simulating OTP send');
+      verificationStore.set(mobileNumber, {
+        verificationId: 'dev-verification-id',
+        expires: new Date(Date.now() + 5 * 60 * 1000) // 5 minutes expiry
+      });
+      return {
+        success: true,
+        message: "OTP sent successfully (Development mode)"
+      };
+    }
+
     const options = {
       method: 'POST',
       url: `https://cpaas.messagecentral.com/verification/v3/send?countryCode=91&customerId=C-0BD79595E45C4DB&flowType=SMS&mobileNumber=${mobileNumber}`,
       headers: {
-        'authToken': process.env.MESSAGE_CENTRAL_AUTH_TOKEN
+        'authToken': AUTH_TOKEN
       }
     };
 
@@ -113,11 +125,22 @@ export async function verifyOTP(mobileNumber: string, otp: string): Promise<{
       };
     }
 
+    // In development mode, accept any 6-digit OTP
+    if (IS_DEVELOPMENT) {
+      console.log('🔧 Development mode: Simulating OTP verification');
+      verificationStore.delete(mobileNumber);
+      const isValid = /^\d{6}$/.test(otp);
+      return {
+        success: isValid,
+        message: isValid ? "OTP verified successfully (Development mode)" : "Invalid OTP format. Please enter 6 digits.",
+      };
+    }
+
     const options = {
       method: 'GET',
       url: `https://cpaas.messagecentral.com/verification/v3/validateOtp?countryCode=91&mobileNumber=${mobileNumber}&verificationId=${verificationId}&customerId=C-0BD79595E45C4DB&code=${otp}`,
       headers: {
-        'authToken': process.env.MESSAGE_CENTRAL_AUTH_TOKEN
+        'authToken': AUTH_TOKEN
       }
     };
 
