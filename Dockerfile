@@ -5,8 +5,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install all dependencies (including dev dependencies for build)
+RUN npm ci
 
 # Copy source code
 COPY . .
@@ -14,8 +14,11 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Run database migrations
+# Generate database migrations
 RUN npx drizzle-kit generate
+
+# Remove dev dependencies after build
+RUN npm prune --production
 
 EXPOSE 5000
 
