@@ -43,6 +43,12 @@ app.use((req, res, next) => {
 
 (async () => {
   try {
+    // Run database migrations in production
+    if (process.env.NODE_ENV === 'production') {
+      const { runMigrations } = await import('./migrate.js');
+      await runMigrations();
+    }
+
     // Create default admin user
     await ensureAdminUser("admin@restaurant.com", "admin123");
 
